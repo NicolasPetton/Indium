@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;;
+;; Helper functions for inserting content in jade buffers.
 
 ;;; Code:
 
