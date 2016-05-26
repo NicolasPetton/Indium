@@ -34,10 +34,14 @@
 (declare jade-backend-get-properties)
 
 (defun jade-inspector-inspect (reference)
-  (jade-backend-get-properties (map-elt reference 'objectid)
-                               (lambda (properties)
-                                 (jade-inspector-push-to-history reference)
-                                 (jade-inspector-render-properties properties reference))))
+  "Open an inspector on the remote object REFERENCE."
+  (let ((objectid (map-elt reference 'objectid)))
+    (if objectid
+        (jade-backend-get-properties objectid
+                                     (lambda (properties)
+                                       (jade-inspector-push-to-history reference)
+                                       (jade-inspector-render-properties properties reference)))
+      (message "Cannot inspect %S" (map-elt reference 'description)))))
 
 (defun jade-inspector-render-properties (properties reference)
   (let ((buf (jade-inspector-get-buffer-create))
@@ -103,8 +107,8 @@
   (get-buffer (jade-inspector-buffer-name)))
 
 (defun jade-inspector-get-buffer-create ()
-  "Create an inspector buffer for the current ws unless one
-exists, and return it."
+  "Return an inspector buffer for the current connection.
+If no buffer exists, create one."
   (let ((buf (jade-inspector-get-buffer)))
     (unless buf
       (setq buf (get-buffer-create (jade-inspector-buffer-name)))
@@ -112,11 +116,13 @@ exists, and return it."
     buf))
 
 (defun jade-inspector-setup-buffer (buffer connection)
+  "Setup the inspector BUFFER for CONNECTION."
   (with-current-buffer buffer
     (jade-inspector-mode)
     (setq-local jade-connection connection)))
 
 (defun jade-inspector-buffer-name ()
+  "Return the inspector buffer name for the current connection."
   (concat "*JS Inspector " (map-elt jade-connection 'url) "*"))
 
 (defvar jade-inspector-mode-map

@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;;
+;; REPL interactions with a browser connection.
 
 ;;; Code:
 
@@ -134,7 +134,20 @@ If URL is nil, use the current connection."
     (progn
       (unless (jade-repl--in-input-area-p)
         (error "No input at point"))
-      (jade-repl-evaluate (buffer-substring-no-properties jade-repl-input-start-marker (point-max))))))
+      (jade-repl-evaluate (jade-repl--input-content)))))
+
+(defun jade-repl-inspect ()
+  "Inspect the result of the evaluation of the input at point."
+  (interactive)
+  (jade-backend-evaluate (jade-repl--input-content)
+                         (lambda (result error)
+                           (when error
+                             (jade-repl-emit-value result error))
+                           (jade-inspector-inspect result))))
+
+(defun jade-repl--input-content ()
+  "Return the content of the current input."
+  (buffer-substring-no-properties jade-repl-input-start-marker (point-max)))
 
 (defun jade-repl--in-input-area-p ()
   "Return t if in input area."
@@ -203,6 +216,24 @@ LEVEL is a string representing the logging level, it can be
   (interactive)
   (jade-repl--history-replace 'backward))
 
+(defun jade-repl--history-replace (direction)
+  "Replace the current input with one the next one in DIRECTION.
+DIRECTION is `forward' or `backard' (in the history list)."
+  (let* ((history (seq-reverse jade-repl-history))
+         (search-in-progress (or (eq last-command 'jade-repl-previous-input)
+                                 (eq last-command 'jade-repl-next-input)))
+         (step (pcase direction
+                 (`forward 1)
+                 (`backward -1)))
+         (pos (or (and search-in-progress (+ jade-repl-history-position step))
+                  (1- (seq-length history)))))
+    (unless (> pos 0)
+      (user-error "Beginning of history"))
+    (unless (< pos (seq-length history))
+      (user-error "End of history"))
+    (setq jade-repl-history-position pos)
+    (jade-repl--replace-input (seq-elt history pos))))
+
 (defun jade-repl--replace-input (input)
   "Replace the current input with INPUT."
   (goto-char (point-max))
@@ -254,6 +285,7 @@ Evaluate CALLBACK with the completion candidates."
     (define-key map "\C-m"#'jade-repl-return)
     (define-key map [mouse-1] #'jade-follow-link)
     (define-key map (kbd "C-<return>") #'newline)
+    (define-key map (kbd "C-c M-i") #'jade-repl-inspect)
     (define-key map (kbd "C-c C-o") #'jade-repl-clear-output)
     (define-key map (kbd "C-c C-q") #'jade-quit)
     (define-key map (kbd "M-p") #'jade-repl-previous-input)
