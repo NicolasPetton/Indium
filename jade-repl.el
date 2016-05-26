@@ -55,7 +55,8 @@
          (set-marker ,marker ,pos)))))
 
 (defun jade-repl-get-buffer-create (connection)
-  "Create a REPL buffer unless one exists, and return it."
+  "Return a REPL buffer for CONNECTION.
+If no buffer exists, create one."
   (let* ((ws (map-elt connection 'ws))
          (url (map-elt connection 'url))
          (buf (get-buffer (jade-repl-buffer-name url))))
@@ -69,10 +70,12 @@
   (get-buffer (jade-repl-buffer-name)))
 
 (defun jade-repl-buffer-name (&optional url)
+  "Return the name of the REPL buffer for URL.
+If URL is nil, use the current connection."
   (concat "*JS REPL " (or url (map-elt jade-connection 'url)) "*"))
 
 (defun jade-repl-setup-buffer (buffer connection)
-  "Setup the REPL BUFFER."
+  "Setup the REPL BUFFER for CONNECTION."
   (with-current-buffer buffer
     (jade-repl-mode)
     (setq-local jade-connection connection)
@@ -86,6 +89,7 @@
            (map-elt jade-connection 'url))))
 
 (defun jade-repl-setup-markers ()
+  "Setup the initial markers for the current REPL buffer."
   (dolist (marker '(jade-repl-prompt-start-marker
                     jade-repl-output-start-marker
                     jade-repl-output-end-marker
@@ -123,6 +127,7 @@
         (set-marker jade-repl-prompt-start-marker beg)))))
 
 (defun jade-repl-return ()
+  "Depending on the position of point, jump to a reference of evaluate the input."
   (interactive)
   (if (get-text-property (point) 'jade-reference)
       (jade-follow-link)
@@ -130,6 +135,10 @@
       (unless (jade-repl--in-input-area-p)
         (error "No input at point"))
       (jade-repl-evaluate (buffer-substring-no-properties jade-repl-input-start-marker (point-max))))))
+
+(defun jade-repl--in-input-area-p ()
+  "Return t if in input area."
+  (<= jade-repl-input-start-marker (point)))
 
 (declare-function #'jade-backend-evaluate "jade")
 
@@ -144,19 +153,24 @@
     (set-marker jade-repl-output-end-marker (point))))
 
 (defun jade-repl-emit-value (value error)
-    (with-current-buffer (jade-repl-get-buffer)
-      (save-excursion
-        (end-of-buffer)
-        (insert-before-markers "\n")
-        (set-marker jade-repl-output-start-marker (point))
-        (jade-render-value value error)
-        (insert "\n")
-        (set-marker jade-repl-input-start-marker (point))
-        (set-marker jade-repl-output-end-marker (point)))
-      (jade-repl-insert-prompt)
-      (run-hooks 'jade-repl-evaluate-hook)))
+  "Emit a string representation of VALUE.
+When ERROR is non-nil, use the error face."
+  (with-current-buffer (jade-repl-get-buffer)
+    (save-excursion
+      (end-of-buffer)
+      (insert-before-markers "\n")
+      (set-marker jade-repl-output-start-marker (point))
+      (jade-render-value value error)
+      (insert "\n")
+      (set-marker jade-repl-input-start-marker (point))
+      (set-marker jade-repl-output-end-marker (point)))
+    (jade-repl-insert-prompt)
+    (run-hooks 'jade-repl-evaluate-hook)))
 
 (defun jade-repl-emit-console-message (string &optional level)
+  "Emit a console message STRING.
+LEVEL is a string representing the logging level, it can be
+\"log\", \"warn\", \"debug\" or \"error\"."
   (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
       (let* ((error (string= level "error"))
@@ -180,49 +194,28 @@
         (when error (message string))))))
 
 (defun jade-repl-next-input ()
+  "Insert the content of the next input in the history."
   (interactive)
-  (jade-repl-history-replace 'forward))
+  (jade-repl--history-replace 'forward))
 
 (defun jade-repl-previous-input ()
+  "Insert the content of the previous input in the history."
   (interactive)
-  (jade-repl-history-replace 'backward))
+  (jade-repl--history-replace 'backward))
 
-(defun jade-repl-history-replace (direction)
-  (let* ((history (seq-reverse jade-repl-history))
-         (search-in-progress (or (eq last-command 'jade-repl-previous-input)
-                                 (eq last-command 'jade-repl-next-input)))
-         (step (pcase direction
-                 (`forward 1)
-                 (`backward -1)))
-         (pos (or (and search-in-progress (+ jade-repl-history-position step))
-                  (1- (seq-length history)))))
-    (unless (> pos 0)
-      (user-error "Beginning of history"))
-    (unless (< pos (seq-length history))
-      (user-error "End of history"))
-    (setq jade-repl-history-position pos)
-    (jade-repl-replace-input (seq-elt history pos))))
-
-(defun jade-repl-replace-input (input)
+(defun jade-repl--replace-input (input)
+  "Replace the current input with INPUT."
   (goto-char (point-max))
   (delete-region jade-repl-input-start-marker (point))
   (insert input))
 
-
 (defun jade-repl-clear-output ()
+  "Clear all output contents of the current buffer."
   (interactive)
   (let ((inhibit-read-only t))
     (save-excursion
       (beginning-of-buffer)
       (delete-region (point) jade-repl-prompt-start-marker))))
-
-(defun jade-repl--in-input-area-p ()
-  "Return t if in input area."
-  (<= jade-repl-input-start-marker (point)))
-
-(defun jade-repl-newline ()
-  (interactive)
-  (insert "\n"))
 
 (defun company-jade-repl (command &optional arg &rest _args)
   "Jade REPL backend for company-mode.
@@ -238,6 +231,8 @@ See `company-backends' for more info about COMMAND and ARG."
                         (jade-repl-get-completions arg callback))))))
 
 (defun jade-repl-get-completions (arg callback)
+  "Get the completion list matching the prefix ARG.
+Evaluate CALLBACK with the completion candidates."
   (let ((expression (buffer-substring-no-properties jade-repl-input-start-marker
                                                     (point-max-marker))))
     (jade-backend-get-completions expression arg callback)))
@@ -258,7 +253,7 @@ See `company-backends' for more info about COMMAND and ARG."
     (define-key map [return] #'jade-repl-return)
     (define-key map "\C-m"#'jade-repl-return)
     (define-key map [mouse-1] #'jade-follow-link)
-    (define-key map (kbd "C-<return>") #'jade-repl-newline)
+    (define-key map (kbd "C-<return>") #'newline)
     (define-key map (kbd "C-c C-o") #'jade-repl-clear-output)
     (define-key map (kbd "C-c C-q") #'jade-quit)
     (define-key map (kbd "M-p") #'jade-repl-previous-input)
