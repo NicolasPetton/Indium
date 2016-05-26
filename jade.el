@@ -57,7 +57,7 @@ by backends.")
   (interactive)
   (unless jade-connection
     (user-error "No active connection to close"))
-  (when (y-or-n-p (format "Do you really want to close the connection to %s ?"
+  (when (y-or-n-p (format "Do you really want to close the connection to %s ? "
                           (map-elt jade-connection 'url)))
     (when (jade-connected-p)
       (websocket-close (map-elt jade-connection 'ws)))
@@ -66,7 +66,7 @@ by backends.")
     (kill-buffer (jade-repl-get-buffer))))
 
 (defun jade-backend-get-tabs-data (host port callback)
-  "Evaluate CALLBACK with the list of open tabs on HOST:PORT."
+  "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
   (url-retrieve (format "http://%s:%s/json" host port)
                 (lambda (status)
                   ;; TODO: handle errors
@@ -83,7 +83,7 @@ by backends.")
                                                tabs))))
 
 (defun jade-backend--read-tab-data ()
-  "Return the JSON tabs data."
+  "Return the JSON tabs data in the current buffer."
   (when (save-match-data
           (looking-at "^HTTP/1\\.1 200 OK$"))
     (goto-char (point-min))
@@ -92,7 +92,11 @@ by backends.")
     (json-read)))
 
 (defun jade-backend--open-ws-connection (tab)
-  "Open a websocket connection to TAB."
+  "Open a websocket connection to the `webSocketDebuggerUrl' of TAB.
+
+If TAB does not have a `webSocketDebuggerUrl', throw a user
+error.  This might happen when trying to connect to a tab twice,
+or if an inspector is open on that tab."
   (let ((url (map-elt tab 'url))
         (debugger-url (map-elt tab 'webSocketDebuggerUrl)))
     (unless debugger-url
@@ -107,16 +111,17 @@ by backends.")
   "Return a new connection for WS and URL."
   (let ((connection `((ws . ,ws)
                       (url . ,url)
+                      (backend . chrome)
                       (callbacks . ,(make-hash-table)))))
     (add-to-list 'jade-connections connection)
     connection))
 
 (defun jade-backend--callbacks ()
-  "Return the callbacks for the current connection."
+  "Return the callbacks associated with the current connection."
   (map-elt jade-connection 'callbacks))
 
 (defun jade-backend--connection-for-ws (ws)
-  "Return the connection associated with WS."
+  "Return the connection associated with the websocket WS."
   (seq-find (lambda (connection)
               (eq (map-elt connection 'ws) ws))
             jade-connections))
@@ -129,7 +134,7 @@ by backends.")
 
 (defun jade-backend-handle-ws-message (ws frame)
   (let* ((jade-connection (jade-backend--connection-for-ws ws))
-         (message (jade--backend-read-ws-message frame))
+         (message (jade-backend--read-ws-message frame))
          (error (map-elt message 'error))
          (method (map-elt message 'method))
          (request-id (map-elt message 'id))
@@ -156,13 +161,17 @@ by backends.")
   (jade-debugger-resumed))
 
 (defun jade-backend-handle-ws-closed (_ws)
-  ;; TODO
   )
 
 (defun jade-backend-handle-ws-error (ws action error)
   (message "WS Error! %s %s" action error))
 
 (defun jade-backend-send-request (request &optional callback)
+  "Send REQUEST to the current connection.
+Evaluate CALLBACK with the response.
+
+If the current connection is closed, display an error message in
+the REPL buffer."
   (when (not (jade-connected-p))
     (jade-repl-emit-console-message "Socket connection closed" "error"))
   (let ((id (jade-next-request-id))
@@ -172,27 +181,34 @@ by backends.")
     (websocket-send-text (map-elt jade-connection 'ws)
                          (json-encode (cons `(id . ,id) request)))))
 
-(defun jade--backend-read-ws-message (frame)
+(defun jade-backend--read-ws-message (frame)
   (with-temp-buffer
     (insert (websocket-frame-payload frame))
     (goto-char (point-min))
     (json-read)))
 
 (defun jade-backend-enable-tools ()
+  "Enable developer tools for the current tab.
+
+There is currently no support for the DOM inspector and network
+inspectors."
   (jade-backend-enable-console)
   (jade-backend-enable-runtime)
   (jade-backend-enable-debugger))
 
 (defun jade-backend-enable-console ()
+  "Enable the console on the current tab."
   (jade-backend-send-request '((method . "Console.enable"))))
 
 (defun jade-backend-enable-runtime ()
+  "Enable the runtime on the current tab."
   (jade-backend-send-request '((method . "Runtime.enable"))))
 
 (defun jade-backend-enable-debugger ()
+  "Enable the debugger on the current tab."
   (jade-backend-send-request '((method . "Debugger.enable"))))
 
-(defun jade-backend-evaluate (string &optional callback context)
+(defun jade-backend-evaluate (string &optional callback)
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
@@ -204,14 +220,14 @@ evaluation and non-nil if the evaluation threw an error."
      (jade-backend-handle-evaluation-response response callback))))
 
 (defun jade-backend-handle-evaluation-response (response callback)
-  "Evaluate CALLBACK with the evaluation result in RESPONSE."
+  "Get the result of an evaluation in RESPONSE and evaluate CALLBACK with it."
   (let* ((result (map-nested-elt response '(result result)))
          (error (eq (map-nested-elt response '(result wasThrown)) t)))
     (funcall callback (jade-backend-value result) error)))
 
 (defun jade-backend-get-completions (expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
-Evaluate CALLBACK on the filtered candidates"
+Evaluate CALLBACK on the filtered candidates."
   (let ((expression (jade-backend-completion-expression expression)))
     (jade-backend-send-request
      `((method . "Runtime.evaluate")
@@ -222,7 +238,8 @@ Evaluate CALLBACK on the filtered candidates"
 
 (defun jade-backend-handle-completions-response (response prefix callback)
   "Request a completion list for the object in RESPONSE.
-Evaluate CALLBACK with the completion list, filtered using PREFIX."
+The completion list is filtered using the PREFIX string, then
+CALLBACK is evaluated with it."
   (let ((objectid (map-nested-elt response '(result result objectId)))
         (type (map-nested-elt response '(result result type))))
     (if objectid
@@ -231,7 +248,8 @@ Evaluate CALLBACK with the completion list, filtered using PREFIX."
 
 (defun jade-backend-get-completion-list-by-reference (objectid prefix callback)
   "Request the completion list for a remote object referenced by OBJECTID.
-Evaluate CALLBACK with the completion list, filtered using PREFIX."
+The completion list is filtered using the PREFIX string, then
+CALLBACK is evaluated with it."
   (jade-backend-send-request
    `((method . "Runtime.callFunctionOn")
      (params . ((objectId . ,objectid)
@@ -242,7 +260,8 @@ Evaluate CALLBACK with the completion list, filtered using PREFIX."
 
 (defun jade-backend-get-completion-list-by-type (type prefix callback)
   "Request the completion list for an object of type TYPE.
-Evaluate CALLBACK with the completion list, filtered using PREFIX.
+The completion list is filtered using the PREFIX string, then
+CALLBACK is evaluated with it.
 
 This method is used for strings, numbers and booleans.  See
 `jade-backend-get-completion-list-by-reference' for getting
@@ -257,8 +276,7 @@ arrays)."
        (jade-backend-handle-completion-list-response response prefix callback)))))
 
 (defun jade-backend-completion-expression (string)
-  "Return the expression from STRING for which the completion
-should be requested."
+  "Return the completion expression to be requested from STRING."
   (if (string-match-p "\\." string)
       (replace-regexp-in-string "\\.[^\\.]*$" "" string)
     "this"))
@@ -274,8 +292,8 @@ Candidates are filtered using the PREFIX string."
                                            candidates)))))
 
 (defun jade-backend-get-properties (reference &optional callback all-properties)
-  "Get the properties of the remote object represented by
-REFERENCE, then evaluate CALLBACK with the list of properties.
+  "Get the properties of the remote object represented by REFERENCE.
+CALLBACK is evaluated with the list of properties.
 
 If ALL-PROPERTIES is non-nil, get all the properties from the
 prototype chain of the remote object."
@@ -284,11 +302,9 @@ prototype chain of the remote object."
      (params . ((objectId . ,reference)
                 (ownProperties . ,(not all-properties)))))
    (lambda (response)
-     (jade-backend-handle-get-properties-response response callback))))
-
-(defun jade-backend-handle-get-properties-response (response callback)
-  (let ((properties (jade-backend-properties (map-nested-elt response '(result result)))))
-    (funcall callback properties)))
+     (funcall callback
+              (jade-backend-properties
+               (map-nested-elt response '(result result)))))))
 
 (defun jade-backend-get-script-source (frame callback)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
@@ -298,26 +314,33 @@ prototype chain of the remote object."
     callback)))
 
 (defun jade-backend-resume (&optional callback)
+  "Resume the debugger and evaluate CALLBACK if non-nil."
   (jade-backend-send-request
    `((method . "Debugger.resume"))
    callback))
 
 (defun jade-backend-step-into (&optional callback)
+  "Step into the current stack frame and evaluate CALLBACK if non-nil."
   (jade-backend-send-request
    `((method . "Debugger.stepInto"))
    callback))
 
 (defun jade-backend-step-out (&optional callback)
+  "Step out the current stack frame and evaluate CALLBACK if non-nil."
   (jade-backend-send-request
    `((method . "Debugger.stepOut"))
    callback))
 
 (defun jade-backend-step-over (&optional callback)
+  "Step over the current stack frame and evaluate CALLBACK if non-nil."
   (jade-backend-send-request
    `((method . "Debugger.stepOver"))
    callback))
 
 (defun jade-backend-continue-to-location (location &optional callback)
+  "Continue to LOCATION and evaluate CALLBACK if non-nil.
+
+Location should be an alist with a `column' and `row' key."
   (jade-backend-send-request
    `((method . "Debugger.continueToLocation")
      (params . ((location . ,location))))
@@ -341,6 +364,8 @@ non-nil."
       (value . ,value))))
 
 (defun jade-backend-description (result)
+  "Return a description string built from RESULT.
+RESULT should be a reference to a remote object."
   (let ((value (map-elt result 'value))
         (type (intern (map-elt result 'type))))
     (or (map-elt result 'description)
@@ -357,13 +382,16 @@ non-nil."
           (_ (or value "null"))))))
 
 (defun jade-backend-preview (result)
+  "Return a preview string built from RESULT.
+RESULT should be a reference to a remote object."
   (let* ((preview (map-elt result 'preview))
          (subtype (map-elt preview 'subtype)))
     (if (string= subtype "array")
-        (jade-backend-preview-array preview)
-      (jade-backend-preview-object preview))))
+        (jade-backend--preview-array preview)
+      (jade-backend--preview-object preview))))
 
-(defun jade-backend-preview-object (preview)
+(defun jade-backend--preview-object (preview)
+  "Return a preview string from the properties of the object PREVIEW."
   (concat " { "
           (mapconcat (lambda (prop)
                        (format "%s: %s"
@@ -375,7 +403,8 @@ non-nil."
               ", … }"
             " }")))
 
-(defun jade-backend-preview-array (preview)
+(defun jade-backend--preview-array (preview)
+  "Return a preview string from the elements of the array PREVIEW."
   (concat " [ "
           (mapconcat (lambda (prop)
                        (format "%s" (jade-backend-description prop)))
@@ -414,6 +443,7 @@ non-nil."
 
 (let ((id 0))
   (defun jade-next-request-id ()
+    "Return the next unique identifier to be used in a request."
     (setq id (1+ id))
     id))
 
