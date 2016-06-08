@@ -51,11 +51,11 @@
 (declare 'jade-backend-debugger-get-script-source)
 
 (defun jade-debugger-paused (backend frames)
-  (setq jade-debugger-frames frames)
   (jade-backend-get-script-source backend
-                                  (jade-debugger-top-frame)
+                                  (car frames)
                                   (lambda (source)
                                     (let ((jade-backend backend))
+                                      (jade-debugger-get-buffer-create frames backend jade-connection)
                                       (jade-debugger-switch-to-frame
                                        (jade-debugger-top-frame)
                                        (map-nested-elt source '(result scriptSource)))))))
@@ -76,7 +76,7 @@
          (line (map-elt location 'lineNumber))
          (column (map-elt location 'columnNumber))
          (inhibit-read-only t))
-    (with-current-buffer (jade-debugger-get-buffer-create)
+    (with-current-buffer (jade-debugger-get-buffer)
       (unless (string= (buffer-substring-no-properties (point-min) (point-max))
                        source)
         (erase-buffer)
@@ -126,12 +126,14 @@
   ;; TODO
   (jade-backend-continue-to-location jade-backend '()))
 
-(defun jade-debugger-get-buffer-create ()
+(defun jade-debugger-get-buffer-create (frames backend connection)
   "Create a debugger buffer unless one exists, and return it."
   (let ((buf (jade-debugger-get-buffer)))
     (unless buf
       (setq buf (get-buffer-create (jade-debugger-buffer-name)))
-      (jade-debugger-setup-buffer buf jade-backend jade-connection))
+      (jade-debugger-setup-buffer buf backend connection))
+    (with-current-buffer buf
+      (setq-local jade-debugger-frames frames))
     buf))
 
 (defun jade-debugger-buffer-name ()
