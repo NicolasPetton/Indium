@@ -50,13 +50,15 @@
 
 (declare 'jade-backend-debugger-get-script-source)
 
-(defun jade-debugger-paused (frames)
+(defun jade-debugger-paused (backend frames)
   (setq jade-debugger-frames frames)
-  (jade-backend-get-script-source (jade-debugger-top-frame)
+  (jade-backend-get-script-source backend
+                                  (jade-debugger-top-frame)
                                   (lambda (source)
-                                    (jade-debugger-switch-to-frame
-                                     (jade-debugger-top-frame)
-                                     (map-nested-elt source '(result scriptSource))))))
+                                    (let ((jade-backend backend))
+                                      (jade-debugger-switch-to-frame
+                                       (jade-debugger-top-frame)
+                                       (map-nested-elt source '(result scriptSource)))))))
 
 (defun jade-debugger-resumed (&rest _args)
   (let ((buf (jade-debugger-get-buffer)))
@@ -103,33 +105,33 @@
 
 (defun jade-debugger-step-into ()
   (interactive)
-  (jade-backend-step-into))
+  (jade-backend-step-into jade-backend))
 
 (defun jade-debugger-step-over ()
   (interactive)
-  (jade-backend-step-over))
+  (jade-backend-step-over jade-backend))
 
 (defun jade-debugger-step-out ()
   (interactive)
-  (jade-backend-step-out))
+  (jade-backend-step-out jade-backend))
 
 (defun jade-debugger-resume ()
   (interactive)
-  (jade-backend-resume #'jade-debugger-resumed)
+  (jade-backend-resume jade-backend #'jade-debugger-resumed)
   (kill-buffer (jade-debugger-locals-get-buffer))
   (kill-buffer (jade-debugger-get-buffer)))
 
 (defun jade-debugger-here ()
   (interactive)
   ;; TODO
-  (jade-backend-continue-to-location '()))
+  (jade-backend-continue-to-location jade-backend '()))
 
 (defun jade-debugger-get-buffer-create ()
   "Create a debugger buffer unless one exists, and return it."
   (let ((buf (jade-debugger-get-buffer)))
     (unless buf
       (setq buf (get-buffer-create (jade-debugger-buffer-name)))
-      (jade-debugger-setup-buffer buf jade-connection))
+      (jade-debugger-setup-buffer buf jade-backend jade-connection))
     buf))
 
 (defun jade-debugger-buffer-name ()
@@ -138,10 +140,11 @@
 (defun jade-debugger-get-buffer ()
   (get-buffer (jade-debugger-buffer-name)))
 
-(defun jade-debugger-setup-buffer (buffer connection)
+(defun jade-debugger-setup-buffer (buffer backend connection)
   (with-current-buffer buffer
     (funcall jade-debugger-major-mode)
     (setq-local jade-connection connection)
+    (setq-local jade-backend backend)
     (jade-debugger-mode)
     (read-only-mode)))
 
@@ -175,6 +178,7 @@ Unless NO-POP is non-nil, pop the locals buffer."
       (erase-buffer)))
   (seq-do (lambda (scope)
             (jade-backend-get-properties
+             jade-backend
              (map-nested-elt scope '(object objectid))
              (lambda (properties)
                (jade-debugger-locals-render-properties properties scope no-pop))))
@@ -218,15 +222,16 @@ Unless NO-POP is non-nil, pop the locals buffer."
   "Create a locals buffer unless one exists, and return it."
   (let ((buf (jade-debugger-locals-get-buffer)))
     (unless buf
-      (setq buf (get-buffer-create (jade-debugger-locals-buffer-name)))
-      (jade-debugger-locals-setup-buffer buf jade-connection))
+      (setq buf (generate-new-buffer (jade-debugger-locals-buffer-name)))
+      (jade-debugger-locals-setup-buffer buf jade-backend jade-connection))
     buf))
 
-(defun jade-debugger-locals-setup-buffer (buffer connection)
+(defun jade-debugger-locals-setup-buffer (buffer backend connection)
   (with-current-buffer buffer
     (jade-debugger-locals-mode)
     (read-only-mode)
-    (setq-local jade-connection connection)))
+    (setq-local jade-connection connection)
+    (setq-local jade-backend backend)))
 
 (defvar jade-debugger-locals-mode-map
   (let ((map (copy-keymap jade-inspector-mode-map)))
