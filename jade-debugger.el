@@ -51,14 +51,15 @@
 (declare 'jade-backend-debugger-get-script-source)
 
 (defun jade-debugger-paused (backend frames)
-  (jade-backend-get-script-source backend
-                                  (car frames)
-                                  (lambda (source)
-                                    (let ((jade-backend backend))
-                                      (jade-debugger-get-buffer-create frames backend jade-connection)
-                                      (jade-debugger-switch-to-frame
-                                       (jade-debugger-top-frame)
-                                       (map-nested-elt source '(result scriptSource)))))))
+  (let ((top-frame (car frames)))
+   (jade-backend-get-script-source backend
+                                   top-frame
+                                   (lambda (source)
+                                     (let ((jade-backend backend))
+                                       (jade-debugger-get-buffer-create frames backend jade-connection)
+                                       (jade-debugger-switch-to-frame
+                                        top-frame
+                                        (map-nested-elt source '(result scriptSource))))))))
 
 (defun jade-debugger-resumed (&rest _args)
   (let ((buf (jade-debugger-get-buffer)))
@@ -237,7 +238,7 @@ Unless NO-POP is non-nil, pop the locals buffer."
 
 (defvar jade-debugger-locals-mode-map
   (let ((map (copy-keymap jade-inspector-mode-map)))
-    (define-key map "g" #'jade-debugger-locals-maybe-refresh)
+    (define-key map "g" nil)
     (define-key map "l" nil)
     map))
 
