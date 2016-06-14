@@ -118,7 +118,7 @@ prototype chain of the remote object."
 (cl-defmethod jade-backend-continue-to-location ((backend (eql chrome)) location &optional callback)
   "Continue to LOCATION and evaluate CALLBACK if non-nil.
 
-Location should be an alist with a `column' and `row' key."
+Location should be an alist with a `limeNumber' and `scriptId' key."
   (jade-chrome--send-request
    `((method . "Debugger.continueToLocation")
      (params . ((location . ,location))))

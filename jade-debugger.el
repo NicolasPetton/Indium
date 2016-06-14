@@ -124,8 +124,10 @@
 
 (defun jade-debugger-here ()
   (interactive)
-  ;; TODO
-  (jade-backend-continue-to-location jade-backend '()))
+  (jade-backend-continue-to-location jade-backend
+                                     `((scriptId . ,(map-nested-elt (jade-debugger-top-frame)
+                                                                    '(location scriptId)))
+                                       (lineNumber . ,(1- (count-lines (point-min) (point)))))))
 
 (defun jade-debugger-get-buffer-create (frames backend connection)
   "Create a debugger buffer unless one exists, and return it."
