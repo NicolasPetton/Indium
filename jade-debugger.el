@@ -145,6 +145,23 @@ evaluation."
                                         (jade-inspector-inspect value)
                                       (message (jade-description-string value))))))
 
+(defun jade-debugger-evaluate-last-node (arg)
+  "Evaluate the node before point.
+
+This is similar to `evaluate-last-sexp', but for JavaScript buffers.
+With a prefix argument, ARG, inspect the result of the evaluation."
+  (interactive "P")
+  (save-excursion
+    (forward-comment -1)
+    (while (looking-back ":;,")
+      (backward-char 1))
+    (backward-char 1)
+    (let* ((node (js2-node-at-point))
+           (parent (js2-node-parent node)))
+      (when (js2-prop-get-node-p parent)
+        (setq node parent))
+      (jade-debugger-evaluate arg (js2-node-string node)))))
+
 (defun jade-debugger-get-buffer-create (frames backend connection)
   "Create a debugger buffer unless one exists, and return it."
   (let ((buf (jade-debugger-get-buffer)))
@@ -179,6 +196,7 @@ evaluation."
     (define-key map (kbd "q") #'jade-debugger-resume)
     (define-key map (kbd "h") #'jade-debugger-here)
     (define-key map (kbd "e") #'jade-debugger-evaluate)
+    (define-key map (kbd "C-x C-e") #'jade-debugger-evaluate-last-node)
     map))
 
 (define-minor-mode jade-debugger-mode
