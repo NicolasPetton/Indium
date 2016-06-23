@@ -98,6 +98,16 @@ The value should be an alist with a the following required keys:
 remote object that can be inspected, it should also have an
 `objectid' key.")
 
+(cl-defgeneric jade-backend-evaluate-on-frame (backend string frame &optional callback)
+  "Evaluate STRING on the call frame FRAME then call CALLBACK.
+CALLBACK is called with two arguments, the value returned by the
+evaluation and non-nil if the evaluation threw an error.
+
+The value should be an alist with a the following required keys:
+`type', `value' and `description'.  If the value represents a
+remote object that can be inspected, it should also have an
+`objectid' key.")
+
 (cl-defgeneric jade-backend-get-completions (backend expression prefix callback)
   "Get the completion list using CONNECTION for EXPRESSION that match PREFIX.
 Evaluate CALLBACK on the filtered candidates.

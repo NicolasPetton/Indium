@@ -27,6 +27,7 @@
 (require 'seq)
 (require 'map)
 (require 'jade-inspector)
+(require 'jade-repl)
 (require 'jade-render)
 
 (defgroup jade-debugger nil
@@ -129,6 +130,21 @@
                                                                     '(location scriptId)))
                                        (lineNumber . ,(1- (count-lines (point-min) (point)))))))
 
+(defun jade-debugger-evaluate (arg expression)
+  "Prompt for EXPRESSION to be evaluated.
+Evaluation happens in the context of the current call frame.
+
+With a prefix argument ARG, inspect the result of the
+evaluation."
+  (interactive "P\nsEvaluate on frame: ")
+  (jade-backend-evaluate-on-frame jade-backend
+                                  expression
+                                  (jade-debugger-top-frame)
+                                  (lambda (value error)
+                                    (if arg
+                                        (jade-inspector-inspect value)
+                                      (message (jade-description-string value))))))
+
 (defun jade-debugger-get-buffer-create (frames backend connection)
   "Create a debugger buffer unless one exists, and return it."
   (let ((buf (jade-debugger-get-buffer)))
@@ -162,9 +178,13 @@
     (define-key map (kbd "l") #'jade-debugger-locals)
     (define-key map (kbd "q") #'jade-debugger-resume)
     (define-key map (kbd "h") #'jade-debugger-here)
+    (define-key map (kbd "e") #'jade-debugger-evaluate)
     map))
 
-(define-minor-mode jade-debugger-mode "Minor mode for debugging JS scripts."
+(define-minor-mode jade-debugger-mode
+  "Minor mode for debugging JS scripts.
+
+\\{jade-debugger-mode-map}"
   :group 'jade
   :lighter " JS debug"
   :keymap jade-debugger-mode-map)

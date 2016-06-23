@@ -58,6 +58,18 @@ evaluation and non-nil if the evaluation threw an error."
    (lambda (response)
      (jade-chrome--handle-evaluation-response response callback))))
 
+(cl-defmethod jade-backend-evaluate-on-frame ((backend (eql chrome)) string frame &optional callback)
+  "Evaluate STRING on the call frame FRAME then call CALLBACK.
+CALLBACK is called with two arguments, the value returned by the
+evaluation and non-nil if the evaluation threw an error."
+  (jade-chrome--send-request
+   `((method . "Debugger.evaluateOnCallFrame")
+     (params . ((expression . ,string)
+                (callFrameId . ,(map-elt frame 'callFrameId))
+                (generatePreview . t))))
+   (lambda (response)
+     (jade-chrome--handle-evaluation-response response callback))))
+
 (cl-defmethod jade-backend-get-completions ((backend (eql chrome)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
 Evaluate CALLBACK on the filtered candidates."
@@ -416,7 +428,8 @@ RESULT should be a reference to a remote object."
                                             (name . ,(map-elt scope 'name))
                                             (type . ,(map-elt scope 'type))))
                                   (map-elt frame 'scopeChain)))
-               (location . ,(map-elt frame 'location))))
+               (location . ,(map-elt frame 'location))
+               (callFrameId . ,(map-elt frame 'callFrameId))))
            list))
 
 (let ((id 0))
