@@ -83,7 +83,8 @@ If URL is nil, use the current connection."
     (jade-repl-mark-input-start)
     (jade-repl-insert-prompt)
     (jade-repl-emit-console-message
-     (format "Welcome to Jade!\nConnected to %s\n"
+     (format "Welcome to Jade!\nConnected to %s @ %s\n"
+             (map-elt jade-connection 'backend)
              (map-elt jade-connection 'url)))))
 
 (defun jade-repl-setup-markers ()
