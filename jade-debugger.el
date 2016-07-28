@@ -151,6 +151,10 @@ evaluation."
 This is similar to `evaluate-last-sexp', but for JavaScript buffers.
 With a prefix argument, ARG, inspect the result of the evaluation."
   (interactive "P")
+  (jade-debugger-evaluate arg (js2-node-string (jade-debugger-node-before-point))))
+
+(defun jade-debugger-node-before-point ()
+  "Return the node before point to be evaluated."
   (save-excursion
     (forward-comment -1)
     (while (looking-back ":;,")
@@ -158,9 +162,21 @@ With a prefix argument, ARG, inspect the result of the evaluation."
     (backward-char 1)
     (let* ((node (js2-node-at-point))
            (parent (js2-node-parent node)))
-      (when (js2-prop-get-node-p parent)
+      ;; Heuristics for finding the node to evaluate: if the parent of the node
+      ;; before point is a prop-get node (i.e. foo.bar) and if it starts before
+      ;; the current node, meaning that the point is on the node following the
+      ;; parent, then evaluate the content of the parent node:
+      ;;
+      ;; (underscore represents the point)
+      ;; foo.ba_r // => evaluate foo.bar
+      ;; foo_.bar // => evaluate foo
+      ;; foo.bar.baz_() // => evaluate foo.bar.baz
+      ;; foo.bar.baz()_ // => evaluate foo.bar.baz()
+      (while (and (js2-prop-get-node-p parent)
+                  (< (js2-node-abs-pos parent)
+                     (js2-node-abs-pos node)))
         (setq node parent))
-      (jade-debugger-evaluate arg (js2-node-string node)))))
+      node)))
 
 (defun jade-debugger-get-buffer-create (frames backend connection)
   "Create a debugger buffer unless one exists, and return it."
