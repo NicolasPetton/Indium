@@ -21,9 +21,16 @@
 ;;; Commentary:
 
 ;; Handle jade connections to a NodeJS process using the webkit backend.
+;; The nodejs process must be started with the `--inspect' flag:
 ;;
-;; Important note: For this package to work, NodeJS version 6.3.1 (or any newer
-;; version) is required.
+;;     node --inspect myfile.js
+;;     node --inspect=localhost:9876 myfile.js
+;;
+;; Important note: For this package to work, NodeJS version 6.3 (or any newer
+;; version) is required.  As of July 29 2016, this package is known to work with
+;; node-nightly, which can be installed with:
+;;
+;;    npm install -g node-nightly
 ;;
 ;; To start a node process with remote debugging enabled, run `node --inspect ...'.
 
