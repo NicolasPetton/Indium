@@ -47,6 +47,7 @@ by backends.")
 
 (defmacro jade-with-connection (connection &rest body)
   "Set the value of `jade-connection' to CONNECTION and evaluate BODY."
+  (declare (debug t))
   `(let ((jade-connection ,connection))
      ,@body))
 
@@ -54,23 +55,6 @@ by backends.")
   "Register a new BACKEND.
 BACKEND should be a symbol."
   (add-to-list 'jade-backends backend))
-
-(defun jade-connect (backend host port)
-  "Open a connection to BACKEND on HOST:PORT."
-  (interactive (list (completing-read "Connect to backend: " jade-backends nil t)
-                     (read-from-minibuffer "Host: " "127.0.0.1")
-                     (read-from-minibuffer "Port: " "9222")))
-  (jade-backend-connect (intern backend) host port))
-
-(cl-defgeneric jade-backend-connect (backend host port)
-  "Open a connection to BACKEND on HOST:PORT.
-
-A connection is an alist representing a browser connection.  Keys
-can vary depending on backend requirements, the only mandatory
-key is `url'.
-
-Once created, the connection should be added to
-`jade-connections'.")
 
 (defun jade-quit ()
   "Close the current connection and kill its REPL buffer if any."
