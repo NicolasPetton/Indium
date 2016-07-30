@@ -2,20 +2,46 @@
 
 Jade connects to a browser tab and provides the following JavaScript development features:
 
-- REPL (with auto completion)
-- Inspector
-- Stepping Debugger
+- REPL (with auto completion) & object inspection
+- Inspector, with history and navigation
+- Stepping Debugger, similar to `edebug`
+
+## Getting started
+
+(Installation instructions missing.)
+
+### Connection to a chrom[e|ium] tab
+
+Start chrom[e|ium] with the `--remote-debugging-port` flag:
+
+    chromium --remote-debugging-port=9222 https://gnu.org
+    
+Evaluate `M-x jade-connect-to-chrome`.
+
+### Connection to a nodejs process
+
+(Note: as of July 31 2016, this requires node-nightly, which can be installed with `npm install -g node-nightly`).
+
+Start a node process with the `--listen` fla:
+
+    node --listen myfile.js
+
+Evaluate `M-x jade-connect-to-nodejs`.
 
 ## Missing features
 
 Jade is young, here's a list of missing/wanted features
 
-- Code evaluation using `C-M-x`
+- Code evaluation using `C-M-x` from project JS buffers
 - Adding breakpoints (to remove the need for `debugger` statements)
 - Network inspector (could get inspiration from restclient.el)
 - DOM inspector
+- Start processes (chromium, node, grunt, gulp, etc.) from Emacs and attach a
+  jade connection to it.
 
-There is currently support for Chrom[e|ium], Firefox & NodeJS backends are not
-yet implemented.
+## Backends
+
+There is currently support for Chrom[e|ium], & nodejs.  The firefox backend is
+currently missing.
 
 
