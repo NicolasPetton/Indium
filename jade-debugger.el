@@ -260,7 +260,8 @@ Unless NO-POP is non-nil, pop the locals buffer."
          (inhibit-read-only t)
          (name (map-elt scope 'name))
          (type (map-elt scope 'type))
-         (description (if (string= name "undefined")
+         (description (if (or (null name)
+                              (string= name "undefined"))
                           type
                         name)))
     (with-current-buffer buf
