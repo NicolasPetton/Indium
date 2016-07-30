@@ -69,6 +69,14 @@ When called interactively, prompt for a confirmation first."
     (setq jade-connections (remq jade-connection jade-connections))
     (jade-backend-kill-all-buffers jade-connection)))
 
+(defun jade-reconnect ()
+  "Try to re-establish a connection.
+The new connection is based on the current (usually closed) one."
+  (interactive)
+  (unless (and jade-backend jade-connection)
+    (user-error "No connection associated to the current buffer"))
+  (jade-backend-reconnect jade-backend))
+
 (defun jade-backend-kill-all-buffers (connection)
   "Kill all buffers that have the `jade-connection' CONNECTION."
   (seq-map #'kill-buffer

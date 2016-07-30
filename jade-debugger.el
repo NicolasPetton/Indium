@@ -120,8 +120,10 @@
 (defun jade-debugger-resume ()
   (interactive)
   (jade-backend-resume jade-backend #'jade-debugger-resumed)
-  (kill-buffer (jade-debugger-locals-get-buffer))
-  (kill-buffer (jade-debugger-get-buffer)))
+  (let ((locals-buffer (jade-debugger-locals-get-buffer)))
+    (when locals-buffer
+      (kill-buffer locals-buffer))
+    (kill-buffer (jade-debugger-get-buffer))))
 
 (defun jade-debugger-here ()
   (interactive)

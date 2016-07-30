@@ -262,9 +262,7 @@ DIRECTION is `forward' or `backard' (in the history list)."
     (jade-repl-insert-prompt)))
 
 (defun jade-repl--insert-connection-buttons ()
-  (jade-render-button "Reconnect"
-                      (lambda ()
-                        (jade-backend-reconnect jade-backend)))
+  (jade-render-button "Reconnect" #'jade-reconnect)
   (insert " or ")
   (jade-render-button "close all buffers" #'jade-quit)
   (insert "."))
