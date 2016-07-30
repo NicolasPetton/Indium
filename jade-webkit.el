@@ -65,7 +65,8 @@ evaluation and non-nil if the evaluation threw an error."
      (params . ((expression . ,string)
                 (generatePreview . t))))
    (lambda (response)
-     (jade-webkit--handle-evaluation-response response callback))))
+     (when callback
+      (jade-webkit--handle-evaluation-response response callback)))))
 
 (cl-defmethod jade-backend-evaluate-on-frame ((backend (eql webkit)) string frame &optional callback)
   "Evaluate STRING on the call frame FRAME then call CALLBACK.
