@@ -47,12 +47,14 @@
   (websocket-close (map-elt connection 'ws)))
 
 (cl-defmethod jade-backend-reconnect ((backend (eql webkit)))
-  ;; close all outdated buffers first
   (let* ((connection jade-connection)
          (url (map-elt connection 'url))
          (websocket-url (websocket-url (map-elt connection 'ws))))
-    (jade-quit)
-    (jade-webkit--open-ws-connection url websocket-url)))
+    (jade-webkit--open-ws-connection url
+                                     websocket-url
+                                     ;; close all buffers related to the closed
+                                     ;; connection the first
+                                     #'jade-quit)))
 
 (cl-defmethod jade-backend-evaluate ((backend (eql webkit)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
@@ -158,8 +160,11 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
   (jade-webkit--send-request `((method . "Debugger.setPauseOnExceptions")
                                (params . ((state . ,state))))))
 
-(defun jade-webkit--open-ws-connection (url websocket-url)
+(defun jade-webkit--open-ws-connection (url websocket-url &optional on-open)
   "Open a websocket connection to URL using WEBSOCKET-URL.
+
+Evaluate ON-OPEN when the websocket is open, before setting up
+the connection and buffers.
 
 In a Chrom{e|ium} session, URL corresponds to the url of a tab,
 and WEBSOCKET-URL to its associated `webSocketDebuggerUrl'.
@@ -169,7 +174,10 @@ same url."
   (unless websocket-url
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
-                  :on-open (lambda (ws) (jade-webkit--handle-ws-open ws url))
+                  :on-open (lambda (ws)
+                             (when on-open
+                               (funcall on-open))
+                             (jade-webkit--handle-ws-open ws url))
                   :on-message #'jade-webkit--handle-ws-message
                   :on-close #'jade-webkit--handle-ws-closed
                   :on-error #'jade-webkit--handle-ws-error))
