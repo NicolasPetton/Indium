@@ -6,6 +6,20 @@ Jade connects to a browser tab and provides the following JavaScript development
 - Inspector, with history and navigation
 - Stepping Debugger, similar to `edebug`
 
+## Screenshots
+
+The REPL with company-mode
+
+![REPL](./screenshots/repl.png)
+
+The inspector
+
+![REPL](./screenshots/inspector.png)
+
+The stepping debugger, and an inspector on locals
+
+![REPL](./screenshots/debugger.png)
+
 ## Getting started
 
 (Installation instructions missing.)
