@@ -26,6 +26,7 @@
 
 (require 'jade-backend)
 (require 'jade-chrome)
+(require 'jade-nodejs)
 
 (provide 'jade)
 ;;; jade.el ends here
