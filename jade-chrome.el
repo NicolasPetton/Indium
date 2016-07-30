@@ -21,6 +21,10 @@
 ;;; Commentary:
 
 ;; Handle jade connections to Chrom{e|ium} using the webkit backend.
+;;
+;; To open a Jade connection, enable chromium/chrome remote debugging:
+;;
+;;     chromium --remote-debugging-port=9222 https://gnu.org
 
 ;;; Code:
 
