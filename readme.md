@@ -12,6 +12,10 @@ The REPL with company-mode
 
 ![REPL](./screenshots/repl.png)
 
+The REPL showing clickable output
+
+![REPL](./screenshots/repl2.png)
+
 The inspector
 
 ![REPL](./screenshots/inspector.png)
