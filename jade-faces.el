@@ -34,6 +34,11 @@
   "Face for the keywords."
   :group 'jade-faces)
 
+(defface jade-button-face
+  '((t (:inherit custom-button)))
+  "Face for buttons."
+  :group 'jade-faces)
+
 (defface jade-header-face
   '((t (:inherit header-line)))
   "Face use in headers."

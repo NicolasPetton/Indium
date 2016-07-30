@@ -57,12 +57,14 @@ BACKEND should be a symbol."
   (add-to-list 'jade-backends backend))
 
 (defun jade-quit ()
-  "Close the current connection and kill its REPL buffer if any."
+  "Close the current connection and kill its REPL buffer if any.
+When called interactively, prompt for a confirmation first."
   (interactive)
   (unless jade-connection
     (user-error "No active connection to close"))
-  (when (y-or-n-p (format "Do you really want to close the connection to %s ? "
-                          (map-elt jade-connection 'url)))
+  (when (or (not (called-interactively-p))
+            (y-or-n-p (format "Do you really want to close the connection to %s ? "
+                              (map-elt jade-connection 'url))))
     (jade-backend-close-connection jade-backend jade-connection)
     (setq jade-connections (remq jade-connection jade-connections))
     (kill-buffer (jade-repl-get-buffer))))
@@ -71,6 +73,11 @@ BACKEND should be a symbol."
 
 (cl-defgeneric jade-backend-close-connection (backend connection)
   "Close CONNECTION.")
+
+(cl-defgeneric jade-backend-reconnect (backend)
+  "Try to re-establish a connection.
+The new connection is created based on the current
+`jade-connection'.")
 
 (cl-defgeneric jade-backend-evaluate (backend string &optional callback)
   "Evaluate STRING then call CALLBACK.

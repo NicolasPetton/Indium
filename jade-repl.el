@@ -128,12 +128,11 @@ If URL is nil, use the current connection."
 (defun jade-repl-return ()
   "Depending on the position of point, jump to a reference of evaluate the input."
   (interactive)
-  (if (get-text-property (point) 'jade-reference)
-      (jade-follow-link)
-    (progn
-      (unless (jade-repl--in-input-area-p)
-        (error "No input at point"))
-      (jade-repl-evaluate (jade-repl--input-content)))))
+  (cond
+   ((get-text-property (point) 'jade-reference) (jade-follow-link))
+   ((get-text-property (point) 'jade-action) (jade-perform-action))
+   ((jade-repl--in-input-area-p) (jade-repl-evaluate (jade-repl--input-content)))
+   (t (error "No input or action at point"))))
 
 (defun jade-repl-inspect ()
   "Inspect the result of the evaluation of the input at point."
@@ -247,6 +246,28 @@ DIRECTION is `forward' or `backard' (in the history list)."
     (save-excursion
       (beginning-of-buffer)
       (delete-region (point) jade-repl-prompt-start-marker))))
+
+(defun jade-repl--handle-connection-closed ()
+  "Display a message when the connection is closed."
+    (with-current-buffer (jade-repl-get-buffer)
+    (save-excursion
+      (end-of-buffer)
+      (insert-before-markers "\n")
+      (set-marker jade-repl-output-start-marker (point))
+      (insert "Connection closed. ")
+      (jade-repl--insert-connection-buttons)
+      (insert "\n")
+      (set-marker jade-repl-input-start-marker (point))
+      (set-marker jade-repl-output-end-marker (point)))
+    (jade-repl-insert-prompt)))
+
+(defun jade-repl--insert-connection-buttons ()
+  (jade-render-button "Reconnect"
+                      (lambda ()
+                        (jade-backend-reconnect jade-backend)))
+  (insert " or ")
+  (jade-render-button "close all buffers" #'jade-quit)
+  (insert "."))
 
 (defun company-jade-repl (command &optional arg &rest _args)
   "Jade REPL backend for company-mode.

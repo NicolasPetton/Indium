@@ -43,6 +43,14 @@
   "Close the websocket associated with CONNECTION."
   (websocket-close (map-elt connection 'ws)))
 
+(cl-defmethod jade-backend-reconnect ((backend (eql webkit)))
+  ;; close all outdated buffers first
+  (let* ((connection jade-connection)
+         (url (map-elt connection 'url))
+         (websocket-url (websocket-url (map-elt connection 'ws))))
+    (jade-quit)
+    (jade-webkit--open-ws-connection url websocket-url)))
+
 (cl-defmethod jade-backend-evaluate ((backend (eql webkit)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
@@ -155,7 +163,6 @@ same url."
     (map-put connection 'url url)
     (map-put connection 'backend 'webkit)
     (map-put connection 'callbacks (make-hash-table))
-    (map-put connection 'ws ws)
     (add-to-list 'jade-connections connection)
     connection))
 
@@ -204,7 +211,7 @@ same url."
   (jade-debugger-resumed))
 
 (defun jade-webkit--handle-ws-closed (_ws)
-  )
+  (jade-repl--handle-connection-closed))
 
 (defun jade-webkit--handle-ws-error (ws action error)
   (message "WS Error! %s %s" action error))

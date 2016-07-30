@@ -48,6 +48,16 @@
                'rear-nonsticky '(font-lock-face))))
 
 
+(defun jade-render-button (string action)
+  "Render a button with the label STRING.
+When clicked, evaluate ACTION.
+ACTION should be a function that takes no argument."
+  (insert
+   (propertize string
+               'font-lock-face 'jade-button-face
+               'jade-action action
+               'reat-nons '(font-lock-face jade-action))))
+
 (defun jade-description-string (value &optional full)
   "Return a short string describing VALUE.
 
@@ -98,6 +108,11 @@ definitions."
     (cond
      (reference (jade-inspector-inspect reference))
      (action (funcall action)))))
+
+(defun jade-perform-action ()
+  "Evaluate the button action at point."
+  (let ((function (get-text-property (point) 'jade-action)))
+   (funcall function)))
 
 (provide 'jade-render)
 ;;; jade-render.el ends here
