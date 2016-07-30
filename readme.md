@@ -1,4 +1,5 @@
-# Jade - JavaScript Awesome Development Environment (in Emacs)
+# Jade 
+_**J**avaScript **A**wesome **D**evelopment **E**nvironment (in Emacs)_
 
 Jade connects to a browser tab or nodejs process and provides many features for
 JavaScript development, including a REPL (with auto completion) & object
