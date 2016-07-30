@@ -1,10 +1,9 @@
 # Jade - JavaScript IDE in Emacs
 
-Jade connects to a browser tab and provides the following JavaScript development features:
-
-- REPL (with auto completion) & object inspection
-- Inspector, with history and navigation
-- Stepping Debugger, similar to `edebug`
+Jade connects to a browser tab or nodejs process and provides many features for
+JavaScript development, including a REPL (with auto completion) & object
+inspection, an inspector, with history and navigation, and even a stepping
+Debugger, similar to `edebug`, or `cider`.
 
 ## Screenshots
 
