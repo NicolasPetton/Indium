@@ -67,7 +67,15 @@ When called interactively, prompt for a confirmation first."
                               (map-elt jade-connection 'url))))
     (jade-backend-close-connection jade-backend jade-connection)
     (setq jade-connections (remq jade-connection jade-connections))
-    (kill-buffer (jade-repl-get-buffer))))
+    (jade-backend-kill-all-buffers jade-connection)))
+
+(defun jade-backend-kill-all-buffers (connection)
+  "Kill all buffers that have the `jade-connection' CONNECTION."
+  (seq-map #'kill-buffer
+           (seq-filter (lambda (buf)
+                         (with-current-buffer buf
+                           (eq jade-connection connection)))
+                       (buffer-list))))
 
 ;;; jade-connection methods
 

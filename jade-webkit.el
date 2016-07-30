@@ -23,6 +23,9 @@
 ;; Jade backend implementation for Webkit and Blink.  Connection is handled in
 ;; jade-chrome.el and jade-nodejs.el.  This backend currently supports the REPL,
 ;; code completion, object inspection and the debugger.
+;;
+;; The protocol is documented at
+;; https://chromedevtools.github.io/debugger-protocol-viewer/1-1/.
 
 ;;; Code:
 
@@ -139,6 +142,21 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
    `((method . "Debugger.continueToLocation")
      (params . ((location . ,location))))
    callback))
+
+(defun jade-webkit-set-pause-on-exceptions (state)
+  " Defines on which STATE to pause.
+
+Can be set to stop on all exceptions, uncaught exceptions or no
+exceptions. Initial pause on exceptions state is set by Jade to
+`\"uncaught\"'.
+
+Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
+  (interactive (list (completing-read "Pause on exceptions: "
+                                      '("none" "uncaught" "all")
+                                      nil
+                                      t)))
+  (jade-webkit--send-request `((method . "Debugger.setPauseOnExceptions")
+                               (params . ((state . ,state))))))
 
 (defun jade-webkit--open-ws-connection (url websocket-url)
   "Open a websocket connection to URL using WEBSOCKET-URL.
@@ -257,7 +275,9 @@ inspectors."
 
 (defun jade-webkit--enable-debugger ()
   "Enable the debugger on the current tab."
-  (jade-webkit--send-request '((method . "Debugger.enable"))))
+  (jade-webkit--send-request '((method . "Debugger.enable"))
+                             (lambda (&rest _)
+                               (jade-webkit-set-pause-on-exceptions "uncaught"))))
 
 (defun jade-webkit--handle-evaluation-response (response callback)
   "Get the result of an evaluation in RESPONSE and evaluate CALLBACK with it."
