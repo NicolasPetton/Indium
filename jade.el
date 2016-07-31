@@ -4,6 +4,8 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: tools, javascript
+;; Version: 0.10
+;; Package-Requires: ((emacs "25") (seq "2.18") (map "1.1") (js2-mode "20140114"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +22,10 @@
 
 ;;; Commentary:
 
-;;
+;; Jade connects to a browser tab or nodejs process and provides many features
+;; for JavaScript development, including a REPL (with auto completion) & object
+;; inspection, an inspector, with history and navigation, and even a stepping
+;; Debugger, similar to `edebug`, or `cider`.
 
 ;;; Code:
 
