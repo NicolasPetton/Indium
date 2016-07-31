@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: tools, javascript
 ;; Version: 0.10
-;; Package-Requires: ((emacs "25") (seq "2.18") (map "1.1") (js2-mode "20140114"))
+;; Package-Requires: ((emacs "25") (seq "2.18") (map "1.1") (js2-mode "20140114") (company "0.9.0") (websocket "1.6"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
