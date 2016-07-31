@@ -448,4 +448,4 @@ RESULT should be a reference to a remote object."
     id))
 
 (provide 'jade-webkit)
-;;; jade.el ends here
+;;; jade-webkit.el ends here
