@@ -30,7 +30,7 @@ The stepping debugger, and an inspector on locals
 
 It's available on melpa:
 
-    M-x package-install js2-refactor
+    M-x package-install jade
 
 ### Connection to a chrom[e|ium] tab
 
