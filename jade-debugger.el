@@ -28,6 +28,7 @@
 (require 'map)
 (require 'jade-inspector)
 (require 'jade-repl)
+(require 'jade-interaction)
 (require 'jade-render)
 
 (defgroup jade-debugger nil
@@ -132,53 +133,35 @@
                                                                     '(location scriptId)))
                                        (lineNumber . ,(1- (count-lines (point-min) (point)))))))
 
-(defun jade-debugger-evaluate (arg expression)
+(defun jade-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
-Evaluation happens in the context of the current call frame.
+Evaluation happens in the context of the current call frame."
+  (interactive "sEvaluate on frame: ")
+  (jade-debugger-eval expression
+                      (lambda (value _error)
+                        (message (jade-description-string value)))))
 
-With a prefix argument ARG, inspect the result of the
-evaluation."
-  (interactive "P\nsEvaluate on frame: ")
+(defun jade-debugger-eval-last-node ()
+  "Evaluate the node before point."
+  (interactive)
+  (jade-debugger-evaluate (js2-node-string (jade-interaction-node-before-point))))
+
+(defun jade-debugger-eval (expression callback)
+  "Evaluate EXPRESSION and call CALLBACK with the returned value.
+Evaluation happens in the context of the current call frame."
   (jade-backend-evaluate-on-frame jade-backend
                                   expression
                                   (jade-debugger-top-frame)
-                                  (lambda (value error)
-                                    (if arg
-                                        (jade-inspector-inspect value)
-                                      (message (jade-description-string value))))))
+                                  callback))
 
-(defun jade-debugger-evaluate-last-node (arg)
-  "Evaluate the node before point.
-
-This is similar to `evaluate-last-sexp', but for JavaScript buffers.
-With a prefix argument, ARG, inspect the result of the evaluation."
-  (interactive "P")
-  (jade-debugger-evaluate arg (js2-node-string (jade-debugger-node-before-point))))
-
-(defun jade-debugger-node-before-point ()
-  "Return the node before point to be evaluated."
-  (save-excursion
-    (forward-comment -1)
-    (while (looking-back ":;,")
-      (backward-char 1))
-    (backward-char 1)
-    (let* ((node (js2-node-at-point))
-           (parent (js2-node-parent node)))
-      ;; Heuristics for finding the node to evaluate: if the parent of the node
-      ;; before point is a prop-get node (i.e. foo.bar) and if it starts before
-      ;; the current node, meaning that the point is on the node following the
-      ;; parent, then evaluate the content of the parent node:
-      ;;
-      ;; (underscore represents the point)
-      ;; foo.ba_r // => evaluate foo.bar
-      ;; foo_.bar // => evaluate foo
-      ;; foo.bar.baz_() // => evaluate foo.bar.baz
-      ;; foo.bar.baz()_ // => evaluate foo.bar.baz()
-      (while (and (js2-prop-get-node-p parent)
-                  (< (js2-node-abs-pos parent)
-                     (js2-node-abs-pos node)))
-        (setq node parent))
-      node)))
+(defun jade-debugger-inspect-last-node ()
+  "Evaluate and inspect the node before point."
+  (interactive)
+  (jade-debugger-eval (js2-node-string (jade-interaction-node-before-point))
+                      (lambda (result error)
+                        (when error
+                          (message "JS error: %s" result))
+                        (jade-inspector-inspect result))))
 
 (defun jade-debugger-get-buffer-create (frames backend connection)
   "Create a debugger buffer unless one exists, and return it."
@@ -214,7 +197,8 @@ With a prefix argument, ARG, inspect the result of the evaluation."
     (define-key map (kbd "q") #'jade-debugger-resume)
     (define-key map (kbd "h") #'jade-debugger-here)
     (define-key map (kbd "e") #'jade-debugger-evaluate)
-    (define-key map (kbd "C-x C-e") #'jade-debugger-evaluate-last-node)
+    (define-key map (kbd "C-x C-e") #'jade-debugger-eval-last-node)
+    (define-key map (kbd "C-c M-i") #'jade-debugger-inspect-last-node)
     map))
 
 (define-minor-mode jade-debugger-mode
