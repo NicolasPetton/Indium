@@ -71,8 +71,10 @@ If there is no current connection, throw an error."
     map))
 
 (define-minor-mode jade-scratch-mode
-  "Mode for JS evalution."
-  :lighter " jade-scratch"
+  "Mode for JS evalution.
+
+\\{jade-scratch-mode-map}"
+  :lighter " js-scratch"
   :keymap jade-scratch-mode-map
   (when jade-scratch-mode
     (company-mode-on)))
