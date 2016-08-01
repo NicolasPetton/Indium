@@ -206,7 +206,7 @@ Evaluation happens in the context of the current call frame."
 
 \\{jade-debugger-mode-map}"
   :group 'jade
-  :lighter " JS debug"
+  :lighter " JS-debug"
   :keymap jade-debugger-mode-map)
 
 ;;; Locals

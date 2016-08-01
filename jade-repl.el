@@ -289,9 +289,9 @@ Evaluate CALLBACK with the completion candidates."
 
 (defun jade-repl-company-prefix ()
   "Prefix for company."
-    (and (eq major-mode 'jade-repl-mode)
-         (or (company-grab-symbol-cons "\\." 1)
-             'stop)))
+  (and (eq major-mode 'jade-repl-mode)
+       (or (company-grab-symbol-cons "\\." 1)
+           'stop)))
 
 (defvar jade-repl-mode-hook nil
   "Hook executed when entering `jade-repl-mode'.")
@@ -309,10 +309,9 @@ Evaluate CALLBACK with the completion candidates."
     (define-key map (kbd "C-c C-q") #'jade-quit)
     (define-key map (kbd "M-p") #'jade-repl-previous-input)
     (define-key map (kbd "M-n") #'jade-repl-next-input)
-    ;; (define-key map (kbd "C-c M-i") #'jade-repl-inspect)
     map))
 
-(define-derived-mode jade-repl-mode fundamental-mode "JS REPL"
+(define-derived-mode jade-repl-mode fundamental-mode "JS-REPL"
   "Major mode for jade REPL interactions.
 
 \\{jade-repl-mode-map}"
