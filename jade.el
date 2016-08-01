@@ -3,6 +3,7 @@
 ;; Copyright (C) 2016  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
+;; URL: https://github.com/NicolasPetton/jade
 ;; Keywords: tools, javascript
 ;; Version: 0.11
 ;; Package-Requires: ((emacs "25") (seq "2.16") (map "1.0") (js2-mode "20140114") (company "0.9.0") (websocket "1.6"))
