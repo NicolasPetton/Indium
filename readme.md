@@ -26,7 +26,11 @@ The stepping debugger, and an inspector on locals
 
 ## Getting started
 
-(Installation instructions missing.)
+(Emacs 25 is required)
+
+It's available on melpa:
+
+    M-x package-install js2-refactor
 
 ### Connection to a chrom[e|ium] tab
 
