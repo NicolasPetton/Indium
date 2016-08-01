@@ -1,4 +1,4 @@
-# Jade ![MELPA](https://melpa.org/packages/jade-badge.svg)
+# Jade [![MELPA](https://melpa.org/packages/jade-badge.svg)](https://melpa.org/#/jade)
 _**J**avaScript **A**wesome **D**evelopment **E**nvironment (in Emacs)_
 
 Jade connects to a browser tab or nodejs process and provides many features for
