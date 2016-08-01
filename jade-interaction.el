@@ -20,6 +20,7 @@
 
 ;;; Code:
 
+(require 'js2-mode)
 (require 'jade-backend)
 (require 'jade-inspector)
 (require 'jade-render)

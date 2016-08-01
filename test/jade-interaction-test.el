@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'jade-interaction)
 
 ;;; Helpers
 
