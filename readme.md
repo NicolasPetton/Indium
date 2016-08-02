@@ -59,6 +59,11 @@ Evaluate `M-x jade-connect-to-nodejs`.
 Add the following to enable evaluation in all JS buffers:
 
     (add-hook 'js2-mode-hook #'jade-interaction-mode)
+    
+Then `C-x C-e` will evaluate the node before the point, and `C-c M-i` will
+inspect the result.
+
+The entire buffer can also be executed with `jade-eval-buffer`.
 
 ## Missing features
 
