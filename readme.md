@@ -64,7 +64,7 @@ Add the following to enable evaluation in all JS buffers:
 
 Jade is young, here's a list of missing/wanted features
 
-- Code evaluation using `C-M-x` from project JS buffers
+- ~~Code evaluation using `C-x C-e` from project JS buffers~~
 - Adding breakpoints (to remove the need for `debugger` statements)
 - Network inspector (could get inspiration from restclient.el)
 - DOM inspector
