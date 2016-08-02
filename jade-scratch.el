@@ -66,8 +66,8 @@ If there is no current connection, throw an error."
 
 (defvar jade-scratch-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-x C-e") #'jade-interaction-eval-last-node)
-    (define-key map (kbd "C-c M-i") #'jade-interaction-inspect-last-node)
+    (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
+    (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
     map))
 
 (define-minor-mode jade-scratch-mode

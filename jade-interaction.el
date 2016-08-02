@@ -25,7 +25,12 @@
 (require 'jade-inspector)
 (require 'jade-render)
 
-(defun jade-interaction-eval-last-node (arg)
+(defun jade-eval-buffer ()
+  "Evaluate the accessible portion of current buffer."
+  (interactive)
+  (jade-backend-evaluate jade-backend (buffer-string)))
+
+(defun jade-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
 This is similar to `eval-last-sexp', but for JavaScript buffers.
 
@@ -41,7 +46,7 @@ current buffer."
                                    (insert description))
                                (message description))))))
 
-(defun jade-interaction-inspect-last-node ()
+(defun jade-inspect-last-node ()
   "Evaluate and inspect the node before point."
   (interactive)
   (jade-backend-evaluate jade-backend
