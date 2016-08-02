@@ -21,6 +21,8 @@
 ;;; Code:
 
 (require 'js2-mode)
+(require 'map)
+(require 'seq)
 (require 'jade-backend)
 (require 'jade-inspector)
 (require 'jade-render)
@@ -28,7 +30,8 @@
 (defun jade-eval-buffer ()
   "Evaluate the accessible portion of current buffer."
   (interactive)
-  (jade-backend-evaluate jade-backend (buffer-string)))
+  (jade-interaction--ensure-connection)
+  (jade-backend-evaluate (jade-backend) (buffer-string)))
 
 (defun jade-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
@@ -37,7 +40,8 @@ This is similar to `eval-last-sexp', but for JavaScript buffers.
 Interactively, with a prefix argument ARG, print output into
 current buffer."
   (interactive "P")
-  (jade-backend-evaluate jade-backend
+  (jade-interaction--ensure-connection)
+  (jade-backend-evaluate (jade-backend)
                          (js2-node-string (jade-interaction-node-before-point))
                          (lambda (value _error)
                            (let ((description (jade-description-string value)))
@@ -49,7 +53,8 @@ current buffer."
 (defun jade-inspect-last-node ()
   "Evaluate and inspect the node before point."
   (interactive)
-  (jade-backend-evaluate jade-backend
+  (jade-interaction--ensure-connection)
+  (jade-backend-evaluate (jade-backend)
                          (js2-node-string (jade-interaction-node-before-point))
                          (lambda (result error)
                            (jade-inspector-inspect result))))
@@ -78,6 +83,41 @@ current buffer."
                      (js2-node-abs-pos node)))
         (setq node parent))
       node)))
+
+(defun jade-interaction--ensure-connection ()
+  "Set a connection if no connection is set for the current buffer.
+If the current buffer has no associated `jade-connection', prompt
+the user for one of the open connections if many of them are
+open, and set it in the current buffer."
+  (unless jade-connection
+    (setq-local jade-connection
+                (if (= 1 (seq-length jade-connections))
+                    (seq-elt jade-connections 0)
+                  (jade-interaction--read-connection)))))
+
+(defun jade-interaction--read-connection ()
+  "Read a connection from the minibuffer, with completion."
+  (let ((url (completing-read "Choose a connection: "
+                              (seq-map (lambda (conn)
+                                         (map-elt conn 'url))
+                                       jade-connections))))
+    (seq-find (lambda (conn)
+                (string= (map-elt conn 'url)
+                         url))
+              jade-connections)))
+
+(defvar jade-interaction-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
+    (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
+    map))
+
+(define-minor-mode jade-interaction-mode
+  "Mode for JavaScript evalution.
+
+\\{jade-interaction-mode-map}"
+  :lighter " js-interaction"
+  :keymap jade-interaction-mode-map)
 
 (provide 'jade-interaction)
 ;;; jade-interaction.el ends here

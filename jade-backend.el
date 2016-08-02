@@ -43,7 +43,7 @@ by backends.")
 
 (defmacro jade-with-connection (connection &rest body)
   "Set the value of `jade-connection' to CONNECTION and evaluate BODY."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   `(let ((jade-connection ,connection))
      ,@body))
 

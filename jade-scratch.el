@@ -26,7 +26,6 @@
 
 (require 'jade-interaction)
 (require 'jade-repl)
-(require 'company)
 
 (defun jade-scratch ()
   "Pop to the scratch buffer.
@@ -59,24 +58,9 @@ If there is no current connection, throw an error."
   (with-current-buffer buffer
     ;; TODO: enable completion like in the REPL
     (js2-mode)
-    (jade-scratch-mode)
+    (jade-interaction-mode)
     (setq-local jade-connection connection)
     (jade-scratch-insert-welcome-message)))
-
-(defvar jade-scratch-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
-    (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
-    map))
-
-(define-minor-mode jade-scratch-mode
-  "Mode for JS evalution.
-
-\\{jade-scratch-mode-map}"
-  :lighter " js-scratch"
-  :keymap jade-scratch-mode-map
-  (when jade-scratch-mode
-    (company-mode-on)))
 
 (defun jade-scratch-insert-welcome-message ()
   "Insert a welcome message to help use the scratch buffer."

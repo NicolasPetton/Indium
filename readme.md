@@ -7,6 +7,7 @@ JavaScript development, including:
 - a REPL (with auto completion) & object inspection;
 - an inspector, with history and navigation;
 - a scratch buffer (`M-x jade-scratch`);
+- JavaScript evaluation in JS buffers with `jade-interaction-mode`;
 - a stepping Debugger, similar to `edebug`, or `cider`.
 
 ## Screenshots
@@ -52,6 +53,12 @@ Start a node process with the `--listen` flag:
     node --listen myfile.js
 
 Evaluate `M-x jade-connect-to-nodejs`.
+
+### JavaScript evaluation in JS buffers
+
+Add the following to enable evaluation in all JS buffers:
+
+    (add-hook 'js2-mode-hook #'jade-interaction-mode)
 
 ## Missing features
 
