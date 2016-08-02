@@ -54,13 +54,13 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
-(defun jade-repl-get-buffer-create (backend connection)
+(defun jade-repl-get-buffer-create (connection)
   "Return a REPL buffer for CONNECTION.
 If no buffer exists, create one."
   (let* ((ws (map-elt connection 'ws))
          (url (map-elt connection 'url))
          (buf (get-buffer-create (jade-repl-buffer-name url))))
-    (jade-repl-setup-buffer buf backend connection)
+    (jade-repl-setup-buffer buf connection)
     buf))
 
 (defun jade-repl-get-buffer ()
@@ -72,12 +72,11 @@ If no buffer exists, create one."
 If URL is nil, use the current connection."
   (concat "*JS REPL " (or url (map-elt jade-connection 'url)) "*"))
 
-(defun jade-repl-setup-buffer (buffer backend connection)
-  "Setup the REPL BUFFER for BACKEND and CONNECTION."
+(defun jade-repl-setup-buffer (buffer connection)
+  "Setup the REPL BUFFER for CONNECTION."
   (with-current-buffer buffer
     (jade-repl-mode)
     (setq-local jade-connection connection)
-    (setq-local jade-backend backend)
     (jade-repl-setup-markers)
     (jade-repl-mark-output-start)
     (jade-repl-mark-input-start)
@@ -137,7 +136,7 @@ If URL is nil, use the current connection."
 (defun jade-repl-inspect ()
   "Inspect the result of the evaluation of the input at point."
   (interactive)
-  (jade-backend-evaluate jade-backend
+  (jade-backend-evaluate (jade-backend)
                          (jade-repl--input-content)
                          (lambda (result error)
                            (when error
@@ -157,7 +156,7 @@ If URL is nil, use the current connection."
 (defun jade-repl-evaluate (string)
   "Evaluate STRING in the browser tab and emit the output."
   (push string jade-repl-history)
-  (jade-backend-evaluate jade-backend string #'jade-repl-emit-value)
+  (jade-backend-evaluate (jade-backend) string #'jade-repl-emit-value)
   ;; move the output markers so that output is put after the current prompt
   (save-excursion
     (goto-char (point-max))
@@ -285,7 +284,7 @@ See `company-backends' for more info about COMMAND and ARG."
 Evaluate CALLBACK with the completion candidates."
   (let ((expression (buffer-substring-no-properties jade-repl-input-start-marker
                                                     (point-max-marker))))
-    (jade-backend-get-completions jade-backend expression arg callback)))
+    (jade-backend-get-completions (jade-backend) expression arg callback)))
 
 (defun jade-repl-company-prefix ()
   "Prefix for company."

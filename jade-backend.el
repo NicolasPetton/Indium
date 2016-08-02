@@ -39,10 +39,6 @@ A connection should be an alist with the following required keys:
 by backends.")
 (make-variable-buffer-local 'jade-connection)
 
-(defvar jade-backend nil
-  "Current backend used.")
-(make-variable-buffer-local 'jade-backend)
-
 (defvar jade-backends nil "List of registered backends.")
 
 (defmacro jade-with-connection (connection &rest body)
@@ -50,6 +46,10 @@ by backends.")
   (declare (debug t))
   `(let ((jade-connection ,connection))
      ,@body))
+
+(defun jade-backend ()
+  "Return the backend for the current connection."
+  (map-elt jade-connection 'backend))
 
 (defun jade-register-backend (backend)
   "Register a new BACKEND.
@@ -65,7 +65,7 @@ When called interactively, prompt for a confirmation first."
   (when (or (not (called-interactively-p))
             (y-or-n-p (format "Do you really want to close the connection to %s ? "
                               (map-elt jade-connection 'url))))
-    (jade-backend-close-connection jade-backend jade-connection)
+    (jade-backend-close-connection (jade-backend) jade-connection)
     (setq jade-connections (remq jade-connection jade-connections))
     (jade-backend-kill-all-buffers jade-connection)))
 
@@ -73,9 +73,9 @@ When called interactively, prompt for a confirmation first."
   "Try to re-establish a connection.
 The new connection is based on the current (usually closed) one."
   (interactive)
-  (unless (and jade-backend jade-connection)
+  (unless jade-connection
     (user-error "No connection associated to the current buffer"))
-  (jade-backend-reconnect jade-backend))
+  (jade-backend-reconnect (jade-backend)))
 
 (defun jade-backend-kill-all-buffers (connection)
   "Kill all buffers that have the `jade-connection' CONNECTION."
@@ -88,7 +88,7 @@ The new connection is based on the current (usually closed) one."
 (defun jade-reload ()
   "Reload the page."
   (interactive)
-  (jade-backend-evaluate jade-backend "window.location.reload()"))
+  (jade-backend-evaluate (jade-backend) "window.location.reload()"))
 
 ;;; jade-connection methods
 
