@@ -41,19 +41,19 @@
         (jade-backend-get-properties (jade-backend)
                                      objectid
                                      (lambda (properties)
-                                       (jade-inspector-push-to-history reference)
-                                       (jade-inspector-render-properties properties reference)))
+                                       (jade-inspector--inspect-properties properties reference)))
       (message "Cannot inspect %S" (map-elt reference 'description)))))
 
-(defun jade-inspector-render-properties (properties reference)
+(defun jade-inspector--inspect-properties (properties reference)
   (let ((buf (jade-inspector-get-buffer-create))
         (inhibit-read-only t))
     (with-current-buffer buf
+      (jade-inspector-push-to-history reference)
       (save-excursion
         (erase-buffer)
         (jade-render-keyword (jade-description-string reference t))
         (insert "\n\n")
-        (jade-render-properties properties reference)))
+        (jade-render-properties properties)))
     (pop-to-buffer buf)))
 
 (defun jade-inspector-keybinding (command)
