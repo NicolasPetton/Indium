@@ -57,8 +57,7 @@
 (defun jade-repl-get-buffer-create (connection)
   "Return a REPL buffer for CONNECTION.
 If no buffer exists, create one."
-  (let* ((ws (map-elt connection 'ws))
-         (url (map-elt connection 'url))
+  (let* ((url (map-elt connection 'url))
          (buf (get-buffer-create (jade-repl-buffer-name url))))
     (jade-repl-setup-buffer buf connection)
     buf))
@@ -168,7 +167,7 @@ If URL is nil, use the current connection."
 When ERROR is non-nil, use the error face."
   (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
-      (end-of-buffer)
+      (goto-char (point-max))
       (insert-before-markers "\n")
       (set-marker jade-repl-output-start-marker (point))
       (jade-render-value value error)
@@ -243,14 +242,14 @@ DIRECTION is `forward' or `backard' (in the history list)."
   (interactive)
   (let ((inhibit-read-only t))
     (save-excursion
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (delete-region (point) jade-repl-prompt-start-marker))))
 
 (defun jade-repl--handle-connection-closed ()
   "Display a message when the connection is closed."
     (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
-      (end-of-buffer)
+      (goto-char (point-min))
       (insert-before-markers "\n")
       (set-marker jade-repl-output-start-marker (point))
       (insert "Connection closed. ")

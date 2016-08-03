@@ -62,7 +62,7 @@ When called interactively, prompt for a confirmation first."
   (interactive)
   (unless jade-connection
     (user-error "No active connection to close"))
-  (when (or (not (called-interactively-p))
+  (when (or (not (called-interactively-p 'interactive))
             (y-or-n-p (format "Do you really want to close the connection to %s ? "
                               (map-elt jade-connection 'url))))
     (jade-backend-close-connection (jade-backend) jade-connection)

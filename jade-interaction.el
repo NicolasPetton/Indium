@@ -56,14 +56,14 @@ current buffer."
   (jade-interaction--ensure-connection)
   (jade-backend-evaluate (jade-backend)
                          (js2-node-string (jade-interaction-node-before-point))
-                         (lambda (result error)
+                         (lambda (result _error)
                            (jade-inspector-inspect result))))
 
 (defun jade-interaction-node-before-point ()
   "Return the node before point to be evaluated."
   (save-excursion
     (forward-comment -1)
-    (while (looking-back "[:,]")
+    (while (looking-back "[:,]" nil)
       (backward-char 1))
     (backward-char 1)
     (let* ((node (js2-node-at-point))

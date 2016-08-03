@@ -44,7 +44,7 @@
 (defun jade-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
   (url-retrieve (format "http://%s:%s/json" host port)
-                (lambda (status)
+                (lambda (_status)
                   ;; TODO: handle errors
                   (funcall callback (jade-chrome--read-tab-data)))))
 

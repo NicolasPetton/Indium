@@ -39,7 +39,8 @@
 (defcustom jade-debugger-major-mode
   #'js-mode
   "Major mode used in debugger buffers."
-  :group 'jade-debugger)
+  :group 'jade-debugger
+  :type 'function)
 
 (defvar jade-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
 
@@ -83,10 +84,11 @@
                        source)
         (erase-buffer)
         (insert source))
-      (goto-line (1+ line))
+      (goto-char (point-min))
+      (forward-line line)
       (forward-char column)
       (jade-debugger-setup-overlay-arrow)
-      (jade-debugger-highlight-node frame))))
+      (jade-debugger-highlight-node))))
 
 (defun jade-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
@@ -94,7 +96,7 @@
     (setq overlay-arrow-position (make-marker))
     (set-marker overlay-arrow-position pos (current-buffer))))
 
-(defun jade-debugger-highlight-node (frame)
+(defun jade-debugger-highlight-node ()
   (let ((beg (point))
         (end (line-end-position)))
     (remove-overlays)
@@ -251,7 +253,7 @@ Unless NO-POP is non-nil, pop the locals buffer."
         (goto-char (point-max))
         (jade-render-keyword description)
         (insert "\n\n")
-        (jade-render-properties properties scope)
+        (jade-render-properties properties)
         (insert "\n")))
     (unless no-pop
       (pop-to-buffer buf))))

@@ -87,7 +87,7 @@ definitions."
     (when preview
       (insert preview))))
 
-(defun jade-render-properties (properties value)
+(defun jade-render-properties (properties)
   (seq-map #'jade-render-property
            (seq-sort (lambda (p1 p2)
                        (string< (map-elt p1 'name)
