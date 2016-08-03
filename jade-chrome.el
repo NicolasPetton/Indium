@@ -50,14 +50,13 @@
 
 (defun jade-chrome--connect-to-tab (tabs)
   "Ask the user for a tab in the list TABS and connects to it."
-  (let* ((titles (seq-map (lambda (tab)
-                            (map-elt tab 'title))
+  (let* ((urls (seq-map (lambda (tab)
+                            (map-elt tab 'url))
                           tabs))
-         (title (completing-read "Tab: " titles nil t))
+         (url (completing-read "Tab: " urls nil t))
          (tab (seq-find (lambda (tab)
-                          (string= (map-elt tab 'title) title))
+                          (string= (map-elt tab 'url) url))
                         tabs))
-         (url (map-elt tab 'url))
          (websocket-url (map-elt tab 'webSocketDebuggerUrl)))
     (jade-webkit--open-ws-connection url websocket-url)))
 
