@@ -88,10 +88,10 @@ definitions."
       (insert preview))))
 
 (defun jade-render-properties (properties value)
-  (let ((beg (point)))
-    (seq-map #'jade-render-property properties)
-    ;; (align-regexp beg (point) "\\(:\\s-*\\)" nil 2)
-    ))
+  (seq-map #'jade-render-property (seq-sort (lambda (p1 p2)
+                                              (string< (map-elt p1 'name)
+                                                       (map-elt p2 'name)))
+                                            properties)))
 
 (defun jade-render-property (property)
   (insert "  " (map-elt property 'name) ": ")
