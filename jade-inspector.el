@@ -30,6 +30,7 @@
 (require 'jade-faces)
 
 (defvar jade-inspector-history nil)
+(make-variable-buffer-local 'jade-inspector-history)
 
 (declare jade-backend-get-properties)
 
