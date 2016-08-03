@@ -88,10 +88,11 @@ definitions."
       (insert preview))))
 
 (defun jade-render-properties (properties value)
-  (seq-map #'jade-render-property (seq-sort (lambda (p1 p2)
-                                              (string< (map-elt p1 'name)
-                                                       (map-elt p2 'name)))
-                                            properties)))
+  (seq-map #'jade-render-property
+           (seq-sort (lambda (p1 p2)
+                       (string< (map-elt p1 'name)
+                                (map-elt p2 'name)))
+                     properties)))
 
 (defun jade-render-property (property)
   (insert "  " (map-elt property 'name) ": ")
