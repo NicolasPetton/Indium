@@ -27,11 +27,20 @@
 (require 'jade-inspector)
 (require 'jade-render)
 
+(defun jade-eval (string &optional callback)
+  "Evaluate STRING on the current backend.
+When CALLBACK is non-nil, evaluate CALLBACK with the result.
+
+When called interactively, prompt the user for the string to be
+evaluated."
+  (interactive "sEvaluate JavaScript: ")
+  (jade-backend-evaluate (jade-backend) string callback))
+
 (defun jade-eval-buffer ()
   "Evaluate the accessible portion of current buffer."
   (interactive)
   (jade-interaction--ensure-connection)
-  (jade-backend-evaluate (jade-backend) (buffer-string)))
+  (jade-eval (buffer-string)))
 
 (defun jade-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
@@ -41,23 +50,21 @@ Interactively, with a prefix argument ARG, print output into
 current buffer."
   (interactive "P")
   (jade-interaction--ensure-connection)
-  (jade-backend-evaluate (jade-backend)
-                         (js2-node-string (jade-interaction-node-before-point))
-                         (lambda (value _error)
-                           (let ((description (jade-description-string value)))
-                             (if arg
-                                 (save-excursion
-                                   (insert description))
-                               (message description))))))
+  (jade-eval (js2-node-string (jade-interaction-node-before-point))
+             (lambda (value _error)
+               (let ((description (jade-description-string value)))
+                 (if arg
+                     (save-excursion
+                       (insert description))
+                   (message description))))))
 
 (defun jade-inspect-last-node ()
   "Evaluate and inspect the node before point."
   (interactive)
   (jade-interaction--ensure-connection)
-  (jade-backend-evaluate (jade-backend)
-                         (js2-node-string (jade-interaction-node-before-point))
-                         (lambda (result _error)
-                           (jade-inspector-inspect result))))
+  (jade-eval (js2-node-string (jade-interaction-node-before-point))
+             (lambda (result _error)
+               (jade-inspector-inspect result))))
 
 (defun jade-interaction-node-before-point ()
   "Return the node before point to be evaluated."
