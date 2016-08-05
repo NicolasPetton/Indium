@@ -78,12 +78,29 @@ If URL is nil, use the current connection."
     (setq-local jade-connection connection)
     (jade-repl-setup-markers)
     (jade-repl-mark-output-start)
-    (jade-repl-mark-input-start)
     (jade-repl-insert-prompt)
-    (jade-repl-emit-console-message
-     (format "Welcome to Jade!\nConnected to %s @ %s\n"
+    (jade-repl-mark-input-start)
+    (jade-repl-emit-console-message (jade-repl--welcome-message))))
+
+(defun jade-repl--welcome-message ()
+  "Return the welcome message displayed in new REPL buffers."
+  (format
+   (substitute-command-keys
+    "Welcome to Jade!
+Connected to %s @ %s
+
+Getting started:
+
+- Press <\\[jade-repl-return]> on links to open an inspector
+- Press <\\[jade-repl-previous-input]> and <\\[jade-repl-next-input]> to navigate in the history
+- Use <\\[jade-scratch]> to open a scratch buffer for JS evaluation
+- Press <\\[describe-mode]> to see a list of available keybindings
+- Press <\\[jade-repl-clear-output]> to clear the output
+
+")
              (map-elt jade-connection 'backend)
-             (map-elt jade-connection 'url)))))
+             (map-elt jade-connection 'url)))
+
 
 (defun jade-repl-setup-markers ()
   "Setup the initial markers for the current REPL buffer."
@@ -172,7 +189,7 @@ When ERROR is non-nil, use the error face."
       (set-marker jade-repl-output-start-marker (point))
       (jade-render-value value error)
       (insert "\n")
-      (set-marker jade-repl-input-start-marker (point))
+      (jade-repl-mark-input-start)
       (set-marker jade-repl-output-end-marker (point)))
     (jade-repl-insert-prompt)
     (run-hooks 'jade-repl-evaluate-hook)))
