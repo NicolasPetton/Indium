@@ -33,6 +33,7 @@
 (require 'jade-backend)
 (require 'jade-chrome)
 (require 'jade-nodejs)
+(require 'jade-scratch)
 
 (provide 'jade)
 ;;; jade.el ends here
