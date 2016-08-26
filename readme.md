@@ -48,9 +48,9 @@ Evaluate `M-x jade-connect-to-chrome`.
 
 (Note: as of July 31 2016, this requires node-nightly, which can be installed with `npm install -g node-nightly`).
 
-Start a node process with the `--listen` flag:
+Start a node process with the `--inspect` flag:
 
-    node --listen myfile.js
+    node --inspect myfile.js
 
 Evaluate `M-x jade-connect-to-nodejs`.
 
