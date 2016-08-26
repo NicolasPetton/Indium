@@ -247,7 +247,7 @@ same url."
 (defun jade-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
     (jade-webkit-set-overlay-message "Paused in Emacs debugger")
-    (jade-debugger-paused 'webkit (jade-webkit--frames frames))))
+    (jade-debugger-paused (jade-webkit--frames frames))))
 
 (defun jade-webkit--handle-debugger-resumed (_message)
   (jade-webkit-remove-overlay-message)

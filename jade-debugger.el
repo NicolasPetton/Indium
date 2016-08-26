@@ -47,21 +47,18 @@
 (defvar jade-debugger-frames nil "List of frames of the current debugger context.")
 (make-variable-buffer-local 'jade-debugger-frames)
 
+(defvar jade-debugger-current-frame nil "Current frame of the debugger context.")
+(make-variable-buffer-local 'jade-debugger-current-frame)
+
 (defconst jade-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
   "Used as an overlay's before-string prop to place a fringe arrow.")
 
 (declare 'jade-backend-debugger-get-script-source)
 
-(defun jade-debugger-paused (backend frames)
-  (let ((top-frame (car frames)))
-   (jade-backend-get-script-source backend
-                                   top-frame
-                                   (lambda (source)
-                                     (jade-debugger-get-buffer-create frames jade-connection)
-                                     (jade-debugger-switch-to-frame
-                                      top-frame
-                                      (map-nested-elt source '(result scriptSource)))))))
+(defun jade-debugger-paused (frames)
+  (jade-debugger-get-buffer-create jade-connection frames)
+  (jade-debugger-select-frame (car frames)))
 
 (defun jade-debugger-resumed (&rest _args)
   (let ((buf (jade-debugger-get-buffer)))
@@ -69,9 +66,42 @@
       (set-marker overlay-arrow-position nil (current-buffer))
       (remove-overlays))))
 
+(defun jade-debugger-next-frame ()
+  "Jump to the next frame in the frame stack."
+  (interactive)
+  (jade-debugger--jump-to-frame 'forward))
+
+(defun jade-debugger-previous-frame ()
+  "Jump to the previous frame in the frame stack."
+  (interactive)
+  (jade-debugger--jump-to-frame 'backward))
+
+(defun jade-debugger--jump-to-frame (direction)
+  "Jump to the next frame in DIRECTION.
+DIRECTION is `forward' or `backward' (in the frame list)."
+  (let* ((current-position (seq-position jade-debugger-frames jade-debugger-current-frame))
+         (step (pcase direction
+                 (`forward -1)
+                 (`backward 1)))
+         (position (+ current-position step)))
+    (when (> position (seq-length jade-debugger-frames))
+      (user-error "End of frames"))
+    (when (< position 0)
+      (user-error "Beginning of frames"))
+    (jade-debugger-select-frame (seq-elt jade-debugger-frames position))))
+
+(defun jade-debugger-select-frame (frame)
+  "Switch the debugger buffer to the frame FRAME."
+  (jade-backend-get-script-source (jade-backend)
+                                  frame
+                                  (lambda (source)
+                                    (jade-debugger-switch-to-frame
+                                     frame
+                                     (map-nested-elt source '(result scriptSource))))))
+
 (defun jade-debugger-switch-to-frame (frame source)
-  (jade-debugger-debug-frame frame source)
   (switch-to-buffer (jade-debugger-get-buffer))
+  (jade-debugger-debug-frame frame source)
   (jade-debugger-locals-maybe-refresh))
 
 (defun jade-debugger-debug-frame (frame source)
@@ -79,16 +109,16 @@
          (line (map-elt location 'lineNumber))
          (column (map-elt location 'columnNumber))
          (inhibit-read-only t))
-    (with-current-buffer (jade-debugger-get-buffer)
-      (unless (string= (buffer-substring-no-properties (point-min) (point-max))
-                       source)
-        (erase-buffer)
-        (insert source))
-      (goto-char (point-min))
-      (forward-line line)
-      (forward-char column)
-      (jade-debugger-setup-overlay-arrow)
-      (jade-debugger-highlight-node))))
+    (setq jade-debugger-current-frame frame)
+    (unless (string= (buffer-substring-no-properties (point-min) (point-max))
+                     source)
+      (erase-buffer)
+      (insert source))
+    (goto-char (point-min))
+    (forward-line line)
+    (forward-char column)
+    (jade-debugger-setup-overlay-arrow)
+    (jade-debugger-highlight-node)))
 
 (defun jade-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
@@ -164,8 +194,11 @@ Evaluation happens in the context of the current call frame."
                           (message "JS error: %s" result))
                         (jade-inspector-inspect result))))
 
-(defun jade-debugger-get-buffer-create (frames connection)
-  "Create a debugger buffer unless one exists, and return it."
+(defun jade-debugger-get-buffer-create (connection frames)
+  "Create a debugger buffer for CONNECTION and return it.
+
+Locally set `jade-debugger-frames' to FRAMES.
+If a buffer already exists, just return it."
   (let ((buf (jade-debugger-get-buffer)))
     (unless buf
       (setq buf (get-buffer-create (jade-debugger-buffer-name)))
@@ -197,6 +230,8 @@ Evaluation happens in the context of the current call frame."
     (define-key map (kbd "q") #'jade-debugger-resume)
     (define-key map (kbd "h") #'jade-debugger-here)
     (define-key map (kbd "e") #'jade-debugger-evaluate)
+    (define-key map (kbd "n") #'jade-debugger-next-frame)
+    (define-key map (kbd "p") #'jade-debugger-previous-frame)
     (define-key map (kbd "C-x C-e") #'jade-debugger-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-debugger-inspect-last-node)
     map))
@@ -230,7 +265,7 @@ Unless NO-POP is non-nil, pop the locals buffer."
           ;; do not inspect the window object
           (seq-remove (lambda (scope)
                         (string= (map-elt scope 'type) "global"))
-                      (map-elt (jade-debugger-top-frame) 'scope-chain))))
+                      (map-elt jade-debugger-current-frame 'scope-chain))))
 
 (defun jade-debugger-locals-maybe-refresh ()
   "When a local inspector is open, refresh it."
