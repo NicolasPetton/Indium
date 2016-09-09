@@ -259,10 +259,7 @@ the REPL buffer."
                          (json-encode (cons `(id . ,id) request)))))
 
 (defun jade-webkit--read-ws-message (frame)
-  (with-temp-buffer
-    (insert (websocket-frame-payload frame))
-    (goto-char (point-min))
-    (json-read)))
+  (json-read-from-string (websocket-frame-payload frame)))
 
 (defun jade-webkit--enable-tools ()
   "Enable developer tools for the current tab.
