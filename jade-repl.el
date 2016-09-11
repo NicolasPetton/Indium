@@ -266,7 +266,7 @@ DIRECTION is `forward' or `backard' (in the history list)."
   "Display a message when the connection is closed."
     (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
-      (goto-char (point-min))
+      (goto-char (point-max))
       (insert-before-markers "\n")
       (set-marker jade-repl-output-start-marker (point))
       (insert "Connection closed. ")
