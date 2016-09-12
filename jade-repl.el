@@ -80,7 +80,7 @@ If URL is nil, use the current connection."
     (jade-repl-mark-output-start)
     (jade-repl-insert-prompt)
     (jade-repl-mark-input-start)
-    (jade-repl-emit-console-message (jade-repl--welcome-message))))
+    (jade-repl-emit-console-message `((text . ,(jade-repl--welcome-message))))))
 
 (defun jade-repl--welcome-message ()
   "Return the welcome message displayed in new REPL buffers."
@@ -98,8 +98,8 @@ Getting started:
 - Press <\\[jade-repl-clear-output]> to clear the output
 
 ")
-             (map-elt jade-connection 'backend)
-             (map-elt jade-connection 'url)))
+   (map-elt jade-connection 'backend)
+   (map-elt jade-connection 'url)))
 
 
 (defun jade-repl-setup-markers ()
@@ -194,31 +194,96 @@ When ERROR is non-nil, use the error face."
     (jade-repl-insert-prompt)
     (run-hooks 'jade-repl-evaluate-hook)))
 
-(defun jade-repl-emit-console-message (string &optional level)
-  "Emit a console message STRING.
-LEVEL is a string representing the logging level, it can be
-\"log\", \"warn\", \"debug\" or \"error\"."
+(defun jade-repl-emit-console-message (message)
+  "Emit a console message.
+MESSAGE is a map (alist/hash-table) with the following keys:
+  level		severity level (can be log, warning, error, debug)
+  text		message text to be displayed
+  type		type of message
+  url		url of the message origin
+  line		line number in the resource that generated this message
+  parameters	message parameters in case of the formatted message
+
+MESSAGE must contain `text' or `parameters.'. Other fields are
+optional."
   (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
-      (let* ((error (string= level "error"))
-             (face (when error 'jade-repl-error-face))
-             (message (if level
-                          (concat level ": " string)
-                        string)))
+      (let ((level (or (map-elt message 'level) ""))
+            (text (map-elt message 'text))
+            (parameters (map-elt message 'parameters))
+            (url (map-elt message 'url))
+            (line (map-elt message 'line)))
         (goto-char jade-repl-output-end-marker)
-        (insert "\n")
         (set-marker jade-repl-output-start-marker (point))
-        (insert
-         (ansi-color-apply
-          (propertize message
-                      'font-lock-face (or face 'jade-repl-stdout-face)
-                      'rear-nonsticky '(font-lock-face))))
+        (jade-repl--emit-values text parameters level url line)
         (set-marker jade-repl-output-end-marker (point))
         (unless (eolp)
           (insert "\n"))
+        ;; TODO: add an option to disable it
         ;; when we get an error, also display it in the echo area for
         ;; convenience
-        (when error (message string))))))
+        (when (jade-repl--message-level-error-p level)
+          (message text))))))
+
+(defun jade-repl--emit-values (text values level url line)
+  "Emit a console message values"
+  (pcase (seq-length values)
+    (0 (jade-repl--emit-single-value-message `((type . "string") (description . ,text))
+                                             level url line))
+    (1 (jade-repl--emit-single-value-message (seq-elt values 0) level url line))
+    (_ (jade-repl--emit-multiple-values-message values level url line))))
+
+
+(defun jade-repl--message-level-error-p (level)
+  (string= level "error"))
+
+(defun jade-repl-level-face (level)
+  (if (jade-repl--message-level-error-p level)
+      'jade-repl-error-face
+    'jade-repl-stdout-face))
+
+(defun jade-repl--emit-level (level)
+  (unless (string-empty-p level)
+    (insert
+     (ansi-color-apply
+      (propertize (format "\n%s: " level)
+                  'font-lock-face (jade-repl-level-face level)
+                  'rear-nonsticky '(font-lock-face))))))
+
+(defun jade-repl--emit-single-value-message (value level url line)
+  "Emit a single VALUE.
+Used when there is only one value in the console message
+e.g. console.log(1)."
+  (jade-repl--emit-level level)
+  (if (string= (map-elt value 'type) "string")
+      (insert
+       (ansi-color-apply
+        (propertize (jade-description-string value)
+                    'font-lock-face (jade-repl-level-face level)
+                    'rear-nonsticky '(font-lock-face)))
+       (jade-repl--format-url-line " " url line))
+    (progn (jade-render-value value (jade-repl--message-level-error-p level))
+           (insert (jade-repl--format-url-line "\n" url line)))))
+
+(defun jade-repl--emit-multiple-values-message (values level url line)
+  "Emit values when there is more then one value in the console message
+e.g. console.log(1, 2, 3)."
+  (jade-repl--emit-level level)
+  (seq-do (lambda (value)
+            (insert "\n  ")
+            (jade-render-value value nil))
+          values)
+  (insert (jade-repl--format-url-line "\n" url line )))
+
+(defun jade-repl--format-url-line (whitespace url line)
+  (if (or (null url) (string-empty-p url))
+      ""
+    (concat whitespace
+            (propertize (format "%s:%s" (file-name-nondirectory url) line)
+                        'font-lock-face 'jade-link-face
+                        'jade-action (lambda ()
+                                       (browse-url url))
+                        'rear-nonsticky '(font-lock-face jade-action)))))
 
 (defun jade-repl-next-input ()
   "Insert the content of the next input in the history."
@@ -264,7 +329,7 @@ DIRECTION is `forward' or `backard' (in the history list)."
 
 (defun jade-repl--handle-connection-closed ()
   "Display a message when the connection is closed."
-    (with-current-buffer (jade-repl-get-buffer)
+  (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
       (goto-char (point-max))
       (insert-before-markers "\n")
@@ -302,6 +367,13 @@ Evaluate CALLBACK with the completion candidates."
                                                     (point-max-marker))))
     (jade-backend-get-completions (jade-backend) expression arg callback)))
 
+(defun jade-repl--complete-or-indent ()
+  "Complete or indent at point."
+  (interactive)
+  (if (company-manual-begin)
+      (company-complete-common)
+    (indent-according-to-mode)))
+
 (defun jade-repl-company-prefix ()
   "Prefix for company."
   (and (eq major-mode 'jade-repl-mode)
@@ -316,7 +388,8 @@ Evaluate CALLBACK with the completion candidates."
 (defvar jade-repl-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [return] #'jade-repl-return)
-    (define-key map "\C-m"#'jade-repl-return)
+    (define-key map "\C-m" #'jade-repl-return)
+    (define-key map (kbd "TAB") #'jade-repl--complete-or-indent)
     (define-key map [mouse-1] #'jade-follow-link)
     (define-key map (kbd "C-<return>") #'newline)
     (define-key map (kbd "C-c M-i") #'jade-repl-inspect)
