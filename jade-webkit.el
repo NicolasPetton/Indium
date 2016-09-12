@@ -146,8 +146,19 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
      (params . ((location . ,location))))
    callback))
 
+(defun jade-webkit-set-overlay-message (string)
+  "Sets the overlay string displayed when entering the debugger."
+  (jade-webkit--send-request
+   `((method . "Page.setOverlayMessage")
+     (params . ((message . ,string))))))
+
+(defun jade-webkit-remove-overlay-message ()
+  "Remove any overlay message displayed on the page."
+  (jade-webkit--send-request
+   `((method . "Page.setOverlayMessage"))))
+
 (defun jade-webkit-set-pause-on-exceptions (state)
-  " Defines on which STATE to pause.
+  "Defines on which STATE to pause.
 
 Can be set to stop on all exceptions, uncaught exceptions or no
 exceptions. Initial pause on exceptions state is set by Jade to
@@ -232,9 +243,11 @@ same url."
 
 (defun jade-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
+    (jade-webkit-set-overlay-message "Paused in Emacs debugger")
     (jade-debugger-paused 'webkit (jade-webkit--frames frames))))
 
 (defun jade-webkit--handle-debugger-resumed (_message)
+  (jade-webkit-remove-overlay-message)
   (jade-debugger-resumed))
 
 (defun jade-webkit--handle-ws-closed (_ws)
@@ -268,11 +281,16 @@ There is currently no support for the DOM inspector and network
 inspectors."
   (jade-webkit--enable-console)
   (jade-webkit--enable-runtime)
+  (jade-webkit--enable-page)
   (jade-webkit--enable-debugger))
 
 (defun jade-webkit--enable-console ()
   "Enable the console on the current tab."
   (jade-webkit--send-request '((method . "Console.enable"))))
+
+(defun jade-webkit--enable-page ()
+  "Enable the page API on the current tab."
+  (jade-webkit--send-request '((method . "Page.enable"))))
 
 (defun jade-webkit--enable-runtime ()
   "Enable the runtime on the current tab."
