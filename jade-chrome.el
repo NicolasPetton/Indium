@@ -35,10 +35,53 @@
 
 (require 'jade-webkit)
 
+(defgroup jade-chrome nil
+  "Chrome interaction."
+  :prefix "jade-chrome-"
+  :group 'jade)
+
+(defcustom jade-chrome-executable
+  "chromium"
+  "Chrome executable."
+  :type '(file))
+
+(defcustom jade-chrome-port
+  9222
+  "Chrome remote debugger port."
+  :type '(integer))
+
+(defun jade-run-chrome (url)
+  "Start chrome/chromium with remote debugging enabled.
+Open URL if provided."
+  (interactive "sUrl: ")
+  (make-process :name "*jade-chromium*"
+                :command (list (jade-chrome--find-executable)
+                               (format "--remote-debugging-port=%s" jade-chrome-port)
+                               (or url "")))
+  (jade-chrome--try-connect "127.0.0.1" 30))
+
+(defun jade-chrome--find-executable ()
+  "Find chrome executable using `jade-chrome-executable'."
+  (let ((executable (executable-find jade-chrome-executable)))
+    (unless executable
+      (user-error "Cannot find chrome/chromium binary (%s) in PATH" jade-chrome-executable))
+    executable))
+
+
+(defun jade-chrome--try-connect (host num-tries)
+  "Try to connect to chrome on HOST.  Use maximum NUM-TRIES."
+  (sleep-for 0.5)
+  (jade-chrome--get-tabs-data host
+                              jade-chrome-port
+                              (lambda (tabs)
+                                (if tabs
+                                    (jade-chrome--connect-to-tab tabs)
+                                  (jade-chrome--try-connect host (1- num-tries))))))
+
 (defun jade-connect-to-chrome (host port)
   "Open a connection to a webkit tab on HOST:PORT."
     (interactive (list (read-from-minibuffer "Host: " "127.0.0.1")
-                       (read-from-minibuffer "Port: " "9222")))
+                       (read-from-minibuffer "Port: " (number-to-string jade-chrome-port))))
   (jade-chrome--get-tabs-data host port #'jade-chrome--connect-to-tab))
 
 (defun jade-chrome--get-tabs-data (host port callback)
