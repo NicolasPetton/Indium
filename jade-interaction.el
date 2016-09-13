@@ -42,17 +42,30 @@ evaluated."
   (jade-interaction--ensure-connection)
   (jade-eval (buffer-string)))
 
-(defun jade-set-script-source (script-id &optional bundle-buffer)
-  "Set script source for the buffer with SCRIPT-ID.
+(defun jade-set-script-source (&optional url bundle-buffer)
+  "Set script source for URL.
 Optionally take compiled source from BUNDLE-BUFFER."
-  (interactive "sScriptId: \nsBuffer: \n")
+  (interactive)
   (jade-interaction--ensure-connection)
-  (with-current-buffer (or bundle-buffer (current-buffer))
-    (jade-backend-set-script-source (jade-backend)
-                                    script-id
-                                    (buffer-string)
-                                    (lambda ()
-                                      (message "Source set.")))))
+  (let ((scripts (hash-table-keys jade-webkit-source-maps)))
+    (setq url (seq-find (lambda (script)
+                          (string= (buffer-name) (file-name-nondirectory script)))
+                        scripts))
+    (unless url
+      (list (completing-read "Script: " scripts))))
+  (setq bundle-buffer "")
+  ;; (read-from-minibuffer "Buffer: " nil)
+  (let ((script-id (map-nested-elt jade-webkit-source-maps `(,url script-id))))
+    (unless script-id
+      (user-error "No script found for url: %s" url))
+    (with-current-buffer (if (string-blank-p bundle-buffer)
+                             (current-buffer)
+                           bundle-buffer)
+      (jade-backend-set-script-source (jade-backend)
+                                      script-id
+                                      (buffer-string)
+                                      (lambda (_response)
+                                        (message "Source set."))))))
 
 (defun jade-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
@@ -129,6 +142,7 @@ open, and set it in the current buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
+    (define-key map (kbd "C-c C-k") #'jade-set-script-source)
     map))
 
 (define-minor-mode jade-interaction-mode
