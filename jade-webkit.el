@@ -33,10 +33,12 @@
 (require 'json)
 (require 'map)
 (require 'seq)
+(require 'cl-lib)
 
 (require 'jade-backend)
 (require 'jade-repl)
 (require 'jade-debugger)
+
 
 (defvar jade-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
 
@@ -237,9 +239,10 @@ same url."
             ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
 
 (defun jade-webkit--handle-console-message (message)
-  (let* ((level (map-nested-elt message '(params message level)))
-         (text (map-nested-elt message '(params message text))))
-    (jade-repl-emit-console-message text level)))
+  (let* ((msg (map-nested-elt message '(params message)))
+         (parameters (map-elt msg 'parameters)))
+    (setf (map-elt msg 'parameters) (seq-map #'jade-webkit--value parameters))
+    (jade-repl-emit-console-message msg)))
 
 (defun jade-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
@@ -263,7 +266,7 @@ Evaluate CALLBACK with the response.
 If the current connection is closed, display an error message in
 the REPL buffer."
   (when (not (jade-webkit--connected-p))
-    (jade-repl-emit-console-message "Socket connection closed" "error"))
+    (jade-repl-emit-console-message '((level . "error") (text . "Socket connection closed"))))
   (let ((id (jade-webkit--next-request-id))
         (callbacks (jade-webkit--callbacks)))
     (when callback
@@ -459,8 +462,7 @@ RESULT should be a reference to a remote object."
 (let ((id 0))
   (defun jade-webkit--next-request-id ()
     "Return the next unique identifier to be used in a request."
-    (setq id (1+ id))
-    id))
+    (cl-incf id)))
 
 (provide 'jade-webkit)
 ;;; jade-webkit.el ends here
