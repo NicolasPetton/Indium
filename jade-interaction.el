@@ -42,6 +42,18 @@ evaluated."
   (jade-interaction--ensure-connection)
   (jade-eval (buffer-string)))
 
+(defun jade-set-script-source (script-id &optional bundle-buffer)
+  "Set script source for the buffer with SCRIPT-ID.
+Optionally take compiled source from BUNDLE-BUFFER."
+  (interactive "sScriptId: \nsBuffer: \n")
+  (jade-interaction--ensure-connection)
+  (with-current-buffer (or bundle-buffer (current-buffer))
+    (jade-backend-set-script-source (jade-backend)
+                                    script-id
+                                    (buffer-string)
+                                    (lambda ()
+                                      (message "Source set.")))))
+
 (defun jade-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
 This is similar to `eval-last-sexp', but for JavaScript buffers.

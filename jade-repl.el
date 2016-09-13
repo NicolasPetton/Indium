@@ -252,7 +252,7 @@ optional."
 
 (defun jade-repl--emit-single-value-message (value level url line)
   "Emit a single VALUE.
-Used when there is only one value in the console message
+Used when there is only one VALUE in the console message
 e.g. console.log(1)."
   (jade-repl--emit-level level)
   (if (string= (map-elt value 'type) "string")
@@ -266,7 +266,7 @@ e.g. console.log(1)."
            (insert (jade-repl--format-url-line "\n" url line)))))
 
 (defun jade-repl--emit-multiple-values-message (values level url line)
-  "Emit values when there is more then one value in the console message
+  "Emit VALUES when there is more then one value in the console message
 e.g. console.log(1, 2, 3)."
   (jade-repl--emit-level level)
   (seq-do (lambda (value)
@@ -282,7 +282,13 @@ e.g. console.log(1, 2, 3)."
             (propertize (format "%s:%s" (file-name-nondirectory url) line)
                         'font-lock-face 'jade-link-face
                         'jade-action (lambda ()
-                                       (browse-url url))
+                                       (let ((buffer (get-buffer (file-name-nondirectory url))))
+                                         (if buffer
+                                             (progn
+                                               (switch-to-buffer buffer)
+                                               (goto-char 0)
+                                               (forward-line (1- line)))
+                                           (browse-url url))))
                         'rear-nonsticky '(font-lock-face jade-action)))))
 
 (defun jade-repl-next-input ()

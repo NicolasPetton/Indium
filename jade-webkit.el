@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'websocket)
+(require 'sourcemap)
 (require 'json)
 (require 'map)
 (require 'seq)
@@ -41,6 +42,9 @@
 
 
 (defvar jade-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
+
+(defvar jade-webkit-source-maps (make-hash-table :test #'equal)
+  "Hashtable of sourcemaps.")
 
 (jade-register-backend 'webkit)
 
@@ -114,6 +118,13 @@ prototype chain of the remote object."
     `((method . "Debugger.getScriptSource")
       (params . ((scriptId . ,script-id))))
     callback)))
+
+(cl-defmethod jade-backend-set-script-source ((backend (eql webkit)) script-id source callback)
+  (jade-webkit--send-request
+   `((method . "Debugger.setScriptSource")
+     (params . ((scriptId . ,script-id)
+                (scriptSource . ,source))))
+   callback))
 
 (cl-defmethod jade-backend-resume ((backend (eql webkit)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
@@ -235,14 +246,65 @@ same url."
                      (funcall callback message)))
        (t (pcase method
             ("Console.messageAdded" (jade-webkit--handle-console-message message))
+            ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
             ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
             ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
 
 (defun jade-webkit--handle-console-message (message)
+  "Emit console MESSAGE to repl buffer."
   (let* ((msg (map-nested-elt message '(params message)))
-         (parameters (map-elt msg 'parameters)))
+         (parameters (map-elt msg 'parameters))
+         (url (map-elt msg 'url))
+         (line (map-elt msg 'line))
+         (column (map-elt msg 'column))
+         (position (jade-webkit--find-source-map-position url line column)))
+    (when position
+      (setf (map-elt msg 'url) (plist-get position :source))
+      (setf (map-elt msg 'line) (plist-get position :line))
+      (setf (map-elt msg 'colum) (plist-get position :column)))
     (setf (map-elt msg 'parameters) (seq-map #'jade-webkit--value parameters))
     (jade-repl-emit-console-message msg)))
+
+(defun jade-webkit--find-source-map-position (url line column)
+  "Find sourcemap position by corresponding URL, LINE and COLUMN."
+  (let ((map (map-elt jade-webkit-source-maps url)))
+    (when map
+      (sourcemap-original-position-for (map-elt map 'source-map)
+                                       :line line
+                                       ;; hack for sourcemap
+                                       :column (1- column)))))
+
+
+
+(defun jade-webkit--handle-script-parsed (message)
+  "Get sourcemap info from MESSAGE."
+  (let ((is-content-script (map-nested-elt message '(params isContentScript)))
+        (url (map-nested-elt message '(params url)))
+        (source-map-url (map-nested-elt message '(params sourceMapURL)))
+        (script-id (map-nested-elt message '(params scriptId))))
+    (when (and (eq is-content-script :json-false) (not (string-equal "" url)))
+      (let ((script `((script-id . ,script-id)
+                      (url . ,url)
+                      (source-map-url . ,source-map-url)
+                      (source-map . nil))))
+        (map-put jade-webkit-source-maps url script)
+        (jade-webkit--load-source-map
+         (concat (file-name-directory url) source-map-url)
+         (lambda (source-map)
+           (setf (map-elt script 'source-map) (sourcemap-from-string source-map))))))))
+
+
+(defun jade-webkit--load-source-map (url callback)
+  "Load and parse sourcemap from URL and pass it to CALLBACK."
+  (url-retrieve url
+                (lambda (_status)
+                  ;; TODO: handle errors
+                  (when (save-match-data
+                          (looking-at "^HTTP/1\\.1 200 OK$"))
+                    (goto-char (point-min))
+                    (search-forward "\n\n")
+                    (delete-region (point-min) (point))
+                    (funcall callback (buffer-string))))))
 
 (defun jade-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
