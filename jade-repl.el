@@ -204,7 +204,7 @@ MESSAGE is a map (alist/hash-table) with the following keys:
   line		line number in the resource that generated this message
   parameters	message parameters in case of the formatted message
 
-MESSAGE must contain `text' or `parameters.'. Other fields are
+MESSAGE must contain `text' or `parameters.'.  Other fields are
 optional."
   (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
@@ -226,23 +226,31 @@ optional."
           (message text))))))
 
 (defun jade-repl--emit-values (text values level url line)
-  "Emit a console message values"
+  "Emit a console message values.
+TEXT is the message string to emit.  VALUES is a sequence of
+values to log.  LEVEL is the logging level of the
+message (\"log\", \"warning\", \"error\", etc.).
+
+URL and LINE provide context information about the source of the
+message."
   (pcase (seq-length values)
     (0 (jade-repl--emit-single-value-message `((type . "string") (description . ,text))
-                                             level url line))
+                                             level
+                                             url
+                                             line))
     (1 (jade-repl--emit-single-value-message (seq-elt values 0) level url line))
     (_ (jade-repl--emit-multiple-values-message values level url line))))
-
 
 (defun jade-repl--message-level-error-p (level)
   (string= level "error"))
 
 (defun jade-repl-level-face (level)
+  "Return the face to be used to render a console message from its LEVEL."
   (if (jade-repl--message-level-error-p level)
       'jade-repl-error-face
     'jade-repl-stdout-face))
 
-(defun jade-repl--emit-level (level)
+(defun jade-repl--emit-logging-level (level)
   (unless (string-empty-p level)
     (insert
      (ansi-color-apply
@@ -252,9 +260,9 @@ optional."
 
 (defun jade-repl--emit-single-value-message (value level url line)
   "Emit a single VALUE.
-Used when there is only one value in the console message
-e.g. console.log(1)."
-  (jade-repl--emit-level level)
+Used when there is only one value in the console message, for
+example `console.log(1)'."
+  (jade-repl--emit-logging-level level)
   (if (string= (map-elt value 'type) "string")
       (insert
        (ansi-color-apply
@@ -266,14 +274,14 @@ e.g. console.log(1)."
            (insert (jade-repl--format-url-line "\n" url line)))))
 
 (defun jade-repl--emit-multiple-values-message (values level url line)
-  "Emit values when there is more then one value in the console message
-e.g. console.log(1, 2, 3)."
-  (jade-repl--emit-level level)
+  "Emit values when there is more than one value in the console message.
+This is the case for instance with `console.log(1, 2, 3)'."
+  (jade-repl--emit-logging-level level)
   (seq-do (lambda (value)
             (insert "\n  ")
             (jade-render-value value nil))
           values)
-  (insert (jade-repl--format-url-line "\n" url line )))
+  (insert (jade-repl--format-url-line "\n" url line)))
 
 (defun jade-repl--format-url-line (whitespace url line)
   (if (or (null url) (string-empty-p url))
