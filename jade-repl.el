@@ -253,8 +253,9 @@ message."
 (defun jade-repl--emit-logging-level (level)
   (unless (string-empty-p level)
     (insert
+     "\n"
      (ansi-color-apply
-      (propertize (format "\n%s: " level)
+      (propertize (format "%s: " level)
                   'font-lock-face (jade-repl-level-face level)
                   'rear-nonsticky '(font-lock-face))))))
 
@@ -263,15 +264,8 @@ message."
 Used when there is only one value in the console message, for
 example `console.log(1)'."
   (jade-repl--emit-logging-level level)
-  (if (string= (map-elt value 'type) "string")
-      (insert
-       (ansi-color-apply
-        (propertize (jade-description-string value)
-                    'font-lock-face (jade-repl-level-face level)
-                    'rear-nonsticky '(font-lock-face)))
-       (jade-repl--format-url-line " " url line))
-    (progn (jade-render-value value (jade-repl--message-level-error-p level))
-           (insert (jade-repl--format-url-line "\n" url line)))))
+  (jade-render-value value (jade-repl--message-level-error-p level))
+  (insert (jade-repl--format-url-line "\n" url line)))
 
 (defun jade-repl--emit-multiple-values-message (values level url line)
   "Emit values when there is more than one value in the console message.
