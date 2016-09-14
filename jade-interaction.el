@@ -42,9 +42,9 @@ evaluated."
   (jade-interaction--ensure-connection)
   (jade-eval (buffer-string)))
 
-(defun jade-set-script-source (&optional url bundle-buffer)
+(defun jade-set-script-source (&optional url bundle-path)
   "Set script source for URL.
-Optionally take compiled source from BUNDLE-BUFFER."
+Optionally take compiled source from BUNDLE-PATH."
   (interactive)
   (jade-interaction--ensure-connection)
   (let ((scripts (hash-table-keys jade-webkit-source-maps)))
@@ -52,20 +52,20 @@ Optionally take compiled source from BUNDLE-BUFFER."
                           (string= (buffer-name) (file-name-nondirectory script)))
                         scripts))
     (unless url
-      (list (completing-read "Script: " scripts))))
-  (setq bundle-buffer "")
-  ;; (read-from-minibuffer "Buffer: " nil)
+      (setq url (completing-read "Script: " scripts))
+      (setq bundle-path (read-file-name "Bundle file name: "))))
   (let ((script-id (map-nested-elt jade-webkit-source-maps `(,url script-id))))
     (unless script-id
       (user-error "No script found for url: %s" url))
-    (with-current-buffer (if (string-blank-p bundle-buffer)
-                             (current-buffer)
-                           bundle-buffer)
-      (jade-backend-set-script-source (jade-backend)
-                                      script-id
-                                      (buffer-string)
-                                      (lambda (_response)
-                                        (message "Source set."))))))
+    (jade-backend-set-script-source (jade-backend)
+                                    script-id
+                                    (if bundle-path
+                                        (with-temp-buffer
+                                          (insert-file-contents bundle-path)
+                                          (buffer-string))
+                                      (buffer-string))
+                                    (lambda (response)
+                                      (message "Source set %s." response)))))
 
 (defun jade-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.

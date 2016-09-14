@@ -200,6 +200,7 @@ same url."
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
                   :on-open (lambda (ws)
+                             (clrhash jade-webkit-source-maps)
                              (when on-open
                                (funcall on-open))
                              (jade-webkit--handle-ws-open ws url))
@@ -283,28 +284,31 @@ same url."
         (source-map-url (map-nested-elt message '(params sourceMapURL)))
         (script-id (map-nested-elt message '(params scriptId))))
     (when (and (eq is-content-script :json-false) (not (string-equal "" url)))
-      (let ((script `((script-id . ,script-id)
-                      (url . ,url)
-                      (source-map-url . ,source-map-url)
-                      (source-map . nil))))
-        (map-put jade-webkit-source-maps url script)
-        (jade-webkit--load-source-map
-         (concat (file-name-directory url) source-map-url)
-         (lambda (source-map)
-           (setf (map-elt script 'source-map) (sourcemap-from-string source-map))))))))
+      (map-put jade-webkit-source-maps
+               url
+               `((script-id . ,script-id)
+                 (url . ,url)
+                 (source-map-url . ,source-map-url)
+                 (source-map . ,nil)))
+      (unless (string-empty-p source-map-url)
+        (jade-webkit--load-source-map url source-map-url)))))
 
-
-(defun jade-webkit--load-source-map (url callback)
-  "Load and parse sourcemap from URL and pass it to CALLBACK."
-  (url-retrieve url
-                (lambda (_status)
-                  ;; TODO: handle errors
-                  (when (save-match-data
-                          (looking-at "^HTTP/1\\.1 200 OK$"))
-                    (goto-char (point-min))
-                    (search-forward "\n\n")
-                    (delete-region (point-min) (point))
-                    (funcall callback (buffer-string))))))
+(defun jade-webkit--load-source-map (url source-map-url)
+  "Load and parse sourcemap from URL from SOURCE-MAP-URL."
+  (url-retrieve (concat (file-name-directory url) source-map-url)
+                 (lambda (status)
+                   (if status
+                       (message "jade: cannot load source map for %s: %s"
+                                url
+                                (plist-get status :error))
+                     (when (save-match-data
+                             (looking-at "^HTTP/1\\.1 200 OK$"))
+                       (goto-char (point-min))
+                       (search-forward "\n\n")
+                       (delete-region (point-min) (point))
+                       (map-put (map-elt jade-webkit-source-maps url)
+                                'source-map
+                                (sourcemap-from-string (buffer-string))))))))
 
 (defun jade-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))

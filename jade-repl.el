@@ -222,8 +222,9 @@ optional."
         ;; TODO: add an option to disable it
         ;; when we get an error, also display it in the echo area for
         ;; convenience
-        (when (jade-repl--message-level-error-p level)
-          (message text))))))
+        ;; (when (jade-repl--message-level-error-p level)
+        ;;   (message text))
+        ))))
 
 (defun jade-repl--emit-values (text values level url line)
   "Emit a console message values"
