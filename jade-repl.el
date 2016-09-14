@@ -154,9 +154,7 @@ Getting started:
   (interactive)
   (jade-backend-evaluate (jade-backend)
                          (jade-repl--input-content)
-                         (lambda (result error)
-                           (when error
-                             (jade-repl-emit-value result error))
+                         (lambda (result _error)
                            (jade-inspector-inspect result))))
 
 (defun jade-repl--input-content ()
@@ -181,13 +179,14 @@ Getting started:
 
 (defun jade-repl-emit-value (value error)
   "Emit a string representation of VALUE.
-When ERROR is non-nil, use the error face."
+When ERROR is non-nil, display VALUE as an error."
   (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
       (goto-char (point-max))
       (insert-before-markers "\n")
       (set-marker jade-repl-output-start-marker (point))
-      (jade-render-value value error)
+      (when error (jade-repl--emit-logging-level "error"))
+      (jade-render-value value)
       (insert "\n")
       (jade-repl-mark-input-start)
       (set-marker jade-repl-output-end-marker (point)))
@@ -208,14 +207,13 @@ MESSAGE must contain `text' or `parameters.'.  Other fields are
 optional."
   (with-current-buffer (jade-repl-get-buffer)
     (save-excursion
-      (let ((level (or (map-elt message 'level) ""))
-            (text (map-elt message 'text))
-            (parameters (map-elt message 'parameters))
-            (url (map-elt message 'url))
-            (line (map-elt message 'line)))
+      (let ((text (map-elt message 'text))
+            (level (or (map-elt message 'level) "")))
         (goto-char jade-repl-output-end-marker)
         (set-marker jade-repl-output-start-marker (point))
-        (jade-repl--emit-values text parameters level url line)
+        (insert "\n")
+        (jade-repl--emit-logging-level level)
+        (jade-repl--emit-message-values message)
         (set-marker jade-repl-output-end-marker (point))
         (unless (eolp)
           (insert "\n"))
@@ -225,21 +223,17 @@ optional."
         (when (jade-repl--message-level-error-p level)
           (message text))))))
 
-(defun jade-repl--emit-values (text values level url line)
-  "Emit a console message values.
-TEXT is the message string to emit.  VALUES is a sequence of
-values to log.  LEVEL is the logging level of the
-message (\"log\", \"warning\", \"error\", etc.).
-
-URL and LINE provide context information about the source of the
-message."
-  (pcase (seq-length values)
-    (0 (jade-repl--emit-single-value-message `((type . "string") (description . ,text))
-                                             level
-                                             url
-                                             line))
-    (1 (jade-repl--emit-single-value-message (seq-elt values 0) level url line))
-    (_ (jade-repl--emit-multiple-values-message values level url line))))
+(defun jade-repl--emit-message-values (message)
+  "Emit all values of console MESSAGE."
+  (let ((text (map-elt message 'text))
+        (values (map-elt message 'parameters))
+        (url (map-elt message 'url))
+        (line (map-elt message 'line)))
+    (when (seq-empty-p values)
+      (setq values `(((type . "string")
+                      (description . ,text)))))
+    (jade-render-values values "\n")
+    (jade-repl--emit-message-url-line url line)))
 
 (defun jade-repl--message-level-error-p (level)
   (string= level "error"))
@@ -253,34 +247,15 @@ message."
 (defun jade-repl--emit-logging-level (level)
   (unless (string-empty-p level)
     (insert
-     "\n"
      (ansi-color-apply
-      (propertize (format "%s: " level)
+      (propertize (format "%s:" level)
                   'font-lock-face (jade-repl-level-face level)
-                  'rear-nonsticky '(font-lock-face))))))
+                  'rear-nonsticky '(font-lock-face)))
+     " ")))
 
-(defun jade-repl--emit-single-value-message (value level url line)
-  "Emit a single VALUE.
-Used when there is only one value in the console message, for
-example `console.log(1)'."
-  (jade-repl--emit-logging-level level)
-  (jade-render-value value (jade-repl--message-level-error-p level))
-  (insert (jade-repl--format-url-line "\n" url line)))
-
-(defun jade-repl--emit-multiple-values-message (values level url line)
-  "Emit values when there is more than one value in the console message.
-This is the case for instance with `console.log(1, 2, 3)'."
-  (jade-repl--emit-logging-level level)
-  (seq-do (lambda (value)
-            (insert "\n  ")
-            (jade-render-value value nil))
-          values)
-  (insert (jade-repl--format-url-line "\n" url line)))
-
-(defun jade-repl--format-url-line (whitespace url line)
-  (if (or (null url) (string-empty-p url))
-      ""
-    (concat whitespace
+(defun jade-repl--emit-message-url-line (url line)
+  (unless (seq-empty-p url)
+    (insert "\nMessage from "
             (propertize (format "%s:%s" (file-name-nondirectory url) line)
                         'font-lock-face 'jade-link-face
                         'jade-action (lambda ()
