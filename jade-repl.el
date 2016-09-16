@@ -54,6 +54,11 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
+(defun jade-switch-to-repl-buffer ()
+  "Switch to the repl buffer."
+  (interactive)
+  (pop-to-buffer (jade-repl-get-buffer)))
+
 (defun jade-repl-get-buffer-create (connection)
   "Return a REPL buffer for CONNECTION.
 If no buffer exists, create one."

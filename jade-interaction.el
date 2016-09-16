@@ -26,6 +26,7 @@
 (require 'jade-backend)
 (require 'jade-inspector)
 (require 'jade-render)
+(require 'jade-repl)
 
 (defun jade-eval (string &optional callback)
   "Evaluate STRING on the current backend.
@@ -42,21 +43,35 @@ evaluated."
   (jade-interaction--ensure-connection)
   (jade-eval (buffer-string)))
 
+(defun jade-reload-page ()
+  "Reload current page."
+  (interactive)
+  (jade-interaction--ensure-connection)
+  (jade-eval "document.location.reload(true)"))
+
+(defvar jade-script-url nil)
+(defvar jade-script-bundle-path nil)
+
 (defun jade-set-script-source (&optional url bundle-path)
   "Set script source for URL.
 Optionally take compiled source from BUNDLE-PATH."
   (interactive)
   (jade-interaction--ensure-connection)
-  (let ((scripts (hash-table-keys jade-webkit-source-maps)))
-    (setq url (seq-find (lambda (script)
-                          (string= (buffer-name) (file-name-nondirectory script)))
-                        scripts))
-    (unless url
-      (setq url (completing-read "Script: " scripts))
-      (setq bundle-path (read-file-name "Bundle file name: "))))
+  (if (and jade-script-url jade-script-bundle-path)
+      (setq url jade-script-url
+            bundle-path jade-script-bundle-path)
+    (let ((scripts (hash-table-keys jade-webkit-source-maps)))
+      (setq url (seq-find (lambda (script)
+                            (string= (buffer-name) (file-name-nondirectory script)))
+                          scripts))
+      (unless url
+        (setq url (completing-read "Script: " scripts))
+        (setq bundle-path (read-file-name "Bundle file name: ")))))
   (let ((script-id (map-nested-elt jade-webkit-source-maps `(,url script-id))))
     (unless script-id
       (user-error "No script found for url: %s" url))
+    (setq jade-script-url url)
+    (setq jade-script-bundle-path bundle-path)
     (jade-backend-set-script-source (jade-backend)
                                     script-id
                                     (if bundle-path
@@ -65,6 +80,7 @@ Optionally take compiled source from BUNDLE-PATH."
                                           (buffer-string))
                                       (buffer-string))
                                     (lambda (response)
+                                      (jade-eval (format "window.dispatchEvent(new CustomEvent('change', {detail: {filename: '%s'}}))" (file-name-nondirectory bundle-path)))
                                       (message "Source set %s." response)))))
 
 (defun jade-eval-last-node (arg)
@@ -142,7 +158,9 @@ open, and set it in the current buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
+    (define-key map (kbd "C-c C-z") #'jade-switch-to-repl-buffer)
     (define-key map (kbd "C-c C-k") #'jade-set-script-source)
+    (define-key map (kbd "C-c C-j") #'jade-reload-page)
     map))
 
 (define-minor-mode jade-interaction-mode
