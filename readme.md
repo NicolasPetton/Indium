@@ -54,6 +54,12 @@ Start a node process with the `--inspect` flag:
 
 Evaluate `M-x jade-connect-to-nodejs`.
 
+If you wish to break on the first line of the application code, start node using:
+
+    node --inspect --debug-brk myfile.js
+
+Connecting Jade to the node process will open a debugger on the first line of the application code.
+
 ### JavaScript evaluation in JS buffers
 
 Add the following to enable evaluation in all JS buffers:
