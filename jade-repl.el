@@ -97,6 +97,10 @@ Getting started:
 - Press <\\[describe-mode]> to see a list of available keybindings
 - Press <\\[jade-repl-clear-output]> to clear the output
 
+To disconnect from the JavaScript process, press <\\[jade-quit]>.
+Doing this will also close all inspectors and debugger buffers
+connected to the process.
+
 ")
    (map-elt jade-connection 'backend)
    (map-elt jade-connection 'url)))
