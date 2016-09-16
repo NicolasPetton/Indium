@@ -28,17 +28,30 @@
 
 (declare 'jade-backend-object-reference-p)
 
-(defun jade-render-value (value &optional error)
-  (if (jade-backend-object-reference-p value)
-      (jade-render-object-link value error)
-    (jade-render-description value error)))
+(defun jade-render-values (values &optional separator)
+  "Render VALUES separated by SEPARATOR.
+If no SEPARATOR is provided, separate VALUES by a space."
+  (unless separator (setq separator " "))
+  (let ((length (seq-length values)))
+    (seq-map-indexed (lambda (value index)
+                       (jade-render-value value)
+                       (unless (<= (1- length) index)
+                         (insert separator)))
+                     values)))
 
-(defun jade-render-description (value &optional error)
-  (let ((description (jade-description-string value))
-        (face (when error 'jade-repl-error-face)))
+(defun jade-render-value (value)
+  "Render VALUE, based on its object type.
+If VALUE represents a reference to a remote object, render it
+with a link to an inspector on that object."
+  (if (jade-backend-object-reference-p value)
+      (jade-render-object-link value)
+    (jade-render-description value)))
+
+(defun jade-render-description (value)
+  (let ((description (jade-description-string value)))
     (insert
      (propertize description
-                 'font-lock-face (or face 'jade-repl-stdout-face)
+                 'font-lock-face 'jade-repl-stdout-face
                  'rear-nonsticky '(font-lock-face)))))
 
 (defun jade-render-keyword (string)
@@ -70,16 +83,14 @@ definitions."
         "function"
       description)))
 
-(defun jade-render-object-link (value error)
+(defun jade-render-object-link (value)
   (let* ((description (jade-description-string value))
          (preview (map-elt value 'preview))
          (beg (point))
          (end (progn
                 (insert description)
                 (point)))
-         (face (if error
-                   'jade-repl-error-face
-                 'jade-link-face)))
+         (face 'jade-link-face))
     (set-text-properties beg end
                          `(font-lock-face ,face
                                           mouse-face highlight

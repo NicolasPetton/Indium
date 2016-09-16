@@ -58,7 +58,8 @@ Open URL if provided."
                 :command (list (jade-chrome--find-executable)
                                (format "--remote-debugging-port=%s" jade-chrome-port)
                                (or url "")))
-  (jade-chrome--try-connect "127.0.0.1" 30))
+  (message "Connecting to Chrome instance...")
+  (jade-chrome--try-connect "127.0.0.1" 5))
 
 (defun jade-chrome--find-executable ()
   "Find chrome executable using `jade-chrome-executable'."
@@ -69,8 +70,9 @@ Open URL if provided."
 
 
 (defun jade-chrome--try-connect (host num-tries)
-  "Try to connect to chrome on HOST.  Use maximum NUM-TRIES."
-  (sleep-for 0.5)
+  "Try to connect to chrome on HOST.
+Try a maximum of NUM-TRIES."
+  (sleep-for 2)
   (jade-chrome--get-tabs-data host
                               jade-chrome-port
                               (lambda (tabs)
