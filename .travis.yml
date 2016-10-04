@@ -1,7 +1,7 @@
 language: emacs-lisp
 before_install:
   - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
-  - evm install emacs-25-pre-travis --use --skip
+  - evm install emacs-25 --use --skip
   - export PATH="/home/travis/.cask/bin:$PATH"
   - cask
 script:
