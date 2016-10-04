@@ -78,16 +78,21 @@ current buffer."
       ;; Heuristics for finding the node to evaluate: if the parent of the node
       ;; before point is a prop-get node (i.e. foo.bar) and if it starts before
       ;; the current node, meaning that the point is on the node following the
-      ;; parent, then evaluate the content of the parent node:
+      ;; parent, then return the parent node:
       ;;
       ;; (underscore represents the point)
       ;; foo.ba_r // => evaluate foo.bar
       ;; foo_.bar // => evaluate foo
       ;; foo.bar.baz_() // => evaluate foo.bar.baz
       ;; foo.bar.baz()_ // => evaluate foo.bar.baz()
-      (while (and (js2-prop-get-node-p parent)
-                  (< (js2-node-abs-pos parent)
-                     (js2-node-abs-pos node)))
+      ;;
+      ;; If the node is a "block node" (i.e. the `{...}' part of a function
+      ;; declaration, also return the parent node.
+      (while (or (and (js2-prop-get-node-p parent)
+                      (< (js2-node-abs-pos parent)
+                         (js2-node-abs-pos node)))
+                 (and (not (js2-function-node-p node))
+                      (js2-block-node-p node)))
         (setq node parent))
       node)))
 

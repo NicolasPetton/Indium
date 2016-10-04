@@ -78,7 +78,14 @@ buffer in `js2-mode' with CONTENTS."
                    "{\na: 1,\nb: 2,\nc: 3\n}"))
     (goto-char 26)
     (should (equal (js2-node-string (jade-interaction-node-before-point))
-                     "foo({\na: 1,\nb: 2,\nc: 3\n})"))))
+                   "foo({\na: 1,\nb: 2,\nc: 3\n})")))
+  (with-js2-buffer "function() { return 1; }"
+    (goto-char (point-max))
+    (should (equal (js2-node-string (jade-interaction-node-before-point))
+                   "function() { return 1; }"))
+    (goto-char (1- (point-max)))
+    (should (equal (js2-node-string (jade-interaction-node-before-point))
+                   "return 1;"))))
 
 (provide 'jade-interaction-test)
 ;;; jade-interaction-test.el ends here
