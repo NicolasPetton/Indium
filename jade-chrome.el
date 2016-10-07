@@ -59,7 +59,7 @@ Open URL if provided."
                                (format "--remote-debugging-port=%s" jade-chrome-port)
                                (or url "")))
   (message "Connecting to Chrome instance...")
-  (jade-chrome--try-connect "127.0.0.1" 5))
+  (jade-chrome--try-connect "127.0.0.1" 10))
 
 (defun jade-chrome--find-executable ()
   "Find chrome executable using `jade-chrome-executable'."
@@ -72,7 +72,8 @@ Open URL if provided."
 (defun jade-chrome--try-connect (host num-tries)
   "Try to connect to chrome on HOST.
 Try a maximum of NUM-TRIES."
-  (sleep-for 2)
+  (message "Trying to connect to the Chrome instance...")
+  (sleep-for 1)
   (jade-chrome--get-tabs-data host
                               jade-chrome-port
                               (lambda (tabs)
@@ -89,12 +90,15 @@ Try a maximum of NUM-TRIES."
 (defun jade-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
   (url-retrieve (format "http://%s:%s/json" host port)
-                (lambda (_status)
-                  ;; TODO: handle errors
-                  (funcall callback (jade-chrome--read-tab-data)))))
+                (lambda (status)
+                  (funcall callback (if (eq :error (car status))
+                                        nil
+                                      (jade-chrome--read-tab-data))))))
 
 (defun jade-chrome--connect-to-tab (tabs)
   "Ask the user for a tab in the list TABS and connects to it."
+  (unless tabs
+    (error "No Chrome tab found.  Is Chrome running with the `--remote-debugging-port' flag set?"))
   (let* ((urls (seq-map (lambda (tab)
                             (map-elt tab 'url))
                           tabs))
