@@ -39,7 +39,9 @@
   "Hook run when input is evaluated in the repl.")
 
 (defvar jade-repl-history nil "History of the REPL inputs.")
+(make-variable-buffer-local 'jade-repl-history)
 (defvar jade-repl-history-position -1 "Position in the REPL history.")
+(make-variable-buffer-local 'jade-repl-history-position)
 
 (defvar-local jade-repl-input-start-marker nil)
 (defvar-local jade-repl-prompt-start-marker nil)
@@ -287,7 +289,7 @@ DIRECTION is `forward' or `backard' (in the history list)."
                  (`backward -1)))
          (pos (or (and search-in-progress (+ jade-repl-history-position step))
                   (1- (seq-length history)))))
-    (unless (> pos 0)
+    (unless (>= pos 0)
       (user-error "Beginning of history"))
     (unless (< pos (seq-length history))
       (user-error "End of history"))
