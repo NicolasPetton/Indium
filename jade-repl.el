@@ -54,6 +54,11 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
+(defun jade-switch-to-repl-buffer ()
+  "Switch to the repl buffer."
+  (interactive)
+  (pop-to-buffer (jade-repl-get-buffer)))
+
 (defun jade-repl-get-buffer-create (connection)
   "Return a REPL buffer for CONNECTION.
 If no buffer exists, create one."
@@ -224,8 +229,9 @@ optional."
         ;; TODO: add an option to disable it
         ;; when we get an error, also display it in the echo area for
         ;; convenience
-        (when (jade-repl--message-level-error-p level)
-          (message text))))))
+        ;; (when (jade-repl--message-level-error-p level)
+        ;;   (message text))
+        ))))
 
 (defun jade-repl--emit-message-values (message)
   "Emit all values of console MESSAGE."
@@ -263,7 +269,13 @@ optional."
             (propertize (format "%s:%s" (file-name-nondirectory url) line)
                         'font-lock-face 'jade-link-face
                         'jade-action (lambda ()
-                                       (browse-url url))
+                                       (let ((buffer (get-buffer (file-name-nondirectory url))))
+                                         (if buffer
+                                             (progn
+                                               (switch-to-buffer-other-window buffer)
+                                               (goto-char 0)
+                                               (forward-line (1- line)))
+                                           (browse-url url))))
                         'rear-nonsticky '(font-lock-face jade-action)))))
 
 (defun jade-repl-next-input ()
