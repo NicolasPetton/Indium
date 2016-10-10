@@ -69,7 +69,33 @@ ACTION should be a function that takes no argument."
    (propertize string
                'font-lock-face 'jade-button-face
                'jade-action action
-               'reat-nons '(font-lock-face jade-action))))
+               'rear-nonsticky '(font-lock-face jade-action))))
+
+(defun jade-render-header (string)
+  "Render STRING as a header."
+  (insert
+   (propertize string
+               'font-lock-face 'jade-header-face
+               'rear-nonsticky '(font-lock-face))))
+
+(declare 'jade-debugger-switch-to-frame)
+(declare 'jade-backend-get-script-url)
+
+(defun jade-render-frame (frame url current)
+  "Render the stack frame FRAME with the URL of its script.
+If CURRENT is non-nil, FRAME rendered as the current frame.  When
+clicked, jump in the debugger to the frame."
+  (insert (if current "* " "  "))
+  (insert (propertize (jade-render--frame-label frame)
+                      'font-lock-face (if current
+                                          'jade-highlight-face
+                                        'jade-link-face)
+                      'rear-nonsticky '(font-lock-face jade-action)
+                      'jade-action (lambda (&rest _)
+                                     (jade-debugger-frames-select-frame frame))))
+  (when url
+    (insert (propertize (format " <%s>" url)
+                        'font-lock-face 'font-lock-comment-face))))
 
 (defun jade-description-string (value &optional full)
   "Return a short string describing VALUE.
@@ -125,6 +151,13 @@ definitions."
   "Evaluate the button action at point."
   (let ((function (get-text-property (point) 'jade-action)))
    (funcall function)))
+
+(defun jade-render--frame-label (frame)
+  "Return the label for FRAME to be used in the debugger stack frame list."
+  (let ((label (map-elt frame 'functionName)))
+    (if (seq-empty-p label)
+        (or (map-elt frame 'type) "Closure")
+      label)))
 
 (provide 'jade-render)
 ;;; jade-render.el ends here

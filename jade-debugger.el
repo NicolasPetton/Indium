@@ -102,7 +102,8 @@ DIRECTION is `forward' or `backward' (in the frame list)."
 (defun jade-debugger-switch-to-frame (frame source)
   (switch-to-buffer (jade-debugger-get-buffer))
   (jade-debugger-debug-frame frame source)
-  (jade-debugger-locals-maybe-refresh))
+  (jade-debugger-locals-maybe-refresh)
+  (jade-debugger-frames-maybe-refresh))
 
 (defun jade-debugger-debug-frame (frame source)
   (let* ((location (map-elt frame 'location))
@@ -152,9 +153,12 @@ DIRECTION is `forward' or `backward' (in the frame list)."
 (defun jade-debugger-resume ()
   (interactive)
   (jade-backend-resume (jade-backend) #'jade-debugger-resumed)
-  (let ((locals-buffer (jade-debugger-locals-get-buffer)))
+  (let ((locals-buffer (jade-debugger-locals-get-buffer))
+        (frames-buffer (jade-debugger-frames-get-buffer)))
     (when locals-buffer
       (kill-buffer locals-buffer))
+    (when frames-buffer
+      (kill-buffer frames-buffer))
     (kill-buffer (jade-debugger-get-buffer))))
 
 (defun jade-debugger-here ()
@@ -227,6 +231,7 @@ If a buffer already exists, just return it."
     (define-key map (kbd "o") #'jade-debugger-step-out)
     (define-key map (kbd "c") #'jade-debugger-resume)
     (define-key map (kbd "l") #'jade-debugger-locals)
+    (define-key map (kbd "s") #'jade-debugger-stack-frames)
     (define-key map (kbd "q") #'jade-debugger-resume)
     (define-key map (kbd "h") #'jade-debugger-here)
     (define-key map (kbd "e") #'jade-debugger-evaluate)
@@ -323,6 +328,110 @@ Unless NO-POP is non-nil, pop the locals buffer."
   "Major mode for inspecting local variables in a scope-chain.
 
 \\{jade-debugger-locals-mode-map}")
+
+;;; Frame list
+
+(defun jade-debugger-stack-frames ()
+  "List the stack frames in a separate buffer and switch to it."
+  (interactive)
+  (let ((buf (jade-debugger-frames-get-buffer-create))
+        (frames jade-debugger-frames)
+        (current-frame jade-debugger-current-frame)
+        (inhibit-read-only t))
+    (with-current-buffer buf
+     (jade-debugger-list-frames frames current-frame))
+    (switch-to-buffer-other-window buf)))
+
+(defun jade-debugger-frames-maybe-refresh ()
+  "When a buffer listing the stack frames is open, refresh it."
+  (interactive)
+  (let ((buf (jade-debugger-frames-get-buffer))
+        (frames jade-debugger-frames)
+        (current-frame jade-debugger-current-frame)
+        (inhibit-read-only t))
+    (when buf
+      (with-current-buffer buf
+        (jade-debugger-list-frames frames current-frame)))))
+
+(defun jade-debugger-list-frames (frames &optional current-frame)
+  "Render the list of stack frames FRAME.
+CURRENT-FRAME is the current stack frame in the debugger."
+  (save-excursion
+    (erase-buffer)
+    (jade-render-header "Debugger stack")
+    (newline 2)
+    (seq-doseq (frame frames)
+      (jade-render-frame frame
+                         (jade-backend-get-script-url (jade-backend) frame)
+                         (eq current-frame frame))
+      (newline))))
+
+(defun jade-debugger-frames-select-frame (frame)
+  "Select FRAME and switch to the corresponding debugger buffer."
+  (interactive)
+  (let ((buf (current-buffer)))
+    (switch-to-buffer-other-window (jade-debugger-get-buffer))
+    (jade-debugger-select-frame frame)
+    (switch-to-buffer buf)))
+
+(defun jade-debugger-frames-next-frame ()
+  (interactive)
+  (jade-debugger-frames-goto-next 'next))
+
+(defun jade-debugger-frames-previous-frame ()
+  (interactive)
+    (jade-debugger-frames-goto-next 'previous))
+
+(defun jade-debugger-frames-goto-next (direction)
+  (let ((next (eq direction 'next)))
+    (forward-line (if next 1 -1))
+    (back-to-indentation)
+    (while (and (not (if next
+                         (eobp)
+                       (bobp)))
+                (not (get-text-property (point) 'jade-action)))
+      (forward-char (if next 1 -1)))))
+
+(defun jade-debugger-frames-get-buffer ()
+  "Return the buffer listing frames for the current connection.
+If no buffer is found, return nil."
+  (get-buffer (jade-debugger-frames-buffer-name)))
+
+(defun jade-debugger-frames-buffer-name ()
+  "Return the name of the frames buffer for the current connection."
+  (concat "*JS Frames " (map-elt jade-connection 'url) "*"))
+
+(defun jade-debugger-frames-get-buffer-create ()
+  "Create a buffer for listing frames unless one exists, and return it."
+  (let ((buf (jade-debugger-frames-get-buffer)))
+    (unless buf
+      (setq buf (generate-new-buffer (jade-debugger-frames-buffer-name)))
+      (jade-debugger-frames-setup-buffer buf jade-connection))
+    buf))
+
+(defun jade-debugger-frames-setup-buffer (buffer connection)
+  (with-current-buffer buffer
+    (jade-debugger-frames-mode)
+    (read-only-mode)
+    (setq-local truncate-lines nil)
+    (setq-local jade-connection connection)))
+
+(defvar jade-debugger-frames-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] #'jade-follow-link)
+    (define-key map (kbd "C-m") #'jade-follow-link)
+    (define-key map (kbd "n") #'jade-debugger-frames-next-frame)
+    (define-key map (kbd "p") #'jade-debugger-frames-previous-frame)
+    (define-key map [tab] #'jade-debugger-frames-next-frame)
+    (define-key map [backtab] #'jade-debugger-frames-previous-frame)
+    map))
+
+(define-derived-mode jade-debugger-frames-mode special-mode "Frames"
+  "Major mode visualizind and navigating the JS stack.
+
+\\{jade-debugger-frames--mode-map}"
+  (setq buffer-read-only t)
+  (font-lock-ensure))
 
 (provide 'jade-debugger)
 ;;; jade-debugger.el ends here

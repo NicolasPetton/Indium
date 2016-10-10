@@ -138,6 +138,9 @@ prototype chain of the remote object.")
   "Get the source of the script for FRAME.
 Evaluate CALLBACK with the result.")
 
+(cl-defgeneric jade-backend-get-script-url (backend frame)
+  "Return the url of the script for FRAME, or nil.")
+
 (cl-defgeneric jade-backend-resume (backend &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil.")
 

@@ -115,6 +115,10 @@ prototype chain of the remote object."
       (params . ((scriptId . ,script-id))))
     callback)))
 
+(cl-defmethod jade-backend-get-script-url ((backend (eql webkit)) frame)
+  (let ((script-id (map-nested-elt frame '(location scriptId))))
+    (jade-webkit--get-script-url script-id)))
+
 (cl-defmethod jade-backend-resume ((backend (eql webkit)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
   (jade-webkit--send-request
@@ -236,6 +240,7 @@ same url."
        (t (pcase method
             ("Console.messageAdded" (jade-webkit--handle-console-message message))
             ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
+            ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
             ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
 
 (defun jade-webkit--handle-console-message (message)
@@ -252,6 +257,11 @@ same url."
 (defun jade-webkit--handle-debugger-resumed (_message)
   (jade-webkit-remove-overlay-message)
   (jade-debugger-resumed))
+
+(defun jade-webkit--handle-script-parsed (message)
+  (let* ((scriptId (map-nested-elt message '(params scriptId)))
+         (url (map-nested-elt message '(params url))))
+    (jade-webkit--add-script-parsed scriptId url)))
 
 (defun jade-webkit--handle-ws-closed (_ws)
   (jade-repl--handle-connection-closed))
@@ -456,8 +466,20 @@ RESULT should be a reference to a remote object."
                                             (type . ,(map-elt scope 'type))))
                                   (map-elt frame 'scopeChain)))
                (location . ,(map-elt frame 'location))
+               (type . ,(map-elt frame 'type))
+               (functionName . ,(map-elt frame 'functionName))
                (callFrameId . ,(map-elt frame 'callFrameId))))
            list))
+
+(defun jade-webkit--add-script-parsed (scriptId url)
+  (unless (map-elt jade-connection 'scripts)
+    (map-put jade-connection 'scripts '()))
+  (map-put (map-elt jade-connection 'scripts)
+           (intern scriptId)
+           url))
+
+(defun jade-webkit--get-script-url (scriptId)
+  (map-nested-elt jade-connection (list 'scripts (intern scriptId))))
 
 (let ((id 0))
   (defun jade-webkit--next-request-id ()
