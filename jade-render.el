@@ -95,7 +95,7 @@ clicked, jump in the debugger to the frame."
                                      (jade-debugger-frames-select-frame frame))))
   (when url
     (insert (propertize (format " <%s>" url)
-                        'font-lock-face 'font-lock-comment-face))))
+                        'font-lock-face 'jade-frame-url-face))))
 
 (defun jade-description-string (value &optional full)
   "Return a short string describing VALUE.

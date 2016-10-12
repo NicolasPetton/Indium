@@ -69,5 +69,10 @@
   "Face used when highlighting regions of a buffer."
   :group 'jade-faces)
 
+(defface jade-frame-url-face
+  '((t (:inherit font-lock-comment-face)))
+  "Face used to display urls of stack frames."
+  :group 'jade-faces)
+
 (provide 'jade-faces)
 ;;; jade-faces.el ends here
