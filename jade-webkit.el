@@ -25,7 +25,7 @@
 ;; code completion, object inspection and the debugger.
 ;;
 ;; The protocol is documented at
-;; https://chromedevtools.github.io/debugger-protocol-viewer/1-1/.
+;; https://chromedevtools.github.io/debugger-protocol-viewer/1-2/.
 
 ;;; Code:
 
