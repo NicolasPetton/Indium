@@ -124,6 +124,7 @@ open, and set it in the current buffer."
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
     map))
 
+;;;###autoload
 (define-minor-mode jade-interaction-mode
   "Mode for JavaScript evalution.
 
