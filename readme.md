@@ -79,7 +79,7 @@ Jade is young, here's a list of missing/wanted features
 - Adding breakpoints (to remove the need for `debugger` statements)
 - Network inspector (could get inspiration from restclient.el)
 - DOM inspector
-- Start processes (chromium, node, grunt, gulp, etc.) from Emacs and attach a
+- Start processes (~~chromium~~, node, grunt, gulp, etc.) from Emacs and attach a
   jade connection to it.
 
 ## Backends
