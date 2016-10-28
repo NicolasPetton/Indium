@@ -58,7 +58,8 @@
 
 (defun jade-debugger-paused (frames)
   (jade-debugger-get-buffer-create jade-connection frames)
-  (jade-debugger-select-frame (car frames)))
+  (jade-debugger-select-frame (car frames))
+  (jade-debugger-show-help-message))
 
 (defun jade-debugger-resumed (&rest _args)
   (let ((buf (jade-debugger-get-buffer)))
@@ -120,6 +121,50 @@ DIRECTION is `forward' or `backward' (in the frame list)."
     (forward-char column)
     (jade-debugger-setup-overlay-arrow)
     (jade-debugger-highlight-node)))
+
+(defun jade-debugger-show-help-message ()
+  "Display a help message in the echo-area."
+  (let ((message (concat "["
+                         (propertize "SPC"
+                                     'face 'font-lock-keyword-face)
+                         "]over "
+                         "["
+                         (propertize "i"
+                                     'face 'font-lock-keyword-face)
+                         "]nto "
+                         "["
+                         (propertize "o"
+                                     'face 'font-lock-keyword-face)
+                         "]ut "
+                         "["
+                         (propertize "c"
+                                     'face 'font-lock-keyword-face)
+                         "]ontinue "
+                         "["
+                         (propertize "h"
+                                     'face 'font-lock-keyword-face)
+                         "]ere "
+                         "["
+                         (propertize "l"
+                                     'face 'font-lock-keyword-face)
+                         "]ocals "
+                         "["
+                         (propertize "e"
+                                     'face 'font-lock-keyword-face)
+                         "]val... "
+                         "["
+                         (propertize "s"
+                                     'face 'font-lock-keyword-face)
+                         "]tack "
+                         "["
+                         (propertize "n"
+                                     'face 'font-lock-keyword-face)
+                         "]ext "
+                         "["
+                         (propertize "p"
+                                     'face 'font-lock-keyword-face)
+                         "]revious")))
+    (message "Debug: %s" message)))
 
 (defun jade-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
