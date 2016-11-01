@@ -44,6 +44,10 @@
 
 (jade-register-backend 'webkit)
 
+(cl-defgeneric jade-backend-active-connection-p ((backend (eql webkit)) connection)
+  "Return non-nil if CONNECTION is active."
+  (websocket-openp (map-elt connection 'ws)))
+
 (cl-defmethod jade-backend-close-connection ((backend (eql webkit)) connection)
   "Close the websocket associated with CONNECTION."
   (websocket-close (map-elt connection 'ws)))
@@ -386,7 +390,7 @@ Candidates are filtered using the PREFIX string."
 
 (cl-defmethod jade-webkit--connected-p ()
   "Return non-nil if the current connection is open."
-  (websocket-openp (map-elt jade-connection 'ws)))
+  (jade-backend-active-connection-p 'webkit jade-connection))
 
 (defun jade-webkit--value (result)
   "Return an alist representing the value of RESULT.

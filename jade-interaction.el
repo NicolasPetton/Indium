@@ -103,8 +103,8 @@ the user for one of the open connections if many of them are
 open, and set it in the current buffer."
   (unless jade-connection
     (setq-local jade-connection
-                (if (= 1 (seq-length jade-connections))
-                    (seq-elt jade-connections 0)
+                (if (= 1 (seq-length (jade-active-connections)))
+                    (seq-elt (jade-active-connections) 0)
                   (jade-interaction--read-connection)))))
 
 (defun jade-interaction--read-connection ()
@@ -112,11 +112,11 @@ open, and set it in the current buffer."
   (let ((url (completing-read "Choose a connection: "
                               (seq-map (lambda (conn)
                                          (map-elt conn 'url))
-                                       jade-connections))))
+                                       (jade-active-connections)))))
     (seq-find (lambda (conn)
                 (string= (map-elt conn 'url)
                          url))
-              jade-connections)))
+              (jade-active-connections))))
 
 (defvar jade-interaction-mode-map
   (let ((map (make-sparse-keymap)))
