@@ -238,10 +238,17 @@ same url."
        (request-id (when callback
                      (funcall callback message)))
        (t (pcase method
+            ("Inspector.detached" (jade-webkit--handle-inspector-detached message))
             ("Console.messageAdded" (jade-webkit--handle-console-message message))
             ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
             ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
             ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
+
+(defun jade-webkit--handle-inspector-detached (message)
+  "Handle connection closed because it was detached."
+  (let ((msg (map-nested-elt message '(params reason))))
+    (jade-backend-close-connection 'webkit jade-connection)
+    (message "Jade connection closed: %s" msg)))
 
 (defun jade-webkit--handle-console-message (message)
   (let* ((msg (map-nested-elt message '(params message)))
@@ -275,14 +282,14 @@ Evaluate CALLBACK with the response.
 
 If the current connection is closed, display an error message in
 the REPL buffer."
-  (when (not (jade-webkit--connected-p))
-    (jade-repl-emit-console-message '((level . "error") (text . "Socket connection closed"))))
-  (let ((id (jade-webkit--next-request-id))
-        (callbacks (jade-webkit--callbacks)))
-    (when callback
-      (map-put callbacks id callback))
-    (websocket-send-text (map-elt jade-connection 'ws)
-                         (json-encode (cons `(id . ,id) request)))))
+  (if (jade-webkit--connected-p)
+      (let ((id (jade-webkit--next-request-id))
+            (callbacks (jade-webkit--callbacks)))
+        (when callback
+          (map-put callbacks id callback))
+        (websocket-send-text (map-elt jade-connection 'ws)
+                             (json-encode (cons `(id . ,id) request))))
+    (jade-repl-emit-console-message '((level . "error") (text . "Socket connection closed")))))
 
 (defun jade-webkit--read-ws-message (frame)
   (json-read-from-string (websocket-frame-payload frame)))
@@ -378,7 +385,7 @@ Candidates are filtered using the PREFIX string."
                                            candidates)))))
 
 (cl-defmethod jade-webkit--connected-p ()
-  "Return non-nil if the current connction is open."
+  "Return non-nil if the current connection is open."
   (websocket-openp (map-elt jade-connection 'ws)))
 
 (defun jade-webkit--value (result)
