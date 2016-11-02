@@ -44,7 +44,7 @@
 
 (jade-register-backend 'webkit)
 
-(cl-defgeneric jade-backend-active-connection-p ((backend (eql webkit)) connection)
+(cl-defmethod jade-backend-active-connection-p ((backend (eql webkit)) connection)
   "Return non-nil if CONNECTION is active."
   (websocket-openp (map-elt connection 'ws)))
 

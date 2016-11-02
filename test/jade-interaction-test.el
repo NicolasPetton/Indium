@@ -23,23 +23,7 @@
 
 (require 'ert)
 (require 'jade-interaction)
-
-;;; Helpers
-
-(defmacro with-js2-buffer (contents &rest body)
-  "Evaluate BODY.
-
-BODY is evaluated with the current buffer set to a JavaScript
-buffer in `js2-mode' with CONTENTS."
-  (declare (indent 1))
-  `(with-temp-buffer
-     (insert ,contents)
-     (goto-char (point-max))
-     (js2-mode)
-     (js2-parse)
-     ,@body))
-
-;;; Tests
+(require 'jade-test-helpers)
 
 (ert-deftest jade-node-before-point-test ()
   (with-js2-buffer "var foo = 2;\nfoo"
