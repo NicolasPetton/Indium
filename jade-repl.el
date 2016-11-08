@@ -346,8 +346,14 @@ See `company-backends' for more info about COMMAND and ARG."
 (defun jade-repl-get-completions (arg callback)
   "Get the completion list matching the prefix ARG.
 Evaluate CALLBACK with the completion candidates."
-  (let ((expression (buffer-substring-no-properties jade-repl-input-start-marker
-                                                    (point-max-marker))))
+  (let ((expression (buffer-substring-no-properties
+                     (let ((bol (line-beginning-position))
+                           (prev-delimiter (1+ (save-excursion
+                                                 (re-search-backward "[([:space:]]" nil t)))))
+                       (if prev-delimiter
+                           (max bol prev-delimiter)
+                         bol))
+                     (point))))
     (jade-backend-get-completions (jade-backend) expression arg callback)))
 
 (defun jade-repl--complete-or-indent ()
@@ -359,7 +365,8 @@ Evaluate CALLBACK with the completion candidates."
 
 (defun jade-repl-company-prefix ()
   "Prefix for company."
-  (and (eq major-mode 'jade-repl-mode)
+  (and (or (eq major-mode 'jade-repl-mode)
+           (bound-and-true-p jade-interaction-mode))
        (or (company-grab-symbol-cons "\\." 1)
            'stop)))
 
