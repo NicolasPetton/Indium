@@ -56,10 +56,10 @@ If there is no current connection, throw an error."
 (defun jade-scratch-setup-buffer (buffer connection)
   "Setup the scratch BUFFER for  CONNECTION."
   (with-current-buffer buffer
-    ;; TODO: enable completion like in the REPL
     (js2-mode)
     (jade-interaction-mode)
     (setq-local jade-connection connection)
+    (add-to-list 'company-backends 'company-jade-repl)
     (jade-scratch-insert-welcome-message)))
 
 (defun jade-scratch-insert-welcome-message ()
