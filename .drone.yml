@@ -1,0 +1,5 @@
+build:
+  image: nicolaspetton/emacs
+  commands:
+    - cask install ;
+    - cask exec ert-runner -L . ;
