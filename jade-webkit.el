@@ -159,13 +159,15 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
 (defun jade-webkit-set-overlay-message (string)
   "Sets the overlay string displayed when entering the debugger."
   (jade-webkit--send-request
-   `((method . "Page.setOverlayMessage")
-     (params . ((message . ,string))))))
+   `((method . "Page.configureOverlay")
+     (params . ((suspended . :json-false)
+                (message . ,string))))))
 
 (defun jade-webkit-remove-overlay-message ()
   "Remove any overlay message displayed on the page."
   (jade-webkit--send-request
-   `((method . "Page.setOverlayMessage"))))
+   `((method . "Page.configureOverlay")
+     (params . ((suspended . :json-false))))))
 
 (defun jade-webkit-set-pause-on-exceptions (state)
   "Defines on which STATE to pause.
@@ -243,7 +245,9 @@ same url."
                      (funcall callback message)))
        (t (pcase method
             ("Inspector.detached" (jade-webkit--handle-inspector-detached message))
-            ("Console.messageAdded" (jade-webkit--handle-console-message message))
+            ("Log.entryAdded" (jade-webkit--handle-log-entry message))
+            ("Runtime.consoleAPICalled" (jade-webkit--handle-console-message message))
+            ("Runtime.exceptionThrown" (jade-webkit--handle-exception-thrown message))
             ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
             ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
             ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
@@ -254,11 +258,21 @@ same url."
     (jade-backend-close-connection 'webkit jade-connection)
     (message "Jade connection closed: %s" msg)))
 
+(defun jade-webkit--handle-log-entry (message)
+  (let ((entry (map-nested-elt message '(params entry))))
+    ;; unify console message and entry logs
+    (map-put entry 'line (map-elt entry 'lineNumber))
+    (jade-repl-emit-console-message entry)))
+
 (defun jade-webkit--handle-console-message (message)
-  (let* ((msg (map-nested-elt message '(params message)))
-         (parameters (map-elt msg 'parameters)))
-    (setf (map-elt msg 'parameters) (seq-map #'jade-webkit--value parameters))
+  (let* ((msg (map-elt message 'params))
+         (args (map-elt msg 'args)))
+    (setf (map-elt msg 'values) (seq-map #'jade-webkit--value args))
     (jade-repl-emit-console-message msg)))
+
+(defun jade-webkit--handle-exception-thrown (message)
+  (let ((exception (map-nested-elt message '(params exceptionDetails))))
+    (jade-repl-emit-console-message (jade-webkit--exception exception) t)))
 
 (defun jade-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
@@ -293,7 +307,7 @@ the REPL buffer."
           (map-put callbacks id callback))
         (websocket-send-text (map-elt jade-connection 'ws)
                              (json-encode (cons `(id . ,id) request))))
-    (jade-repl-emit-console-message '((level . "error") (text . "Socket connection closed")))))
+    (jade-repl-emit-console-message '((text . "Socket connection closed")) t)))
 
 (defun jade-webkit--read-ws-message (frame)
   (json-read-from-string (websocket-frame-payload frame)))
@@ -303,14 +317,15 @@ the REPL buffer."
 
 There is currently no support for the DOM inspector and network
 inspectors."
-  (jade-webkit--enable-console)
+  (jade-webkit--enable-log)
   (jade-webkit--enable-runtime)
+  (jade-webkit--enable-network)
   (jade-webkit--enable-page)
   (jade-webkit--enable-debugger))
 
-(defun jade-webkit--enable-console ()
-  "Enable the console on the current tab."
-  (jade-webkit--send-request '((method . "Console.enable"))))
+(defun jade-webkit--enable-log ()
+  "Enable the log on the current tab."
+  (jade-webkit--send-request '((method . "Log.enable"))))
 
 (defun jade-webkit--enable-page ()
   "Enable the page API on the current tab."
@@ -318,8 +333,11 @@ inspectors."
 
 (defun jade-webkit--enable-runtime ()
   "Enable the runtime on the current tab."
-  (jade-webkit--send-request '((method . "Runtime.enable")))
-  (jade-webkit--send-request '((method . "Runtime.run"))))
+  (jade-webkit--send-request '((method . "Runtime.enable"))))
+
+(defun jade-webkit--enable-network ()
+  "Enable the runtime on the current tab."
+  (jade-webkit--send-request '((method . "Network.enable"))))
 
 (defun jade-webkit--enable-debugger ()
   "Enable the debugger on the current tab."
@@ -408,6 +426,12 @@ non-nil."
       (type . ,type)
       (preview . ,preview)
       (value . ,value))))
+
+(defun jade-webkit--exception (result)
+  "Return an exception built from RESULT."
+  (setf (map-elt result 'values)
+        (list (jade-webkit--value
+               (map-elt result 'exception)))))
 
 (defun jade-webkit--description (result)
   "Return a description string built from RESULT.

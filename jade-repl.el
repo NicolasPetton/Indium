@@ -191,7 +191,7 @@ When ERROR is non-nil, display VALUE as an error."
       (goto-char (point-max))
       (insert-before-markers "\n")
       (set-marker jade-repl-output-start-marker (point))
-      (when error (jade-repl--emit-logging-level "error"))
+      (when error (jade-repl--emit-logging-error))
       (jade-render-value value)
       (insert "\n")
       (jade-repl-mark-input-start)
@@ -199,40 +199,39 @@ When ERROR is non-nil, display VALUE as an error."
     (jade-repl-insert-prompt)
     (run-hooks 'jade-repl-evaluate-hook)))
 
-(defun jade-repl-emit-console-message (message)
-  "Emit a console message.
+(defun jade-repl-emit-console-message (message &optional error)
+  "Emit a console MESSAGE.
+When ERROR is non-nil, display MESSAGE as an error.
+
 MESSAGE is a map (alist/hash-table) with the following keys:
-  level		severity level (can be log, warning, error, debug)
   text		message text to be displayed
+  description   optional additional description
+  level		severity level (can be log, warning, error, debug)
   type		type of message
   url		url of the message origin
   line		line number in the resource that generated this message
-  parameters	message parameters in case of the formatted message
+  values	message values to be logged
 
-MESSAGE must contain `text' or `parameters.'.  Other fields are
+MESSAGE must contain `text' or `values.'.  Other fields are
 optional."
   (with-current-buffer (jade-repl-get-buffer)
+    (when (string= (map-elt message 'level) 'error)
+      (setq error t))
     (save-excursion
-      (let ((text (map-elt message 'text))
-            (level (or (map-elt message 'level) "")))
-        (goto-char jade-repl-output-end-marker)
-        (set-marker jade-repl-output-start-marker (point))
-        (insert "\n")
-        (jade-repl--emit-logging-level level)
-        (jade-repl--emit-message-values message)
-        (set-marker jade-repl-output-end-marker (point))
-        (unless (eolp)
-          (insert "\n"))
-        ;; TODO: add an option to disable it
-        ;; when we get an error, also display it in the echo area for
-        ;; convenience
-        (when (jade-repl--message-level-error-p level)
-          (message text))))))
+      (goto-char jade-repl-output-end-marker)
+      (set-marker jade-repl-output-start-marker (point))
+      (insert "\n")
+      (when error
+        (jade-repl--emit-logging-error))
+      (jade-repl--emit-message-values message)
+      (set-marker jade-repl-output-end-marker (point))
+      (unless (eolp)
+        (insert "\n")))))
 
 (defun jade-repl--emit-message-values (message)
   "Emit all values of console MESSAGE."
   (let ((text (map-elt message 'text))
-        (values (map-elt message 'parameters))
+        (values (map-elt message 'values))
         (url (map-elt message 'url))
         (line (map-elt message 'line)))
     (when (seq-empty-p values)
@@ -241,28 +240,22 @@ optional."
     (jade-render-values values "\n")
     (jade-repl--emit-message-url-line url line)))
 
-(defun jade-repl--message-level-error-p (level)
-  (string= level "error"))
-
-(defun jade-repl-level-face (level)
-  "Return the face to be used to render a console message from its LEVEL."
-  (if (jade-repl--message-level-error-p level)
-      'jade-repl-error-face
-    'jade-repl-stdout-face))
-
-(defun jade-repl--emit-logging-level (level)
-  (unless (string-empty-p level)
-    (insert
-     (ansi-color-apply
-      (propertize (format "%s:" level)
-                  'font-lock-face (jade-repl-level-face level)
-                  'rear-nonsticky '(font-lock-face)))
-     " ")))
+(defun jade-repl--emit-logging-error ()
+  "Emit a red \"Error\" label."
+  (insert
+   (ansi-color-apply
+    (propertize "Error:"
+                'font-lock-face 'jade-repl-error-face
+                'rear-nonsticky '(font-lock-face)))
+   " "))
 
 (defun jade-repl--emit-message-url-line (url line)
+  "Emit the URL and LINE for a message."
   (unless (seq-empty-p url)
-    (insert "\nMessage from "
-            (propertize (format "%s:%s" (file-name-nondirectory url) line)
+    (insert "\nFrom "
+            (propertize (if line
+                            (format "%s:%s" url line)
+                          url)
                         'font-lock-face 'jade-link-face
                         'jade-action (lambda ()
                                        (browse-url url))
@@ -325,6 +318,10 @@ DIRECTION is `forward' or `backard' (in the history list)."
     (jade-repl-insert-prompt)))
 
 (defun jade-repl--insert-connection-buttons ()
+  "Insert buttons when the connection is lost.
+
+The user can either close all related buffers or try to reopen
+the connection."
   (jade-render-button "Reconnect" #'jade-reconnect)
   (insert " or ")
   (jade-render-button "close all buffers" #'jade-quit)

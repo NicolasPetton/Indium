@@ -39,6 +39,9 @@ It's available on melpa:
 
 ### Connection to a chrom[e|ium] tab
 
+Chrom[e|ium] >= 54.0 is required for Jade to properly work (debugging protocol
+v1.2).
+
 Start chrom[e|ium] with the `--remote-debugging-port` flag:
 
     chromium --remote-debugging-port=9222 https://gnu.org
@@ -47,7 +50,7 @@ Evaluate `M-x jade-connect-to-chrome`.
 
 ### Connection to a nodejs process
 
-(Note: as of July 31 2016, this requires node-nightly, which can be installed with `npm install -g node-nightly`).
+Nodejs >= 6.9.1 is required for Jade to work. 
 
 Start a node process with the `--inspect` flag:
 
