@@ -58,6 +58,12 @@ current buffer."
                        (insert description))
                    (message description))))))
 
+(defun jade-reload ()
+  "Reload the page."
+  (interactive)
+  (jade-interaction--ensure-connection)
+  (jade-backend-evaluate (jade-backend) "window.location.reload()"))
+
 (defun jade-inspect-last-node ()
   "Evaluate and inspect the node before point."
   (interactive)

@@ -85,11 +85,6 @@ The new connection is based on the current (usually closed) one."
                            (eq jade-connection connection)))
                        (buffer-list))))
 
-(defun jade-reload ()
-  "Reload the page."
-  (interactive)
-  (jade-backend-evaluate (jade-backend) "window.location.reload()"))
-
 (defun jade-active-connections ()
   "Return a list of all active connections."
   (seq-filter (lambda (connection)
