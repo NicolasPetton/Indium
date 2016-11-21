@@ -110,11 +110,12 @@ definitions."
       description)))
 
 (defun jade-render-object-link (value)
+  "Render VALUE as a link, with an optional preview."
   (let* ((description (jade-description-string value))
          (preview (map-elt value 'preview))
          (beg (point))
          (end (progn
-                (insert description)
+                (insert (jade-render--truncate-string-to-newline description))
                 (point)))
          (face 'jade-link-face))
     (set-text-properties beg end
@@ -150,7 +151,15 @@ definitions."
 (defun jade-perform-action ()
   "Evaluate the button action at point."
   (let ((function (get-text-property (point) 'jade-action)))
-   (funcall function)))
+    (funcall function)))
+
+(defun jade-render--truncate-string-to-newline (string)
+  "Return STRING truncated before the first newline.
+If STRING is truncated, append ellipsis."
+  (let ((result (car (split-string string "\n"))))
+    (unless (string= string result)
+      (setq result (concat result "…")))
+    result))
 
 (defun jade-render--frame-label (frame)
   "Return the label for FRAME to be used in the debugger stack frame list."
