@@ -231,7 +231,7 @@ Evaluation happens in the context of the current call frame."
 Evaluation happens in the context of the current call frame."
   (jade-backend-evaluate-on-frame (jade-backend)
                                   expression
-                                  (jade-debugger-top-frame)
+                                  jade-debugger-current-frame
                                   callback))
 
 (defun jade-debugger-inspect-last-node ()
