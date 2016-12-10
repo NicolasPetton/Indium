@@ -44,7 +44,6 @@
 (make-variable-buffer-local 'jade-repl-history-position)
 
 (defvar-local jade-repl-input-start-marker nil)
-(defvar-local jade-repl-prompt-start-marker nil)
 (defvar-local jade-repl-output-start-marker nil)
 (defvar-local jade-repl-output-end-marker nil)
 
@@ -110,8 +109,7 @@ connected to the process.
 
 (defun jade-repl-setup-markers ()
   "Setup the initial markers for the current REPL buffer."
-  (dolist (marker '(jade-repl-prompt-start-marker
-                    jade-repl-output-start-marker
+  (dolist (marker '(jade-repl-output-start-marker
                     jade-repl-output-end-marker
                     jade-repl-input-start-marker))
     (set marker (make-marker))
@@ -143,8 +141,7 @@ connected to the process.
                                               read-only t
                                               intangible t
                                               field jade-repl-prompt
-                                              rear-nonsticky (read-only font-lock-face intangible field)))
-        (set-marker jade-repl-prompt-start-marker beg)))))
+                                              rear-nonsticky (read-only font-lock-face intangible field)))))))
 
 (defun jade-repl-return ()
   "Depending on the position of point, jump to a reference of evaluate the input."
@@ -301,7 +298,7 @@ DIRECTION is `forward' or `backard' (in the history list)."
   (let ((inhibit-read-only t))
     (save-excursion
       (goto-char (point-min))
-      (delete-region (point) jade-repl-prompt-start-marker))))
+      (delete-region (point) jade-repl-output-end-marker))))
 
 (defun jade-repl--handle-connection-closed ()
   "Display a message when the connection is closed."
