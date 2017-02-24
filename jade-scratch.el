@@ -59,7 +59,7 @@ If there is no current connection, throw an error."
     (js2-mode)
     (jade-interaction-mode)
     (setq-local jade-connection connection)
-    (add-to-list 'company-backends 'company-jade-repl)
+    (setq-local company-backends '(company-jade-repl))
     (jade-scratch-insert-welcome-message)))
 
 (defun jade-scratch-insert-welcome-message ()
