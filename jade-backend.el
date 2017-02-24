@@ -78,11 +78,12 @@ The new connection is based on the current (usually closed) one."
   (jade-backend-reconnect (jade-backend)))
 
 (defun jade-backend-kill-all-buffers (connection)
-  "Kill all buffers that have the `jade-connection' CONNECTION."
+  "Kill all buffers that have the `jade-connection' CONNECTION
+that have no associated file."
   (seq-map #'kill-buffer
            (seq-filter (lambda (buf)
                          (with-current-buffer buf
-                           (eq jade-connection connection)))
+                           (and (not buffer-file-name) (eq jade-connection connection))))
                        (buffer-list))))
 
 (defun jade-active-connections ()
