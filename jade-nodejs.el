@@ -26,13 +26,11 @@
 ;;     node --inspect myfile.js
 ;;     node --inspect=localhost:9876 myfile.js
 ;;
-;; Important note: For this package to work, NodeJS version 6.3 (or any newer
-;; version) is required.  As of July 29 2016, this package is known to work with
-;; node-nightly, which can be installed with:
+;; To break on the first line of the application code, provide the --debug-brk
+;; flag in addition to --inspect.
 ;;
-;;    npm install -g node-nightly
-;;
-;; To start a node process with remote debugging enabled, run `node --inspect ...'.
+;; Important note: For this package to work, NodeJS version 7.0 (or any newer
+;; version) is required.
 
 ;;; Code:
 
@@ -41,18 +39,19 @@
 (require 'map)
 (require 'seq)
 
-(require 'jade-webkit)
+(require 'jade-v8-inspector)
 
-(defun jade-connect-to-nodejs (host port)
-  "Open a connection to a webkit tab on HOST:PORT."
+(defun jade-connect-to-nodejs (host port path)
+  "Open a connection to a webkit tab on HOST:PORT/PATH."
     (interactive (list (read-from-minibuffer "Host: " "127.0.0.1")
-                       (read-from-minibuffer "Port: " "9229")))
-    (jade-nodejs--connect host port))
+                       (read-from-minibuffer "Port: " "9229")
+                       (read-from-minibuffer "Path: ")))
+    (jade-nodejs--connect host port path))
 
-(defun jade-nodejs--connect (host port)
+(defun jade-nodejs--connect (host port path)
   "Ask the user for a tab in the list TABS and connects to it."
-  (let ((url (format "ws://%s:%s/node" host port)))
-    (jade-webkit--open-ws-connection url url)))
+  (let ((url (format "ws://%s:%s/%s" host port path)))
+    (jade-v8-inspector--open-ws-connection url url)))
 
 (provide 'jade-nodejs)
 ;;; jade-nodejs.el ends here

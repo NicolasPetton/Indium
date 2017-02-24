@@ -50,17 +50,22 @@ Evaluate `M-x jade-connect-to-chrome`.
 
 ### Connection to a nodejs process
 
-Nodejs >= 6.9.1 is required for Jade to work. 
+Nodejs >= 7.0.0 is required for Jade to work. 
 
 Start a node process with the `--inspect` flag:
 
     node --inspect myfile.js
-
-Evaluate `M-x jade-connect-to-nodejs`.
-
+    
 If you wish to break on the first line of the application code, start node using:
 
     node --inspect --debug-brk myfile.js
+    
+Node will tell you to open an URL in Chrome:
+
+    chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=127.0.0.1:PORT/PATH
+    
+Evaluate `M-x jade-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH`, `PORT`
+and `PATH` are taken from the `ws` parameter of the above URL.
 
 Connecting Jade to the node process will open a debugger on the first line of the application code.
 
