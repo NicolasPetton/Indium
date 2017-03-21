@@ -217,7 +217,7 @@ same url."
   (let* ((connection (jade-v8-inspector--make-connection ws url)))
     (jade-with-connection connection
       (jade-v8-inspector--enable-tools))
-    (switch-to-buffer (jade-repl-get-buffer-create connection))))
+    (switch-to-buffer (jade-repl-buffer-create connection))))
 
 (defun jade-v8-inspector--handle-ws-message (ws frame)
   (jade-with-connection (jade-v8-inspector--connection-for-ws ws)

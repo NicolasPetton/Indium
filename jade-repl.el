@@ -55,17 +55,16 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
-(defun jade-repl-get-buffer-create (connection)
-  "Return a REPL buffer for CONNECTION.
-If no buffer exists, create one."
+(defun jade-repl-buffer-create (connection)
+  "Return a new REPL buffer for CONNECTION."
   (let* ((url (map-elt connection 'url))
-         (buf (get-buffer-create (jade-repl-buffer-name url))))
+         (buf (generate-new-buffer (jade-repl-buffer-name url))))
     (jade-repl-setup-buffer buf connection)
     buf))
 
 (defun jade-repl-get-buffer ()
   "Return the REPL buffer, or nil."
-  (get-buffer (jade-repl-buffer-name)))
+  (get-buffer (map-elt jade-connection 'repl-buffer)))
 
 (defun jade-repl-buffer-name (&optional url)
   "Return the name of the REPL buffer for URL.
@@ -77,6 +76,7 @@ If URL is nil, use the current connection."
   (with-current-buffer buffer
     (jade-repl-mode)
     (setq-local jade-connection connection)
+    (map-put jade-connection 'repl-buffer buffer)
     (jade-repl-setup-markers)
     (jade-repl-mark-output-start)
     (jade-repl-insert-prompt)

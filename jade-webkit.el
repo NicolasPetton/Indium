@@ -230,7 +230,7 @@ same url."
   (let* ((connection (jade-webkit--make-connection ws url)))
     (jade-with-connection connection
       (jade-webkit--enable-tools))
-    (switch-to-buffer (jade-repl-get-buffer-create connection))))
+    (switch-to-buffer (jade-repl-buffer-create connection))))
 
 (defun jade-webkit--handle-ws-message (ws frame)
   (jade-with-connection (jade-webkit--connection-for-ws ws)
