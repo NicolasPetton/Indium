@@ -20,7 +20,9 @@
 
 ;;; Commentary:
 
-;;
+;; TODO:
+;; - split this file (jade-debugger-list-frames.el, jade-debugger-local-inspector.el)
+;; - always evaluate on the current frame if any (check for inspection, etc.)
 
 ;;; Code:
 
@@ -30,6 +32,7 @@
 (require 'jade-repl)
 (require 'jade-interaction)
 (require 'jade-render)
+(require 'jade-workspace)
 
 (defgroup jade-debugger nil
   "JavaScript debugger"
@@ -44,12 +47,6 @@
 
 (defvar jade-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
 
-(defvar jade-debugger-frames nil "List of frames of the current debugger context.")
-(make-variable-buffer-local 'jade-debugger-frames)
-
-(defvar jade-debugger-current-frame nil "Current frame of the debugger context.")
-(make-variable-buffer-local 'jade-debugger-current-frame)
-
 (defconst jade-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
   "Used as an overlay's before-string prop to place a fringe arrow.")
@@ -57,15 +54,13 @@
 (declare 'jade-backend-debugger-get-script-source)
 
 (defun jade-debugger-paused (frames)
-  (jade-debugger-get-buffer-create jade-connection frames)
+  (jade-debugger-setup-context frames (car frames))
   (jade-debugger-select-frame (car frames))
   (jade-debugger-show-help-message))
 
 (defun jade-debugger-resumed (&rest _args)
-  (let ((buf (jade-debugger-get-buffer)))
-    (when buf
-      (set-marker overlay-arrow-position nil (current-buffer))
-      (remove-overlays))))
+  (set-marker overlay-arrow-position nil (current-buffer))
+  (remove-overlays))
 
 (defun jade-debugger-next-frame ()
   "Jump to the next frame in the frame stack."
@@ -80,47 +75,62 @@
 (defun jade-debugger--jump-to-frame (direction)
   "Jump to the next frame in DIRECTION.
 DIRECTION is `forward' or `backward' (in the frame list)."
-  (let* ((current-position (seq-position jade-debugger-frames jade-debugger-current-frame))
+  (let* ((current-position (seq-position (jade-debugger-frames) (jade-debugger-current-frame)))
          (step (pcase direction
                  (`forward -1)
                  (`backward 1)))
          (position (+ current-position step)))
-    (when (> position (seq-length jade-debugger-frames))
+    (when (> position (seq-length (jade-debugger-frames)))
       (user-error "End of frames"))
     (when (< position 0)
       (user-error "Beginning of frames"))
-    (jade-debugger-select-frame (seq-elt jade-debugger-frames position))))
+    (jade-debugger-select-frame (seq-elt (jade-debugger-frames) position))))
 
 (defun jade-debugger-select-frame (frame)
-  "Switch the debugger buffer to the frame FRAME."
-  (jade-backend-get-script-source (jade-backend)
-                                  frame
-                                  (lambda (source)
-                                    (jade-debugger-switch-to-frame
-                                     frame
-                                     (map-nested-elt source '(result scriptSource))))))
+  "Make FRAME the current debugged stach frame.
+Switch to the buffer for FRAME.
 
-(defun jade-debugger-switch-to-frame (frame source)
-  (switch-to-buffer (jade-debugger-get-buffer))
-  (jade-debugger-debug-frame frame source)
-  (jade-debugger-locals-maybe-refresh)
-  (jade-debugger-frames-maybe-refresh))
+Try to find the file locally first using Jade worskspaces.  If a
+local file cannot be found, get the remote source and open a new
+buffer visiting it."
+  (jade-debugger-set-current-frame frame)
+  (switch-to-buffer (jade-debugger-get-buffer-create))
+  (if buffer-file-name
+      (jade-debugger-setup-buffer-with-file)
+    (jade-backend-get-script-source
+       (jade-backend)
+       frame
+       (lambda (source)
+         (jade-debugger-setup-buffer-no-file
+          (map-nested-elt source '(result scriptSource)))))))
 
-(defun jade-debugger-debug-frame (frame source)
-  (let* ((location (map-elt frame 'location))
-         (line (map-elt location 'lineNumber))
-         (column (map-elt location 'columnNumber))
-         (inhibit-read-only t))
-    (setq jade-debugger-current-frame frame)
-    (unless (string= (buffer-substring-no-properties (point-min) (point-max))
-                     source)
+(defun jade-debugger-setup-buffer-with-file ()
+  "Setup the current buffer for debugging."
+  (when (buffer-modified-p)
+    (revert-buffer nil nil t))
+  (jade-debugger-position-buffer))
+
+(defun jade-debugger-setup-buffer-no-file (source)
+  "Setup the current buffer with the frame source SOURCE."
+  (unless (string= (buffer-substring-no-properties (point-min) (point-max))
+                   source)
+    (let ((inhibit-read-only t))
       (erase-buffer)
-      (insert source))
+      (insert source)))
+  (jade-debugger-position-buffer))
+
+(defun jade-debugger-position-buffer ()
+  (let* ((frame (jade-debugger-current-frame))
+         (location (map-elt frame 'location))
+         (line (map-elt location 'lineNumber))
+         (column (map-elt location 'columnNumber)))
     (goto-char (point-min))
     (forward-line line)
-    (forward-char column)
-    (jade-debugger-setup-overlay-arrow)
-    (jade-debugger-highlight-node)))
+    (forward-char column))
+  (jade-debugger-setup-overlay-arrow)
+  (jade-debugger-highlight-node)
+  (jade-debugger-locals-maybe-refresh)
+  (jade-debugger-frames-maybe-refresh))
 
 (defun jade-debugger-show-help-message ()
   "Display a help message in the echo-area."
@@ -181,30 +191,36 @@ DIRECTION is `forward' or `backward' (in the frame list)."
 
 (defun jade-debugger-top-frame ()
   "Return the top frame of the current debugging context."
-  (car jade-debugger-frames))
+  (car (jade-debugger-frames)))
 
 (defun jade-debugger-step-into ()
   (interactive)
+  (jade-debugger-unset-current-buffer)
   (jade-backend-step-into (jade-backend)))
 
 (defun jade-debugger-step-over ()
   (interactive)
+  (jade-debugger-unset-current-buffer)
   (jade-backend-step-over (jade-backend)))
 
 (defun jade-debugger-step-out ()
   (interactive)
+  (jade-debugger-unset-current-buffer)
   (jade-backend-step-out (jade-backend)))
 
 (defun jade-debugger-resume ()
   (interactive)
   (jade-backend-resume (jade-backend) #'jade-debugger-resumed)
+  (jade-debugger-unset-context)
   (let ((locals-buffer (jade-debugger-locals-get-buffer))
         (frames-buffer (jade-debugger-frames-get-buffer)))
     (when locals-buffer
       (kill-buffer locals-buffer))
     (when frames-buffer
       (kill-buffer frames-buffer))
-    (kill-buffer (jade-debugger-get-buffer))))
+    (if buffer-file-name
+        (jade-debugger-unset-current-buffer)
+      (kill-buffer))))
 
 (defun jade-debugger-here ()
   (interactive)
@@ -231,7 +247,7 @@ Evaluation happens in the context of the current call frame."
 Evaluation happens in the context of the current call frame."
   (jade-backend-evaluate-on-frame (jade-backend)
                                   expression
-                                  jade-debugger-current-frame
+                                  (jade-debugger-current-frame)
                                   callback))
 
 (defun jade-debugger-inspect-last-node ()
@@ -243,31 +259,66 @@ Evaluation happens in the context of the current call frame."
                           (message "JS error: %s" result))
                         (jade-inspector-inspect result))))
 
-(defun jade-debugger-get-buffer-create (connection frames)
-  "Create a debugger buffer for CONNECTION and return it.
+;; Debugging context
 
-Locally set `jade-debugger-frames' to FRAMES.
+(defun jade-debugger-setup-context (frames current-frame)
+  "Add required debugging information for the current connection.
+Put FRAMES and CURRENT-FRAME information as debugging context."
+  (map-put jade-connection 'frames frames)
+  (map-put jade-connection 'current-frame current-frame))
+
+(defun jade-debugger-set-current-frame (frame)
+  (map-put jade-connection 'current-frame frame))
+
+(defun jade-debugger-unset-context ()
+  "Remove debugging information from the current connection."
+  (map-delete jade-connection 'frames)
+  (map-delete jade-connection 'current-frame))
+
+(defun jade-debugger-current-frame ()
+  "Return the current debugged stack frame."
+  (map-elt jade-connection 'current-frame))
+
+(defun jade-debugger-frames ()
+  "Return all frames in the current stack."
+  (map-elt jade-connection 'frames))
+
+(defun jade-debugger-lookup-file ()
+  "Lookup the local file associated with the current connection.
+Return nil if no local file can be found."
+  (let ((url (jade-backend-get-script-url (jade-backend)
+                                          (jade-debugger-current-frame))))
+    (jade-workspace-lookup-file url)))
+
+(defun jade-debugger-get-buffer-create ()
+  "Create a debugger buffer for the current connection and return it.
+
 If a buffer already exists, just return it."
-  (let ((buf (jade-debugger-get-buffer)))
-    (unless buf
-      (setq buf (get-buffer-create (jade-debugger-buffer-name)))
-      (jade-debugger-setup-buffer buf connection))
-    (with-current-buffer buf
-      (setq-local jade-debugger-frames frames))
+  (let ((connection jade-connection)
+        (buf (if-let ((file (jade-debugger-lookup-file)))
+                 (find-file file)
+               (get-buffer-create (jade-debugger--buffer-name-no-file)))))
+    (jade-debugger-setup-buffer buf connection)
     buf))
 
-(defun jade-debugger-buffer-name ()
-    (concat "*JS Debugger " (map-elt jade-connection 'url) "*"))
-
-(defun jade-debugger-get-buffer ()
-  (get-buffer (jade-debugger-buffer-name)))
+(defun jade-debugger--buffer-name-no-file ()
+  "Return the name of a debugger buffer.
+This name should used when no local file can be found for a stack
+frame."
+  (concat "*JS Debugger " (map-elt jade-connection 'url) "*"))
 
 (defun jade-debugger-setup-buffer (buffer connection)
   (with-current-buffer buffer
-    (funcall jade-debugger-major-mode)
+    (unless (eq major-mode jade-debugger-major-mode)
+      (funcall jade-debugger-major-mode))
     (setq-local jade-connection connection)
-    (jade-debugger-mode)
+    (jade-debugger-mode 1)
     (read-only-mode)))
+
+(defun jade-debugger-unset-current-buffer ()
+  "Unset `jade-debugger-mode from the current buffer'."
+  (jade-debugger-mode -1)
+  (read-only-mode -1))
 
 (defvar jade-debugger-mode-map
   (let ((map (make-sparse-keymap)))
@@ -315,7 +366,7 @@ Unless NO-POP is non-nil, pop the locals buffer."
           ;; do not inspect the window object
           (seq-remove (lambda (scope)
                         (string= (map-elt scope 'type) "global"))
-                      (map-elt jade-debugger-current-frame 'scope-chain))))
+                      (map-elt (jade-debugger-current-frame) 'scope-chain))))
 
 (defun jade-debugger-locals-maybe-refresh ()
   "When a local inspector is open, refresh it."
@@ -380,8 +431,8 @@ Unless NO-POP is non-nil, pop the locals buffer."
   "List the stack frames in a separate buffer and switch to it."
   (interactive)
   (let ((buf (jade-debugger-frames-get-buffer-create))
-        (frames jade-debugger-frames)
-        (current-frame jade-debugger-current-frame)
+        (frames (jade-debugger-frames))
+        (current-frame (jade-debugger-current-frame))
         (inhibit-read-only t))
     (with-current-buffer buf
      (jade-debugger-list-frames frames current-frame))
@@ -391,8 +442,8 @@ Unless NO-POP is non-nil, pop the locals buffer."
   "When a buffer listing the stack frames is open, refresh it."
   (interactive)
   (let ((buf (jade-debugger-frames-get-buffer))
-        (frames jade-debugger-frames)
-        (current-frame jade-debugger-current-frame)
+        (frames (jade-debugger-frames))
+        (current-frame (jade-debugger-current-frame))
         (inhibit-read-only t))
     (when buf
       (with-current-buffer buf
@@ -415,7 +466,7 @@ CURRENT-FRAME is the current stack frame in the debugger."
   "Select FRAME and switch to the corresponding debugger buffer."
   (interactive)
   (let ((buf (current-buffer)))
-    (switch-to-buffer-other-window (jade-debugger-get-buffer))
+    (switch-to-buffer-other-window (jade-debugger-get-buffer-create))
     (jade-debugger-select-frame frame)
     (switch-to-buffer buf)))
 
