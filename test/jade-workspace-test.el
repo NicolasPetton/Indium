@@ -42,5 +42,28 @@
     (let ((jade-workspace-directories (list (expand-file-name "."))))
     (should (null (jade-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
 
+(ert-deftest jade-workspace-make-url-with-no-workspace-test ()
+  (let ((jade-workspace-directories nil)
+        (connection '((url . "http://localhost:9229"))))
+    (should (null (jade-workspace-make-url "./jade-workspace-test.el" connection)))))
+
+(ert-deftest jade-workspace-make-url-test ()
+  (let ((jade-workspace-directories `(,default-directory))
+        (connection '((url . "http://localhost:9229"))))
+    (should (equal (jade-workspace-make-url "./jade-workspace-test.el" connection)
+                   "http://localhost:9229/jade-workspace-test.el"))))
+
+(ert-deftest jade-workspace-make-url-strips-query-string-test ()
+  (let ((jade-workspace-directories `(,default-directory))
+        (connection '((url . "http://localhost:9229?foo=bar"))))
+    (should (equal (jade-workspace-make-url "./jade-workspace-test.el" connection)
+                   "http://localhost:9229/jade-workspace-test.el"))))
+
+(ert-deftest jade-workspace-make-strips-connection-path-test ()
+  (let ((jade-workspace-directories `(,default-directory))
+        (connection '((url . "http://localhost:9229/foo/bar"))))
+    (should (equal (jade-workspace-make-url "./jade-workspace-test.el" connection)
+                   "http://localhost:9229/jade-workspace-test.el"))))
+
 (provide 'jade-workspace-test)
 ;;; jade-workspace-test.el ends here
