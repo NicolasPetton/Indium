@@ -38,7 +38,7 @@
         (inhibit-read-only t))
     (with-current-buffer buf
      (jade-debugger-frames-list frames current-frame))
-    (switch-to-buffer-other-window buf)))
+    (switch-to-buffer buf)))
 
 (defun jade-debugger-frames-maybe-refresh ()
   "When a buffer listing the stack frames is open, refresh it."
@@ -67,10 +67,7 @@ CURRENT-FRAME is the current stack frame in the debugger."
 (defun jade-debugger-frames-select-frame (frame)
   "Select FRAME and switch to the corresponding debugger buffer."
   (interactive)
-  (let ((buf (current-buffer)))
-    (switch-to-buffer-other-window (jade-debugger-get-buffer-create))
-    (jade-debugger-select-frame frame)
-    (switch-to-buffer buf)))
+  (jade-debugger-select-frame frame))
 
 (defun jade-debugger-frames-next-frame ()
   "Go to the next frame in the stack."
