@@ -1,4 +1,4 @@
-;;; jade-workspace.el --- Use local files fog debugging          -*- lexical-binding: t; -*-
+;;; jade-workspace.el --- Use local files for debugging          -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
@@ -20,7 +20,25 @@
 
 ;;; Commentary:
 
+;; Setup a workspace for using local files when debugging JavaScript.
 ;;
+;; Files are looked up using a special `.jade' file placed in the root directory
+;; of the files served.
+
+;;; Example:
+
+;; With the following directory structure:
+;;
+;; www/
+;;    index.html
+;;    css/
+;;       style.css
+;;    js/
+;;       app.js
+;;    .jade
+;;
+;; For the following URL "http://localhost:3000/js/app.js"
+;; `jade-workspace-lookup-file' will return "./www/js/app.js".
 
 ;;; Code:
 
@@ -29,26 +47,23 @@
 (require 'map)
 (require 'subr-x)
 
-(defvar jade-workspace-directories nil
-  "List of directories containing JavaScript files.")
-
 (defun jade-workspace-lookup-file (url)
   "Return a local file matching URL in the current workspace directories.
-If `jade-workspace-directories' is nil, return nil."
-  (let ((path (seq-drop (car (url-path-and-query (url-generic-parse-url url))) 1)))
-    (seq-some (lambda (directory)
-                (let ((file (expand-file-name path directory)))
-                  (when (file-exists-p file)
-                    file)))
-              jade-workspace-directories)))
+If no file is found, return nil."
+  (if-let ((root (jade-workspace-root)))
+      (let* ((path (seq-drop (car (url-path-and-query
+                                  (url-generic-parse-url url)))
+                            1))
+            (file (expand-file-name path root)))
+        (when (file-exists-p file)
+          file))))
 
 (defun jade-workspace-make-url (file connection)
   "Return the url associated with the local FILE for CONNECTION.
-The url is built using the first element in `jade-workspace-directories'.
-If `jade-workspace-directories' is nil, return nil."
-  (if-let ((directory (car jade-workspace-directories)))
+The url is built using `jade-workspace-root'."
+  (if-let ((root (jade-workspace-root)))
       (let* ((url (jade-workspace--url-basepath (map-elt connection 'url)))
-             (path (file-relative-name file directory)))
+             (path (file-relative-name file root)))
         (setf (url-filename url) (jade-workspace--absolute-path path))
         (url-recreate-url url))))
 
@@ -68,6 +83,34 @@ The path and query string of URL are stripped."
                            (url-host urlobj)
                            (url-port urlobj)
                            nil nil nil t)))
+
+(defun jade-workspace-root ()
+  "Lookup the root workspace directory from the current buffer."
+  (jade-workspace-locate-dominating-file default-directory ".jade"))
+
+(defun jade-workspace-locate-dominating-file (file name)
+  "Look up the directory hierarchy from FILE for a directory containing NAME.
+Stop at the first parent directory containing a file NAME,
+and return the directory.  Return nil if not found.
+Instead of a string, NAME can also be a predicate taking one argument
+\(a directory) and returning a non-nil value if that directory is the one for
+which we're looking."
+  ;; copied from projectile.el, itself copied from files.el (stripped comments)
+  ;; emacs-24 bzr branch 2014-03-28 10:20
+  (setq file (abbreviate-file-name file))
+  (let ((root nil)
+        try)
+    (while (not (or root
+                    (null file)
+                    (string-match locate-dominating-stop-dir-regexp file)))
+      (setq try (if (stringp name)
+                    (projectile-file-exists-p (expand-file-name name file))
+                  (funcall name file)))
+      (cond (try (setq root file))
+            ((equal file (setq file (file-name-directory
+                                     (directory-file-name file))))
+             (setq file nil))))
+    (and root (expand-file-name (file-name-as-directory root)))))
 
 (provide 'jade-workspace)
 ;;; jade-workspace.el ends here

@@ -291,7 +291,10 @@ Put FRAMES and CURRENT-FRAME information as debugging context."
 Return nil if no local file can be found."
   (let ((url (jade-backend-get-script-url (jade-backend)
                                           (jade-debugger-current-frame))))
-    (jade-workspace-lookup-file url)))
+    ;; Make sure we are in the correct directory so that jade can find a ".jade"
+    ;; file.
+    (with-current-buffer (jade-repl-get-buffer)
+      (jade-workspace-lookup-file url))))
 
 (defun jade-debugger-get-buffer-create ()
   "Create a debugger buffer for the current connection and return it.
