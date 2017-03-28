@@ -60,7 +60,7 @@
 
 (defun jade-debugger-resumed (&rest _args)
   (set-marker overlay-arrow-position nil (current-buffer))
-  (remove-overlays))
+  (jade-debugger-remove-highlights))
 
 (defun jade-debugger-next-frame ()
   "Jump to the next frame in the frame stack."
@@ -185,9 +185,12 @@ buffer visiting it."
 (defun jade-debugger-highlight-node ()
   (let ((beg (point))
         (end (line-end-position)))
-    (remove-overlays)
+    (jade-debugger-remove-highlights)
     (overlay-put (make-overlay beg end)
                  'face 'jade-highlight-face)))
+
+(defun jade-debugger-remove-highlights ()
+  (remove-overlays (point-min) (point-max) 'face 'jade-highlight-face))
 
 (defun jade-debugger-top-frame ()
   "Return the top frame of the current debugging context."
@@ -230,7 +233,7 @@ buffer visiting it."
   (jade-backend-continue-to-location (jade-backend)
                                      `((scriptId . ,(map-nested-elt (jade-debugger-top-frame)
                                                                     '(location scriptId)))
-                                       (lineNumber . ,(1- (count-lines (point-min) (point)))))))
+                                       (lineNumber . ,(1- (line-number-at-pos))))))
 
 (defun jade-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
@@ -327,7 +330,8 @@ frame."
 
 (defun jade-debugger-unset-current-buffer ()
   "Unset `jade-debugger-mode from the current buffer'."
-  (remove-overlays)
+  (jade-debugger-remove-highlights)
+  (set-marker overlay-arrow-position nil (current-buffer))
   (jade-debugger-mode -1)
   (read-only-mode -1))
 
