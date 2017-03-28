@@ -128,6 +128,15 @@ Evaluate CALLBACK on the filtered candidates.
 
 EXPRESSION should be a valid JavaScript expression string.")
 
+(cl-defgeneric jade-backend-add-breakpoint (backend url line &optional callback condition)
+  "Request the addition of a breakpoint.
+
+The breakpoint is set at URL on line LINE.  When CALLBACK is
+non-nil, evaluate it with the breakpoint's location and id.")
+
+(cl-defgeneric jade-backend-remove-breakpoint (backend id)
+  "Request the removal of the breakpoint with id ID.")
+
 (cl-defgeneric jade-backend-get-properties (backend reference &optional callback all-properties)
   "Request the properties of the remote object represented by REFERENCE.
 REFERENCE must be the id of a remote object.

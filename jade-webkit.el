@@ -90,6 +90,31 @@ Evaluate CALLBACK on the filtered candidates."
      (lambda (response)
        (jade-webkit--handle-completions-response response prefix callback)))))
 
+(cl-defmethod jade-backend-add-breakpoint ((backend (eql webkit)) url line &optional callback condition)
+    "Request the addition of a breakpoint.
+
+The breakpoint is set at URL on line LINE.  When CALLBACK is
+non-nil, evaluate it with the breakpoint's location and id."
+  (jade-webkit--send-request
+   `((method . "Debugger.setBreakpointByUrl")
+     (params . ((url . ,url)
+                (lineNumber . ,line)
+                (condition . ,(or condition "")))))
+   (lambda (response)
+     (message "%s" response)
+     (when callback
+       (let* ((result (map-elt response 'result))
+              (id (map-elt result 'breakpointId))
+              (line (map-elt (seq-elt (map-elt result 'locations) 0) 'lineNumber)))
+         (funcall callback id line))))))
+
+(cl-defgeneric jade-backend-remove-breakpoint (backend id)
+  "Request the removal of the breakpoint with id ID."
+  (jade-webkit--send-request
+   `((method . "Debugger.removeBreakpoint")
+     (params . ((breakpointId . ,id))))
+   #'ignore))
+
 (cl-defmethod jade-backend-get-properties ((backend (eql webkit)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
@@ -154,7 +179,8 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
   (jade-webkit--send-request
    `((method . "Page.configureOverlay")
      (params . ((suspended . :json-false)
-                (message . ,string))))))
+                (message . ,string))))
+   #'ignore))
 
 (defun jade-webkit-remove-overlay-message ()
   "Remove any overlay message displayed on the page."

@@ -74,5 +74,10 @@
   "Face used to display urls of stack frames."
   :group 'jade-faces)
 
+(defface jade-breakpoint-face
+  '((t (:inherit font-lock-warning-face)))
+  "Face used for breakpoints."
+  :group 'jade-faces)
+
 (provide 'jade-faces)
 ;;; jade-faces.el ends here

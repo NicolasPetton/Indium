@@ -25,6 +25,7 @@
 (require 'seq)
 (require 'jade-backend)
 (require 'jade-inspector)
+(require 'jade-breakpoint)
 (require 'jade-render)
 
 (defun jade-eval (string &optional callback)
@@ -71,6 +72,15 @@ current buffer."
   (jade-eval (js2-node-string (jade-interaction-node-before-point))
              (lambda (result _error)
                (jade-inspector-inspect result))))
+
+(defun jade-toggle-breakpoint (arg)
+  "Add a breakpoint at point."
+  (interactive "P")
+  (jade-interaction--ensure-connection)
+  (if (jade-breakpoint-at-point)
+      (jade-breakpoint-remove)
+    (jade-breakpoint-add
+     (when arg (read-from-minibuffer "Breakpoint condition: ")))))
 
 (defun jade-interaction-node-before-point ()
   "Return the node before point to be evaluated."
@@ -128,6 +138,7 @@ open, and set it in the current buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
+    (define-key map (kbd "C-c C-b") #'jade-toggle-breakpoint)
     map))
 
 ;;;###autoload
