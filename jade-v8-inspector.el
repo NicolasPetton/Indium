@@ -69,22 +69,12 @@ evaluation and non-nil if the evaluation threw an error."
   (jade-v8-inspector--send-request
    `((method . "Runtime.evaluate")
      (params . ((expression . ,string)
+                (callFrameId . ,(map-elt (map-elt jade-connection 'current-frame)
+                                         'callFrameId))
                 (generatePreview . t))))
    (lambda (response)
      (when callback
       (jade-v8-inspector--handle-evaluation-response response callback)))))
-
-(cl-defmethod jade-backend-evaluate-on-frame ((backend (eql v8-inspector)) string frame &optional callback)
-  "Evaluate STRING on the call frame FRAME then call CALLBACK.
-CALLBACK is called with two arguments, the value returned by the
-evaluation and non-nil if the evaluation threw an error."
-  (jade-v8-inspector--send-request
-   `((method . "Debugger.evaluateOnCallFrame")
-     (params . ((expression . ,string)
-                (callFrameId . ,(map-elt frame 'callFrameId))
-                (generatePreview . t))))
-   (lambda (response)
-     (jade-v8-inspector--handle-evaluation-response response callback))))
 
 (cl-defmethod jade-backend-get-completions ((backend (eql v8-inspector)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.

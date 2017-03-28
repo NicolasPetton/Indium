@@ -69,22 +69,12 @@ evaluation and non-nil if the evaluation threw an error."
   (jade-webkit--send-request
    `((method . "Runtime.evaluate")
      (params . ((expression . ,string)
+                (callFrameId . ,(map-elt (map-elt jade-connection 'current-frame)
+                                         'callFrameId))
                 (generatePreview . t))))
    (lambda (response)
      (when callback
-      (jade-webkit--handle-evaluation-response response callback)))))
-
-(cl-defmethod jade-backend-evaluate-on-frame ((backend (eql webkit)) string frame &optional callback)
-  "Evaluate STRING on the call frame FRAME then call CALLBACK.
-CALLBACK is called with two arguments, the value returned by the
-evaluation and non-nil if the evaluation threw an error."
-  (jade-webkit--send-request
-   `((method . "Debugger.evaluateOnCallFrame")
-     (params . ((expression . ,string)
-                (callFrameId . ,(map-elt frame 'callFrameId))
-                (generatePreview . t))))
-   (lambda (response)
-     (jade-webkit--handle-evaluation-response response callback))))
+       (jade-webkit--handle-evaluation-response response callback)))))
 
 (cl-defmethod jade-backend-get-completions ((backend (eql webkit)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.

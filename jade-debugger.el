@@ -248,10 +248,9 @@ Evaluation happens in the context of the current call frame."
 (defun jade-debugger-eval (expression callback)
   "Evaluate EXPRESSION and call CALLBACK with the returned value.
 Evaluation happens in the context of the current call frame."
-  (jade-backend-evaluate-on-frame (jade-backend)
-                                  expression
-                                  (jade-debugger-current-frame)
-                                  callback))
+  (jade-backend-evaluate (jade-backend)
+                         expression
+                         callback))
 
 (defun jade-debugger-inspect-last-node ()
   "Evaluate and inspect the node before point."
