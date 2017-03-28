@@ -8,6 +8,7 @@
 (development
  (depends-on "ert")
  (depends-on "ert-runner")
+ (depends-on "el-mock")
  (depends-on "seq")
  (depends-on "map")
  (depends-on "js2-mode"))

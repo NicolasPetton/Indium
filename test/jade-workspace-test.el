@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'el-mock)
 (require 'jade-workspace)
 
 (ert-deftest jade-workspace-lookup-file-with-no-workspace-test ()
