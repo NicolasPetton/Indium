@@ -24,6 +24,8 @@
 ;;
 ;; Files are looked up using a special `.jade' file placed in the root directory
 ;; of the files served.
+;;
+;; TODO: make it work with nodejs
 
 ;;; Example:
 
