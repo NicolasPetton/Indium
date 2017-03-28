@@ -270,6 +270,11 @@ Put FRAMES and CURRENT-FRAME information as debugging context."
   (map-put jade-connection 'current-frame current-frame))
 
 (defun jade-debugger-set-current-frame (frame)
+  "Set FRAME as the current frame."
+  ;; when a buffer is already debugging a frame, be sure to clean it first.
+  (if-let (old-buf (jade-debugger-get-buffer-create))
+      (with-current-buffer old-buf
+        (jade-debugger-unset-current-buffer)))
   (map-put jade-connection 'current-frame frame))
 
 (defun jade-debugger-unset-context ()
@@ -322,6 +327,7 @@ frame."
 
 (defun jade-debugger-unset-current-buffer ()
   "Unset `jade-debugger-mode from the current buffer'."
+  (remove-overlays)
   (jade-debugger-mode -1)
   (read-only-mode -1))
 
