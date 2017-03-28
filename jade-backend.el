@@ -67,7 +67,7 @@ When called interactively, prompt for a confirmation first."
                               (map-elt jade-connection 'url))))
     (jade-backend-close-connection (jade-backend) jade-connection)
     (setq jade-connections (remq jade-connection jade-connections))
-    (jade-backend-kill-all-buffers jade-connection)))
+    (jade-backend-cleanup-buffers jade-connection)))
 
 (defun jade-reconnect ()
   "Try to re-establish a connection.
@@ -77,13 +77,19 @@ The new connection is based on the current (usually closed) one."
     (user-error "No connection associated to the current buffer"))
   (jade-backend-reconnect (jade-backend)))
 
-(defun jade-backend-kill-all-buffers (connection)
-  "Kill all buffers that have the `jade-connection' CONNECTION
-that have no associated file."
-  (seq-map #'kill-buffer
+(defun jade-backend-cleanup-buffers (connection)
+  "Cleanup all buffers that have the `jade-connection' CONNECTION.
+
+If a buffer has no associated file, kill it.
+Set `jade-connection' to nil otherwise."
+  (seq-map (lambda (buf)
+             (with-current-buffer buf
+               (if buffer-file-name
+                   (setq-local jade-connection nil)
+                 (kill-buffer buf))))
            (seq-filter (lambda (buf)
                          (with-current-buffer buf
-                           (and (not buffer-file-name) (eq jade-connection connection))))
+                           (eq jade-connection connection)))
                        (buffer-list))))
 
 (defun jade-active-connections ()

@@ -66,15 +66,18 @@
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
-  (jade-v8-inspector--send-request
-   `((method . "Runtime.evaluate")
-     (params . ((expression . ,string)
-                (callFrameId . ,(map-elt (map-elt jade-connection 'current-frame)
-                                         'callFrameId))
-                (generatePreview . t))))
-   (lambda (response)
-     (when callback
-      (jade-v8-inspector--handle-evaluation-response response callback)))))
+  (let ((callFrameId (map-elt (map-elt jade-connection 'current-frame)
+                              'callFrameId)))
+    (jade-v8-inspector--send-request
+     `((method . ,(if callFrameId
+                      "Debugger.evaluateOnCallFrame"
+                    "Runtime.evaluate"))
+       (params . ((expression . ,string)
+                  (callFrameId . ,callFrameId)
+                  (generatePreview . t))))
+     (lambda (response)
+       (when callback
+         (jade-webkit--handle-evaluation-response response callback))))))
 
 (cl-defmethod jade-backend-get-completions ((backend (eql v8-inspector)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
