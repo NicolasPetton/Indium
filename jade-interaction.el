@@ -151,6 +151,7 @@ can be found."
     (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
     (define-key map (kbd "C-c C-b") #'jade-toggle-breakpoint)
+    (define-key map (kbd "C-c M-b") #'jade-remove-all-breakpoints-from-buffer)
     map))
 
 ;;;###autoload
