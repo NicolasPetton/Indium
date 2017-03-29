@@ -48,9 +48,9 @@
   "Add a breakpoint marker to BUFFER with ID.
 The marker is set at LINE."
   (save-excursion
-   (switch-to-buffer buffer)
-   (goto-line (1+ line))
-   (jade-breakpoint--put-icon id)))
+    (switch-to-buffer buffer)
+    (goto-line (1+ line))
+    (jade-breakpoint--put-icon id)))
 
 (defun jade-breakpoint--put-icon (id)
   "Add a breakpoint icon on the current line with id ID.

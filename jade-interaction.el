@@ -116,12 +116,16 @@ current buffer."
   "Set a connection if no connection is set for the current buffer.
 If the current buffer has no associated `jade-connection', prompt
 the user for one of the open connections if many of them are
-open, and set it in the current buffer."
+open, and set it in the current buffer.
+
+Signal a user error if no connection can be found."
   (unless jade-connection
-    (setq-local jade-connection
-                (if (= 1 (seq-length (jade-active-connections)))
-                    (seq-elt (jade-active-connections) 0)
-                  (jade-interaction--read-connection)))))
+    (if-let ((connections (jade-active-connections)))
+        (setq-local jade-connection
+                    (if (= 1 (seq-length connections))
+                        (seq-elt connections 0)
+                      (jade-interaction--read-connection)))
+      (user-error "No Jade connection"))))
 
 (defun jade-interaction--read-connection ()
   "Read a connection from the minibuffer, with completion."
