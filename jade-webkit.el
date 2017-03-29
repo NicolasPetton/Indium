@@ -317,8 +317,7 @@ same url."
   "Send REQUEST to the current connection.
 Evaluate CALLBACK with the response.
 
-If the current connection is closed, display an error message in
-the REPL buffer."
+If the current connection is closed, display a message."
   (if (jade-webkit--connected-p)
       (let ((id (jade-webkit--next-request-id))
             (callbacks (jade-webkit--callbacks)))
@@ -326,7 +325,7 @@ the REPL buffer."
           (map-put callbacks id callback))
         (websocket-send-text (map-elt jade-connection 'ws)
                              (json-encode (cons `(id . ,id) request))))
-    (jade-repl-emit-console-message '((text . "Socket connection closed")) t)))
+    (message "Socket connection closed")))
 
 (defun jade-webkit--read-ws-message (frame)
   (json-read-from-string (websocket-frame-payload frame)))
