@@ -22,22 +22,24 @@
 
 ;; Setup a workspace for using local files when debugging JavaScript.
 ;;
+;; TODO: make it work with nodejs
+;;
 ;; Files are looked up using a special `.jade' file placed in the root directory
 ;; of the files served.
 ;;
-;; TODO: make it work with nodejs
 
 ;;; Example:
 
 ;; With the following directory structure:
 ;;
-;; www/
-;;    index.html
-;;    css/
-;;       style.css
-;;    js/
-;;       app.js
-;;    .jade
+;; project/ (current directory)
+;;    www/
+;;       index.html
+;;       css/
+;;          style.css
+;;       js/
+;;          app.js
+;;       .jade
 ;;
 ;; For the following URL "http://localhost:3000/js/app.js"
 ;; `jade-workspace-lookup-file' will return "./www/js/app.js".
