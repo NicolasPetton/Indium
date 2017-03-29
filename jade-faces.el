@@ -75,7 +75,7 @@
   :group 'jade-faces)
 
 (defface jade-breakpoint-face
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit fringe :foreground "#ff6c6b")))
   "Face used for breakpoints."
   :group 'jade-faces)
 
