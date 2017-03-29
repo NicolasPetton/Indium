@@ -322,7 +322,8 @@ frame."
 
 (defun jade-debugger-setup-buffer (buffer connection)
   (with-current-buffer buffer
-    (unless (eq major-mode jade-debugger-major-mode)
+    (unless (or buffer-file-name
+                (eq major-mode jade-debugger-major-mode))
       (funcall jade-debugger-major-mode))
     (setq-local jade-connection connection)
     (jade-debugger-mode 1)
@@ -331,7 +332,8 @@ frame."
 (defun jade-debugger-unset-current-buffer ()
   "Unset `jade-debugger-mode from the current buffer'."
   (jade-debugger-remove-highlights)
-  (set-marker overlay-arrow-position nil (current-buffer))
+  (when overlay-arrow-position
+    (set-marker overlay-arrow-position nil (current-buffer)))
   (jade-debugger-mode -1)
   (read-only-mode -1))
 
