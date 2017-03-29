@@ -101,11 +101,12 @@ non-nil, evaluate it with the breakpoint's location and id."
                 (lineNumber . ,line)
                 (condition . ,(or condition "")))))
    (lambda (response)
-     (message "%s" response)
      (when callback
        (let* ((result (map-elt response 'result))
               (id (map-elt result 'breakpointId))
               (line (map-elt (seq-elt (map-elt result 'locations) 0) 'lineNumber)))
+         (unless line
+           (error "Cannot get breakpoint location"))
          (funcall callback id line))))))
 
 (cl-defgeneric jade-backend-remove-breakpoint (backend id)
