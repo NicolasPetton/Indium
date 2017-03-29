@@ -27,7 +27,10 @@
 (require 'jade-faces)
 
 (defun jade-breakpoint-add (&optional condition)
-  "Add a breakpoint at point."
+  "Add a breakpoint at point.
+
+When CONDITION is non-nil, the breakpoint will be hit when
+CONDITION is true."
   (if-let ((url (jade-workspace-make-url buffer-file-name jade-connection)))
       (jade-backend-add-breakpoint (jade-backend)
                                    url
@@ -35,7 +38,7 @@
                                    (apply-partially #'jade-breakpoint-added
                                                     (current-buffer))
                                    condition)
-    (user-error "No URL for the current buffer.  Setup Jade workspaces first")))
+    (user-error "No URL for the current buffer.  Setup a Jade workspace first")))
 
 (defun jade-breakpoint-remove ()
   "Remove the breakpoint from the current line."
@@ -43,6 +46,31 @@
       (progn
         (jade-backend-remove-breakpoint (jade-backend) id)
         (jade-breakpoint--remove-icon))))
+
+(defun jade-breakpoint-remove-all ()
+  "Remove all breakpoints from the current buffer's file."
+  (jade-breakpoint-remove-breakpoints-from-buffer)
+  (seq-do (lambda (brk)
+            (jade-backend-remove-breakpoint (jade-backend)
+                                            (map-elt brk 'id)))
+          (jade-backend-get-breakpoints-in-file buffer-file-name)))
+
+(defun jade-breakpoint-add-breakpoints-to-buffer ()
+  "Add all breakpoints markers to the current buffer.
+This function does not add breakpoints."
+  (seq-do (lambda (brk)
+            (jade-breakpoint-added (current-buffer)
+                                   (map-elt brk 'id)
+                                   (map-elt brk 'line)))
+          (jade-backend-get-breakpoints (jade-backend))))
+
+(defun jade-breakpoint-remove-breakpoints-from-buffer ()
+  "Remove all breakpoint markers from the current buffer.
+This function does no unset breakpoints,"
+  (remove-overlays (point-min)
+                   (point-max)
+                   'jade-breakpoint
+                   t))
 
 (defun jade-breakpoint-added (buffer id line)
   "Add a breakpoint marker to BUFFER with ID.

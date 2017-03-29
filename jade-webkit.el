@@ -101,20 +101,46 @@ non-nil, evaluate it with the breakpoint's location and id."
                 (lineNumber . ,line)
                 (condition . ,(or condition "")))))
    (lambda (response)
-     (when callback
-       (let* ((result (map-elt response 'result))
-              (id (map-elt result 'breakpointId))
-              (line (map-elt (seq-elt (map-elt result 'locations) 0) 'lineNumber)))
+     (let* ((breakpoint (map-elt response 'result))
+            (id (map-elt breakpoint 'breakpointId))
+            (locations (map-elt breakpoint 'locations))
+            (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
+       (when line
+         (jade-webkit--register-breakpoint id line buffer-file-name))
+       (when callback
          (unless line
-           (error "Cannot get breakpoint location"))
+           (message "Cannot get breakpoint location"))
          (funcall callback id line))))))
 
-(cl-defgeneric jade-backend-remove-breakpoint (backend id)
+(cl-defgeneric jade-backend-remove-breakpoint ((backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."
   (jade-webkit--send-request
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
-   #'ignore))
+   (lambda (response)
+     (jade-webkit--unregister-breakpoint id))))
+
+(cl-defgeneric jade-backend-get-breakpoints ((backend (eql webkit)))
+  "Return all breakpoints.
+A breakpoint is a map with the keys `id', `file', and `line'."
+  (let ((breakpoints (map-elt jade-connection 'breakpoints)))
+    (map-keys-apply (lambda (key)
+                      `((id . ,key)
+                        (file . ,(map-nested-elt breakpoints `(,key file)))
+                        (line . ,(map-nested-elt breakpoints `(,key line)))))
+                    breakpoints)))
+
+(defun jade-webkit--register-breakpoint (id line file)
+  "Register the breakpoint with ID at LINE in FILE.
+If a buffer visits FILE with `jade-interaction-mode' turned on,
+the breakpoint can be added back to the buffer."
+  (let ((breakpoint `((line . ,line)
+                      (file . ,file))))
+    (map-put (map-elt jade-connection 'breakpoints) id breakpoint)))
+
+(defun jade-webkit--unregister-breakpoint (id)
+  "Remove the breakpoint with ID from the current connection."
+  (map-delete (map-elt jade-connection 'breakpoints) id))
 
 (cl-defmethod jade-backend-get-properties ((backend (eql webkit)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
@@ -176,7 +202,7 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
    callback))
 
 (defun jade-webkit-set-overlay-message (string)
-  "Sets the overlay string displayed when entering the debugger."
+  "Set the debugger page overlay to STRING."
   (jade-webkit--send-request
    `((method . "Page.configureOverlay")
      (params . ((suspended . :json-false)
@@ -193,7 +219,7 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
   "Defines on which STATE to pause.
 
 Can be set to stop on all exceptions, uncaught exceptions or no
-exceptions. Initial pause on exceptions state is set by Jade to
+exceptions.  Initial pause on exceptions state is set by Jade to
 `\"uncaught\"'.
 
 Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
@@ -233,6 +259,7 @@ same url."
     (map-put connection 'url url)
     (map-put connection 'backend 'webkit)
     (map-put connection 'callbacks (make-hash-table))
+    (map-put connection 'breakpoints (make-hash-table))
     (add-to-list 'jade-connections connection)
     connection))
 
@@ -273,7 +300,8 @@ same url."
             ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
 
 (defun jade-webkit--handle-inspector-detached (message)
-  "Handle connection closed because it was detached."
+  "Handle closed connection.
+MESSAGE explains why the connection has been closed."
   (let ((msg (map-nested-elt message '(params reason))))
     (jade-backend-close-connection 'webkit jade-connection)
     (message "Jade connection closed: %s" msg)))

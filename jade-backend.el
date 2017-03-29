@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'map)
+(require 'seq)
 (require 'jade-repl)
 
 (defvar jade-connections (list) "List of connections.")
@@ -136,6 +137,17 @@ non-nil, evaluate it with the breakpoint's location and id.")
 
 (cl-defgeneric jade-backend-remove-breakpoint (backend id)
   "Request the removal of the breakpoint with id ID.")
+
+(cl-defgeneric jade-backend-get-breakpoints (backend)
+  "Return all breakpoints.
+A breakpoint is a map with the keys `id', `file', and `line'.")
+
+(defun jade-backend-get-breakpoints-in-file (file)
+  "Return all breakpoints in FILE."
+  (let ((breakpoints (jade-backend-get-breakpoints (jade-backend))))
+    (seq-filter (lambda (brk)
+                  (string= (map-elt brk 'file) file))
+                breakpoints)))
 
 (cl-defgeneric jade-backend-get-properties (backend reference &optional callback all-properties)
   "Request the properties of the remote object represented by REFERENCE.

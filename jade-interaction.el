@@ -82,6 +82,12 @@ current buffer."
     (jade-breakpoint-add
      (when arg (read-from-minibuffer "Breakpoint condition: ")))))
 
+(defun jade-remove-all-breakpoints-from-buffer ()
+  "Remove all breakpoints from the current buffer."
+  (interactive)
+  (jade-interaction--ensure-connection)
+  (jade-breakpoint-remove-all))
+
 (defun jade-interaction-node-before-point ()
   "Return the node before point to be evaluated."
   (save-excursion
@@ -112,20 +118,22 @@ current buffer."
         (setq node parent))
       node)))
 
-(defun jade-interaction--ensure-connection ()
+(defun jade-interaction--ensure-connection (&optional no-error)
   "Set a connection if no connection is set for the current buffer.
 If the current buffer has no associated `jade-connection', prompt
 the user for one of the open connections if many of them are
 open, and set it in the current buffer.
 
-Signal a user error if no connection can be found."
+When NO-ERROR in non-nil, signal a user error if no connection
+can be found."
   (unless jade-connection
     (if-let ((connections (jade-active-connections)))
         (setq-local jade-connection
                     (if (= 1 (seq-length connections))
                         (seq-elt connections 0)
                       (jade-interaction--read-connection)))
-      (user-error "No Jade connection"))))
+      (unless no-error
+        (user-error "No Jade connection")))))
 
 (defun jade-interaction--read-connection ()
   "Read a connection from the minibuffer, with completion."
@@ -151,7 +159,21 @@ Signal a user error if no connection can be found."
 
 \\{jade-interaction-mode-map}"
   :lighter " js-interaction"
-  :keymap jade-interaction-mode-map)
+  :keymap jade-interaction-mode-map
+  (if jade-interaction-mode
+      (jade-interaction-mode-on)
+    (jade-interaction-mode-off)))
+
+(defun jade-interaction-mode-on ()
+  "Function to be evaluated when `jade-interaction-mode' is turned on."
+  (jade-interaction--ensure-connection t)
+  (when jade-connection
+    (jade-breakpoint-add-breakpoints-to-buffer)))
+
+(defun jade-interaction-mode-off ()
+  "Function to be evaluated when `jade-interaction-mode' is turned off."
+  (jade-breakpoint-remove-breakpoints-from-buffer))
+
 
 (provide 'jade-interaction)
 ;;; jade-interaction.el ends here
