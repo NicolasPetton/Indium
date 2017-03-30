@@ -38,8 +38,10 @@
      (lambda (properties scope)
        ;; This is just cosmetic, don't break the session
        (ignore-errors
-         (js2-visit-ast (js2-parse)
-                        (jade-debugger-litable-make-visitor properties)))))))
+         (js2-mode-wait-for-parse
+          (lambda ()
+            (js2-visit-ast js2-mode-ast
+                           (jade-debugger-litable-make-visitor properties)))))))))
 
 (defun jade-debugger-litable-unset-buffer ()
   "Remove locals from the current buffer."
