@@ -69,6 +69,11 @@
   "Face used when highlighting regions of a buffer."
   :group 'jade-faces)
 
+(defface jade-litable-face
+  '((t (:inherit font-lock-comment-face :slant italic)))
+  "Face used to display inline values in debuggers."
+  :group 'jade-faces)
+
 (defface jade-frame-url-face
   '((t (:inherit font-lock-comment-face)))
   "Face used to display urls of stack frames."

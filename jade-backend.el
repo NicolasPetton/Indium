@@ -29,6 +29,9 @@
 (require 'map)
 (require 'seq)
 (require 'jade-repl)
+(require 'jade-debugger-litable)
+
+(declare 'jade-debugger-unset-current-buffer)
 
 (defvar jade-connections (list) "List of connections.")
 
@@ -86,7 +89,9 @@ Set `jade-connection' to nil otherwise."
   (seq-map (lambda (buf)
              (with-current-buffer buf
                (if buffer-file-name
-                   (setq-local jade-connection nil)
+                   (progn
+                     (setq-local jade-connection nil)
+                     (jade-debugger-unset-current-buffer))
                  (kill-buffer buf))))
            (seq-filter (lambda (buf)
                          (with-current-buffer buf

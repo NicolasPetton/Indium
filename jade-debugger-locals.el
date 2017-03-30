@@ -26,25 +26,22 @@
 (require 'jade-render)
 
 (declare 'jade-backend-get-properties)
+(declare 'jade-debugger-get-scopes-properties)
+(declare 'jade-debugger-get-current-scopes)
 
 (defun jade-debugger-locals (&optional no-pop)
   "Inspect the local variables in the current stack frame's scope.
 Unless NO-POP is non-nil, pop the locals buffer."
   (interactive)
   (let* ((buf (jade-debugger-locals-get-buffer-create))
-         (inhibit-read-only t))
+         (inhibit-read-only t)
+         (scopes (jade-debugger-get-current-scopes)))
     (with-current-buffer buf
-      (erase-buffer)))
-  (seq-do (lambda (scope)
-            (jade-backend-get-properties
-             (jade-backend)
-             (map-nested-elt scope '(object objectid))
-             (lambda (properties)
-               (jade-debugger-locals-render-properties properties scope no-pop))))
-          ;; do not inspect the window object
-          (seq-remove (lambda (scope)
-                        (string= (map-elt scope 'type) "global"))
-                      (map-elt (jade-debugger-current-frame) 'scope-chain))))
+      (erase-buffer))
+    (jade-debugger-get-scopes-properties
+     scopes
+     (lambda (properties scope)
+       (jade-debugger-locals-render-properties properties scope no-pop)))))
 
 (defun jade-debugger-locals-maybe-refresh ()
   "When a local inspector is open, refresh it."

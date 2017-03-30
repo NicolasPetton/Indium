@@ -33,6 +33,7 @@
 (require 'jade-workspace)
 (require 'jade-debugger-frames)
 (require 'jade-debugger-locals)
+(require 'jade-debugger-litable)
 
 (defgroup jade-debugger nil
   "JavaScript debugger"
@@ -59,8 +60,14 @@
   (jade-debugger-show-help-message))
 
 (defun jade-debugger-resumed (&rest _args)
-  (set-marker overlay-arrow-position nil (current-buffer))
-  (jade-debugger-remove-highlights))
+  (seq-doseq (buf (seq-filter (lambda (buf)
+                                (with-current-buffer buf
+                                  jade-debugger-mode))
+                              (buffer-list)))
+    (with-current-buffer buf
+      (set-marker overlay-arrow-position nil (current-buffer))
+      (jade-debugger-remove-highlights)
+      (jade-debugger-litable-unset-buffer))))
 
 (defun jade-debugger-next-frame ()
   "Jump to the next frame in the frame stack."
@@ -94,6 +101,7 @@ Try to find the file locally first using Jade worskspaces.  If a
 local file cannot be found, get the remote source and open a new
 buffer visiting it."
   (jade-debugger-set-current-frame frame)
+  (jade-debugger-litable-setup-buffer)
   (switch-to-buffer (jade-debugger-get-buffer-create))
   (if buffer-file-name
       (jade-debugger-setup-buffer-with-file)
@@ -303,6 +311,30 @@ Return nil if no local file can be found."
     (with-current-buffer (jade-repl-get-buffer)
       (jade-workspace-lookup-file url))))
 
+(defun jade-debugger-get-current-scopes ()
+  "Return the scope of the current stack frame."
+  (map-elt (jade-debugger-current-frame) 'scope-chain))
+
+;; TODO: move to backends?
+(defun jade-debugger-get-scopes-properties (scopes callback)
+  "Request a list of all properties in SCOPES.
+CALLBACK is evaluated with the result."
+  (seq-do (lambda (scope)
+            (jade-debugger-get-scope-properties scope callback))
+          ;; ignore the objects attached to global/window
+          (seq-remove (lambda (scope)
+                        (string= (map-elt scope 'type) "global"))
+                      scopes)))
+
+(defun jade-debugger-get-scope-properties (scope callback)
+  "Request the properties of SCOPE and evaluate CALLBACK.
+CALLBACK is evaluated with two arguments, the properties and SCOPE."
+  (jade-backend-get-properties
+   (jade-backend)
+   (map-nested-elt scope '(object objectid))
+   (lambda (properties)
+     (funcall callback properties scope))))
+
 (defun jade-debugger-get-buffer-create ()
   "Create a debugger buffer for the current connection and return it.
 
@@ -335,7 +367,8 @@ frame."
   (when overlay-arrow-position
     (set-marker overlay-arrow-position nil (current-buffer)))
   (jade-debugger-mode -1)
-  (read-only-mode -1))
+  (read-only-mode -1)
+  (jade-debugger-litable-unset-buffer))
 
 (defvar jade-debugger-mode-map
   (let ((map (make-sparse-keymap)))

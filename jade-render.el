@@ -132,10 +132,16 @@ definitions."
                                 (map-elt p2 'name)))
                      properties)))
 
-(defun jade-render-property (property)
+(defun jade-render-property (property &optional separator)
   (insert "  " (map-elt property 'name) ": ")
   (jade-render-value (map-elt property 'value))
-  (insert "\n"))
+  (insert (or separator "\n")))
+
+(defun jade-render-property-to-string (property)
+  "Return PROPERTY rendered as a string."
+  (with-temp-buffer
+    (jade-render-property property "")
+    (buffer-string)))
 
 (declare #'jade-inspector-inspect)
 

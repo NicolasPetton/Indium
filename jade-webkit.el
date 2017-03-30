@@ -151,7 +151,8 @@ prototype chain of the remote object."
   (jade-webkit--send-request
    `((method . "Runtime.getProperties")
      (params . ((objectId . ,reference)
-                (ownProperties . ,(not all-properties)))))
+                (generatePreview . t)
+                (ownProperties . ,(or all-properties :json-false)))))
    (lambda (response)
      (funcall callback
               (jade-webkit--properties

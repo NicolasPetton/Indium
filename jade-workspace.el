@@ -59,7 +59,8 @@ If no file is found, return nil."
                                   (url-generic-parse-url url)))
                             1))
             (file (expand-file-name path root)))
-        (when (file-exists-p file)
+        (when (and (file-exists-p file)
+                   (file-regular-p file))
           file))))
 
 (defun jade-workspace-make-url (file connection)
