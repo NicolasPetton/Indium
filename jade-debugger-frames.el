@@ -104,15 +104,14 @@ If no buffer is found, return nil."
   (let ((buf (jade-debugger-frames-get-buffer)))
     (unless buf
       (setq buf (generate-new-buffer (jade-debugger-frames-buffer-name)))
-      (jade-debugger-frames-setup-buffer buf jade-connection))
+      (jade-debugger-frames-setup-buffer buf))
     buf))
 
-(defun jade-debugger-frames-setup-buffer (buffer connection)
-  "Setup BUFFER for the Jade connection CONNECTION."
+(defun jade-debugger-frames-setup-buffer (buffer)
+  "Setup the frames BUFFER."
   (with-current-buffer buffer
     (jade-debugger-frames-mode)
-    (setq-local truncate-lines nil)
-    (setq-local jade-connection connection)))
+    (setq-local truncate-lines nil)))
 
 (defvar jade-debugger-frames-mode-map
   (let ((map (make-sparse-keymap)))

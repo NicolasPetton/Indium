@@ -84,15 +84,14 @@ Unless NO-POP in non-nil, pop the locals buffer."
   (let ((buf (jade-debugger-locals-get-buffer)))
     (unless buf
       (setq buf (generate-new-buffer (jade-debugger-locals-buffer-name)))
-      (jade-debugger-locals-setup-buffer buf jade-connection))
+      (jade-debugger-locals-setup-buffer buf))
     buf))
 
-(defun jade-debugger-locals-setup-buffer (buffer connection)
-  "Setup BUFFER for the jade connection CONNECTION."
+(defun jade-debugger-locals-setup-buffer (buffer)
+  "Setup BUFFER."
   (with-current-buffer buffer
     (jade-debugger-locals-mode)
-    (read-only-mode)
-    (setq-local jade-connection connection)))
+    (read-only-mode)))
 
 (defvar jade-debugger-locals-mode-map
   (let ((map (copy-keymap jade-inspector-mode-map)))

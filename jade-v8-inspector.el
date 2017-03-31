@@ -44,18 +44,18 @@
 
 (jade-register-backend 'v8-inspector)
 
-(cl-defmethod jade-backend-active-connection-p ((backend (eql v8-inspector)) connection)
-  "Return non-nil if CONNECTION is active."
-  (websocket-openp (map-elt connection 'ws)))
+(cl-defmethod jade-backend-active-connection-p ((backend (eql v8-inspector)))
+  "Return non-nil if the current connection is active."
+  (and jade-connection
+       (websocket-openp (map-elt jade-connection 'ws))))
 
-(cl-defmethod jade-backend-close-connection ((backend (eql v8-inspector)) connection)
-  "Close the websocket associated with CONNECTION."
-  (websocket-close (map-elt connection 'ws)))
+(cl-defmethod jade-backend-close-connection ((backend (eql v8-inspector)))
+  "Close the websocket associated with the current connection."
+  (websocket-close (map-elt jade-connection 'ws)))
 
 (cl-defmethod jade-backend-reconnect ((backend (eql v8-inspector)))
-  (let* ((connection jade-connection)
-         (url (map-elt connection 'url))
-         (websocket-url (websocket-url (map-elt connection 'ws))))
+  (let* ((url (map-elt connection 'url))
+         (websocket-url (websocket-url (map-elt jade-connection 'ws))))
     (jade-v8-inspector--open-ws-connection url
                                      websocket-url
                                      ;; close all buffers related to the closed
@@ -193,47 +193,38 @@ same url."
     (map-put connection 'url url)
     (map-put connection 'backend 'v8-inspector)
     (map-put connection 'callbacks (make-hash-table))
-    (add-to-list 'jade-connections connection)
     connection))
 
 (defun jade-v8-inspector--callbacks ()
   "Return the callbacks associated with the current connection."
   (map-elt jade-connection 'callbacks))
 
-(defun jade-v8-inspector--connection-for-ws (ws)
-  "Return the v8-inspector connection associated with the websocket WS."
-  (seq-find (lambda (connection)
-              (eq (map-elt connection 'ws) ws))
-            jade-connections))
-
 (defun jade-v8-inspector--handle-ws-open (ws url)
-  (let* ((connection (jade-v8-inspector--make-connection ws url)))
-    (jade-with-connection connection
-      (jade-v8-inspector--enable-tools))
-    (switch-to-buffer (jade-repl-buffer-create connection))))
+  (setq jade-connection (jade-v8-inspector--make-connection ws url))
+  (jade-v8-inspector--enable-tools)
+  (switch-to-buffer (jade-repl-buffer-create)))
 
 (defun jade-v8-inspector--handle-ws-message (ws frame)
-  (jade-with-connection (jade-v8-inspector--connection-for-ws ws)
-    (let* ((message (jade-v8-inspector--read-ws-message frame))
-           (error (map-elt message 'error))
-           (method (map-elt message 'method))
-           (request-id (map-elt message 'id))
-           (callback (map-elt (jade-v8-inspector--callbacks) request-id)))
-      (cond
-       (error (message (map-elt error 'message)))
-       (request-id (when callback
-                     (funcall callback message)))
-       (t (pcase method
-            ("Inspector.detached" (jade-v8-inspector--handle-inspector-detached message))
-            ("Console.messageAdded" (jade-v8-inspector--handle-console-message message))
-            ("Debugger.paused" (jade-v8-inspector--handle-debugger-paused message))
-            ("Debugger.scriptParsed" (jade-v8-inspector--handle-script-parsed message))
-            ("Debugger.resumed" (jade-v8-inspector--handle-debugger-resumed message))))))))
+  (let* ((message (jade-v8-inspector--read-ws-message frame))
+         (error (map-elt message 'error))
+         (method (map-elt message 'method))
+         (request-id (map-elt message 'id))
+         (callback (map-elt (jade-v8-inspector--callbacks) request-id)))
+    (cond
+     (error (message (map-elt error 'message)))
+     (request-id (when callback
+                   (funcall callback message)))
+     (t (pcase method
+          ("Inspector.detached" (jade-v8-inspector--handle-inspector-detached message))
+          ("Console.messageAdded" (jade-v8-inspector--handle-console-message message))
+          ("Debugger.paused" (jade-v8-inspector--handle-debugger-paused message))
+          ("Debugger.scriptParsed" (jade-v8-inspector--handle-script-parsed message))
+          ("Debugger.resumed" (jade-v8-inspector--handle-debugger-resumed message)))))))
 
 (defun jade-v8-inspector--handle-inspector-detached (message)
   "Handle connection closed because it was detached."
   (let ((msg (map-nested-elt message '(params reason))))
-    (jade-backend-close-connection 'v8-inspector jade-connection)
+    (jade-backend-close-connection 'v8-inspector)
     (message "Jade connection closed: %s" msg)))
 
 (defun jade-v8-inspector--handle-console-message (message)
@@ -367,7 +358,7 @@ Candidates are filtered using the PREFIX string."
 
 (cl-defmethod jade-v8-inspector--connected-p ()
   "Return non-nil if the current connection is open."
-  (jade-backend-active-connection-p 'v8-inspector jade-connection))
+  (jade-backend-active-connection-p 'v8-inspector))
 
 (defun jade-v8-inspector--value (result)
   "Return an alist representing the value of RESULT.

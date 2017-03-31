@@ -55,28 +55,24 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
-(defun jade-repl-buffer-create (connection)
-  "Return a new REPL buffer for CONNECTION."
-  (let* ((url (map-elt connection 'url))
-         (buf (generate-new-buffer (jade-repl-buffer-name url))))
-    (jade-repl-setup-buffer buf connection)
+(defun jade-repl-buffer-create ()
+  "Return a new REPL buffer."
+  (let* ((buf (generate-new-buffer (jade-repl-buffer-name))))
+    (jade-repl-setup-buffer buf)
     buf))
 
 (defun jade-repl-get-buffer ()
   "Return the REPL buffer, or nil."
-  (get-buffer (map-elt jade-connection 'repl-buffer)))
+  (get-buffer (jade-repl-buffer-name)))
 
-(defun jade-repl-buffer-name (&optional url)
-  "Return the name of the REPL buffer for URL.
-If URL is nil, use the current connection."
-  (concat "*JS REPL " (or url (map-elt jade-connection 'url)) "*"))
+(defun jade-repl-buffer-name ()
+  "Return the name of the REPL buffer."
+  "*JS REPL*")
 
-(defun jade-repl-setup-buffer (buffer connection)
-  "Setup the REPL BUFFER for CONNECTION."
+(defun jade-repl-setup-buffer (buffer)
+  "Setup the REPL BUFFER"
   (with-current-buffer buffer
     (jade-repl-mode)
-    (setq-local jade-connection connection)
-    (map-put jade-connection 'repl-buffer buffer)
     (jade-repl-setup-markers)
     (jade-repl-mark-output-start)
     (jade-repl-insert-prompt)
@@ -302,17 +298,18 @@ DIRECTION is `forward' or `backard' (in the history list)."
 
 (defun jade-repl--handle-connection-closed ()
   "Display a message when the connection is closed."
-  (with-current-buffer (jade-repl-get-buffer)
-    (save-excursion
-      (goto-char (point-max))
-      (insert-before-markers "\n")
-      (set-marker jade-repl-output-start-marker (point))
-      (insert "Connection closed. ")
-      (jade-repl--insert-connection-buttons)
-      (insert "\n")
-      (set-marker jade-repl-input-start-marker (point))
-      (set-marker jade-repl-output-end-marker (point)))
-    (jade-repl-insert-prompt)))
+  (when-let ((buf (jade-repl-get-buffer)))
+    (with-current-buffer buf
+                 (save-excursion
+                   (goto-char (point-max))
+                   (insert-before-markers "\n")
+                   (set-marker jade-repl-output-start-marker (point))
+                   (insert "Connection closed. ")
+                   (jade-repl--insert-connection-buttons)
+                   (insert "\n")
+                   (set-marker jade-repl-input-start-marker (point))
+                   (set-marker jade-repl-output-end-marker (point)))
+                 (jade-repl-insert-prompt))))
 
 (defun jade-repl--insert-connection-buttons ()
   "Insert buttons when the connection is lost.

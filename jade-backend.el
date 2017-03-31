@@ -33,23 +33,14 @@
 
 (declare 'jade-debugger-unset-current-buffer)
 
-(defvar jade-connections (list) "List of connections.")
-
 (defvar jade-connection nil
   "Current connection to the browser tab.
 
 A connection should be an alist with the following required keys:
 `backend' and `url'.  Other backend-specific keys might be used
 by backends.")
-(make-variable-buffer-local 'jade-connection)
 
 (defvar jade-backends nil "List of registered backends.")
-
-(defmacro jade-with-connection (connection &rest body)
-  "Set the value of `jade-connection' to CONNECTION and evaluate BODY."
-  (declare (debug t) (indent 1))
-  `(let ((jade-connection ,connection))
-     ,@body))
 
 (defun jade-backend ()
   "Return the backend for the current connection."
@@ -69,49 +60,36 @@ When called interactively, prompt for a confirmation first."
   (when (or (not (called-interactively-p 'interactive))
             (y-or-n-p (format "Do you really want to close the connection to %s ? "
                               (map-elt jade-connection 'url))))
-    (jade-backend-close-connection (jade-backend) jade-connection)
-    (setq jade-connections (remq jade-connection jade-connections))
-    (jade-backend-cleanup-buffers jade-connection)))
+    (jade-backend-close-connection (jade-backend))
+    (jade-backend-cleanup-buffers)
+    (setq jade-connection nil)))
 
 (defun jade-reconnect ()
   "Try to re-establish a connection.
 The new connection is based on the current (usually closed) one."
   (interactive)
   (unless jade-connection
-    (user-error "No connection associated to the current buffer"))
+    (user-error "No Jade connection to reconnect to"))
   (jade-backend-reconnect (jade-backend)))
 
-(defun jade-backend-cleanup-buffers (connection)
-  "Cleanup all buffers that have the `jade-connection' CONNECTION.
-
-If a buffer has no associated file, kill it.
-Set `jade-connection' to nil otherwise."
+(defun jade-backend-cleanup-buffers ()
+  "Cleanup all Jade buffers."
   (seq-map (lambda (buf)
              (with-current-buffer buf
-               (if buffer-file-name
-                   (progn
-                     (setq-local jade-connection nil)
-                     (jade-debugger-unset-current-buffer))
-                 (kill-buffer buf))))
-           (seq-filter (lambda (buf)
-                         (with-current-buffer buf
-                           (eq jade-connection connection)))
-                       (buffer-list))))
-
-(defun jade-active-connections ()
-  "Return a list of all active connections."
-  (seq-filter (lambda (connection)
-                (jade-backend-active-connection-p (map-elt connection 'backend) connection))
-              jade-connections))
+               (when buffer-file-name
+                 (jade-debugger-unset-current-buffer)))
+             (when-let ((buf (jade-repl-get-buffer)))
+               (kill-buffer buf)))
+           (buffer-list)))
 
 ;;; jade-connection methods
 
-(cl-defgeneric jade-backend-active-connection-p (backend connection)
-  "Return non-nil if CONNECTION is active."
+(cl-defgeneric jade-backend-active-connection-p (backend)
+  "Return non-nil if the current connection is active."
   t)
 
-(cl-defgeneric jade-backend-close-connection (backend connection)
-  "Close CONNECTION.")
+(cl-defgeneric jade-backend-close-connection (backend)
+  "Close the current connection.")
 
 (cl-defgeneric jade-backend-reconnect (backend)
   "Try to re-establish a connection.
@@ -129,7 +107,7 @@ remote object that can be inspected, it should also have an
 `objectid' key.")
 
 (cl-defgeneric jade-backend-get-completions (backend expression prefix callback)
-  "Get the completion list using CONNECTION for EXPRESSION that match PREFIX.
+  "Get the completion for EXPRESSION that match PREFIX.
 Evaluate CALLBACK on the filtered candidates.
 
 EXPRESSION should be a valid JavaScript expression string.")

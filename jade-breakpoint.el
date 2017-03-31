@@ -31,7 +31,7 @@
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (if-let ((url (jade-workspace-make-url buffer-file-name jade-connection)))
+  (if-let ((url (jade-workspace-make-url buffer-file-name)))
       (jade-backend-add-breakpoint (jade-backend)
                                    url
                                    (1- (line-number-at-pos))

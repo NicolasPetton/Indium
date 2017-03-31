@@ -28,15 +28,13 @@
 
 (ert-deftest jade-generic-connections-active ()
   "Generic connections should always be active."
-  (let ((jade-connections '(((backend . fake))
-                            ((backend . fake)))))
-    (should (equal (jade-active-connections) jade-connections))))
+  (let ((jade-connection '((backend . fake))))
+    (should (jade-backend-active-connection-p))))
 
 (ert-deftest jade-webkit-connections-active ()
   "Only Webkit connections with open websocket are active."
-  (let ((jade-connections '(((backend . webkit))
-                            ((backend . webkit)))))
-    (should (equal (jade-active-connections) nil))))
+  (let ((jade-connection '((backend . webkit))))
+    (should (not (jade-backend-active-connection-p 'webkit)))))
 
 (provide 'jade-backend-test)
 ;;; jade-backend-test.el ends here

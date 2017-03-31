@@ -44,18 +44,18 @@
 
 (jade-register-backend 'webkit)
 
-(cl-defmethod jade-backend-active-connection-p ((backend (eql webkit)) connection)
-  "Return non-nil if CONNECTION is active."
-  (websocket-openp (map-elt connection 'ws)))
+(cl-defmethod jade-backend-active-connection-p ((backend (eql webkit)))
+  "Return non-nil if the current connection is active."
+  (and jade-connection
+       (websocket-openp (map-elt jade-connection 'ws))))
 
-(cl-defmethod jade-backend-close-connection ((backend (eql webkit)) connection)
-  "Close the websocket associated with CONNECTION."
-  (websocket-close (map-elt connection 'ws)))
+(cl-defmethod jade-backend-close-connection ((backend (eql webkit)))
+  "Close the websocket associated with the current connection."
+  (websocket-close (map-elt jade-connection 'ws)))
 
 (cl-defmethod jade-backend-reconnect ((backend (eql webkit)))
-  (let* ((connection jade-connection)
-         (url (map-elt connection 'url))
-         (websocket-url (websocket-url (map-elt connection 'ws))))
+  (let* ((url (map-elt connection 'url))
+         (websocket-url (websocket-url (map-elt jade-connection 'ws))))
     (jade-webkit--open-ws-connection url
                                      websocket-url
                                      ;; close all buffers related to the closed
@@ -261,50 +261,41 @@ same url."
     (map-put connection 'backend 'webkit)
     (map-put connection 'callbacks (make-hash-table))
     (map-put connection 'breakpoints (make-hash-table))
-    (add-to-list 'jade-connections connection)
     connection))
 
 (defun jade-webkit--callbacks ()
   "Return the callbacks associated with the current connection."
   (map-elt jade-connection 'callbacks))
 
-(defun jade-webkit--connection-for-ws (ws)
-  "Return the webkit connection associated with the websocket WS."
-  (seq-find (lambda (connection)
-              (eq (map-elt connection 'ws) ws))
-            jade-connections))
-
 (defun jade-webkit--handle-ws-open (ws url)
-  (let* ((connection (jade-webkit--make-connection ws url)))
-    (jade-with-connection connection
-      (jade-webkit--enable-tools))
-    (switch-to-buffer (jade-repl-buffer-create connection))))
+  (setq jade-connection (jade-webkit--make-connection ws url))
+  (jade-webkit--enable-tools)
+  (switch-to-buffer (jade-repl-buffer-create)))
 
 (defun jade-webkit--handle-ws-message (ws frame)
-  (jade-with-connection (jade-webkit--connection-for-ws ws)
-    (let* ((message (jade-webkit--read-ws-message frame))
-           (error (map-elt message 'error))
-           (method (map-elt message 'method))
-           (request-id (map-elt message 'id))
-           (callback (map-elt (jade-webkit--callbacks) request-id)))
-      (cond
-       (error (message (map-elt error 'message)))
-       (request-id (when callback
-                     (funcall callback message)))
-       (t (pcase method
-            ("Inspector.detached" (jade-webkit--handle-inspector-detached message))
-            ("Log.entryAdded" (jade-webkit--handle-log-entry message))
-            ("Runtime.consoleAPICalled" (jade-webkit--handle-console-message message))
-            ("Runtime.exceptionThrown" (jade-webkit--handle-exception-thrown message))
-            ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
-            ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
-            ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message))))))))
+  (let* ((message (jade-webkit--read-ws-message frame))
+         (error (map-elt message 'error))
+         (method (map-elt message 'method))
+         (request-id (map-elt message 'id))
+         (callback (map-elt (jade-webkit--callbacks) request-id)))
+    (cond
+     (error (message (map-elt error 'message)))
+     (request-id (when callback
+                   (funcall callback message)))
+     (t (pcase method
+          ("Inspector.detached" (jade-webkit--handle-inspector-detached message))
+          ("Log.entryAdded" (jade-webkit--handle-log-entry message))
+          ("Runtime.consoleAPICalled" (jade-webkit--handle-console-message message))
+          ("Runtime.exceptionThrown" (jade-webkit--handle-exception-thrown message))
+          ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
+          ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
+          ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message)))))))
 
 (defun jade-webkit--handle-inspector-detached (message)
   "Handle closed connection.
 MESSAGE explains why the connection has been closed."
   (let ((msg (map-nested-elt message '(params reason))))
-    (jade-backend-close-connection 'webkit jade-connection)
+    (jade-backend-close-connection 'webkit)
     (message "Jade connection closed: %s" msg)))
 
 (defun jade-webkit--handle-log-entry (message)
@@ -456,7 +447,7 @@ Candidates are filtered using the PREFIX string."
 
 (cl-defmethod jade-webkit--connected-p ()
   "Return non-nil if the current connection is open."
-  (jade-backend-active-connection-p 'webkit jade-connection))
+  (jade-backend-active-connection-p 'webkit))
 
 (defun jade-webkit--value (result)
   "Return an alist representing the value of RESULT.

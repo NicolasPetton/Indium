@@ -118,33 +118,10 @@ current buffer."
         (setq node parent))
       node)))
 
-(defun jade-interaction--ensure-connection (&optional no-error)
-  "Set a connection if no connection is set for the current buffer.
-If the current buffer has no associated `jade-connection', prompt
-the user for one of the open connections if many of them are
-open, and set it in the current buffer.
-
-When NO-ERROR in non-nil, signal a user error if no connection
-can be found."
+(defun jade-interaction--ensure-connection ()
+  "Signal an error if there is no jade connection."
   (unless jade-connection
-    (if-let ((connections (jade-active-connections)))
-        (setq-local jade-connection
-                    (if (= 1 (seq-length connections))
-                        (seq-elt connections 0)
-                      (jade-interaction--read-connection)))
-      (unless no-error
-        (user-error "No Jade connection")))))
-
-(defun jade-interaction--read-connection ()
-  "Read a connection from the minibuffer, with completion."
-  (let ((url (completing-read "Choose a connection: "
-                              (seq-map (lambda (conn)
-                                         (map-elt conn 'url))
-                                       (jade-active-connections)))))
-    (seq-find (lambda (conn)
-                (string= (map-elt conn 'url)
-                         url))
-              (jade-active-connections))))
+    (user-error "No Jade connection")))
 
 (defvar jade-interaction-mode-map
   (let ((map (make-sparse-keymap)))
@@ -167,7 +144,6 @@ can be found."
 
 (defun jade-interaction-mode-on ()
   "Function to be evaluated when `jade-interaction-mode' is turned on."
-  (jade-interaction--ensure-connection t)
   (when jade-connection
     (jade-breakpoint-add-breakpoints-to-buffer)))
 

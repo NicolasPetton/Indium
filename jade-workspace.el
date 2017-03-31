@@ -63,11 +63,11 @@ If no file is found, return nil."
                    (file-regular-p file))
           file))))
 
-(defun jade-workspace-make-url (file connection)
-  "Return the url associated with the local FILE for CONNECTION.
+(defun jade-workspace-make-url (file)
+  "Return the url associated with the local FILE.
 The url is built using `jade-workspace-root'."
   (if-let ((root (jade-workspace-root)))
-      (let* ((url (jade-workspace--url-basepath (map-elt connection 'url)))
+      (let* ((url (jade-workspace--url-basepath (map-elt jade-connection 'url)))
              (path (file-relative-name file root)))
         (setf (url-filename url) (jade-workspace--absolute-path path))
         (url-recreate-url url))))

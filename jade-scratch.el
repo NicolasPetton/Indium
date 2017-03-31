@@ -46,19 +46,18 @@ If there is no current connection, throw an error."
          (buf (get-buffer bufname)))
     (unless buf
       (setq buf (get-buffer-create bufname))
-      (jade-scratch-setup-buffer buf jade-connection))
+      (jade-scratch-setup-buffer buf))
     buf))
 
 (defun jade-scratch-buffer-name (url)
   "Return the scratch buffer name for URL."
   (format "*JS scratch %s*" url))
 
-(defun jade-scratch-setup-buffer (buffer connection)
-  "Setup the scratch BUFFER for  CONNECTION."
+(defun jade-scratch-setup-buffer (buffer)
+  "Setup the scratch BUFFER."
   (with-current-buffer buffer
     (js2-mode)
     (jade-interaction-mode)
-    (setq-local jade-connection connection)
     (setq-local company-backends '(company-jade-repl))
     (jade-scratch-insert-welcome-message)))
 

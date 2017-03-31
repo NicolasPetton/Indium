@@ -339,11 +339,10 @@ CALLBACK is evaluated with two arguments, the properties and SCOPE."
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let ((connection jade-connection)
-        (buf (if-let ((file (jade-debugger-lookup-file)))
+  (let ((buf (if-let ((file (jade-debugger-lookup-file)))
                  (find-file file)
                (get-buffer-create (jade-debugger--buffer-name-no-file)))))
-    (jade-debugger-setup-buffer buf connection)
+    (jade-debugger-setup-buffer buf)
     buf))
 
 (defun jade-debugger--buffer-name-no-file ()
@@ -352,12 +351,11 @@ This name should used when no local file can be found for a stack
 frame."
   (concat "*JS Debugger " (map-elt jade-connection 'url) "*"))
 
-(defun jade-debugger-setup-buffer (buffer connection)
+(defun jade-debugger-setup-buffer (buffer)
   (with-current-buffer buffer
     (unless (or buffer-file-name
                 (eq major-mode jade-debugger-major-mode))
       (funcall jade-debugger-major-mode))
-    (setq-local jade-connection connection)
     (jade-debugger-mode 1)
     (read-only-mode)))
 
