@@ -41,12 +41,16 @@
 
 (require 'jade-v8-inspector)
 
-(defun jade-connect-to-nodejs (host port path)
-  "Open a connection to a webkit tab on HOST:PORT/PATH."
-    (interactive (list (read-from-minibuffer "Host: " "127.0.0.1")
-                       (read-from-minibuffer "Port: " "9229")
-                       (read-from-minibuffer "Path: ")))
-    (jade-nodejs--connect host port path))
+(defun jade-connect-to-nodejs ()
+  "Open a connection to a webkit tab on host:port/path."
+  (interactive)
+  (when (or (null jade-connection) (yes-or-no-p "Close the current Jade connection? "))
+    (when jade-connection
+      (jade-quit))
+    (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
+          (port (read-from-minibuffer "Port: " "9229"))
+          (path (read-from-minibuffer "Path: ")))
+      (jade-nodejs--connect host port path))))
 
 (defun jade-nodejs--connect (host port path)
   "Ask the user for a tab in the list TABS and connects to it."

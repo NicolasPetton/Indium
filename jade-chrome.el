@@ -81,11 +81,15 @@ Try a maximum of NUM-TRIES."
                                     (jade-chrome--connect-to-tab tabs)
                                   (jade-chrome--try-connect host (1- num-tries))))))
 
-(defun jade-connect-to-chrome (host port)
-  "Open a connection to a webkit tab on HOST:PORT."
-    (interactive (list (read-from-minibuffer "Host: " "127.0.0.1")
-                       (read-from-minibuffer "Port: " (number-to-string jade-chrome-port))))
-  (jade-chrome--get-tabs-data host port #'jade-chrome--connect-to-tab))
+(defun jade-connect-to-chrome ()
+  "Open a connection to a webkit tab."
+  (interactive)
+  (when (or (null jade-connection) (yes-or-no-p "Close the current Jade connection? "))
+    (when jade-connection
+      (jade-quit))
+    (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
+          (port (read-from-minibuffer "Port: " (number-to-string jade-chrome-port))))
+      (jade-chrome--get-tabs-data host port #'jade-chrome--connect-to-tab))))
 
 (defun jade-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
