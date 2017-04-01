@@ -31,14 +31,12 @@
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (if-let ((url (jade-workspace-make-url buffer-file-name)))
-      (jade-backend-add-breakpoint (jade-backend)
-                                   url
-                                   (1- (line-number-at-pos))
-                                   (apply-partially #'jade-breakpoint-added
-                                                    (current-buffer))
-                                   condition)
-    (user-error "No URL for the current buffer.  Setup a Jade workspace first")))
+  (jade-backend-add-breakpoint (jade-backend)
+                               buffer-file-name
+                               (1- (line-number-at-pos))
+                               (apply-partially #'jade-breakpoint-added
+                                                (current-buffer))
+                               condition))
 
 (defun jade-breakpoint-remove ()
   "Remove the breakpoint from the current line."
@@ -75,10 +73,12 @@ This function does no unset breakpoints,"
 (defun jade-breakpoint-added (buffer id line)
   "Add a breakpoint marker to BUFFER with ID.
 The marker is set at LINE."
-  (save-excursion
-    (switch-to-buffer buffer)
-    (goto-line (1+ line))
-    (jade-breakpoint--put-icon id)))
+  (if line
+      (save-excursion
+        (switch-to-buffer buffer)
+        (goto-line (1+ line))
+        (jade-breakpoint--put-icon id))
+    (message "Cannot find breakpoint line.")))
 
 (defun jade-breakpoint--put-icon (id)
   "Add a breakpoint icon on the current line with id ID.

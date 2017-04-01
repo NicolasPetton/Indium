@@ -113,10 +113,10 @@ Evaluate CALLBACK on the filtered candidates.
 
 EXPRESSION should be a valid JavaScript expression string.")
 
-(cl-defgeneric jade-backend-add-breakpoint (backend url line &optional callback condition)
+(cl-defgeneric jade-backend-add-breakpoint (backend file line &optional callback condition)
   "Request the addition of a breakpoint.
 
-The breakpoint is set at URL on line LINE.  When CALLBACK is
+The breakpoint is addet to FILE on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id.")
 
 (cl-defgeneric jade-backend-remove-breakpoint (backend id)

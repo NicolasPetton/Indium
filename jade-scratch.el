@@ -41,17 +41,16 @@ If no buffer exists, create one.
 If there is no current connection, throw an error."
   (unless jade-connection
     (user-error "No current connection"))
-  (let* ((url (map-elt jade-connection 'url))
-         (bufname (jade-scratch-buffer-name url))
+  (let* ((bufname (jade-scratch-buffer-name))
          (buf (get-buffer bufname)))
     (unless buf
       (setq buf (get-buffer-create bufname))
       (jade-scratch-setup-buffer buf))
     buf))
 
-(defun jade-scratch-buffer-name (url)
-  "Return the scratch buffer name for URL."
-  (format "*JS scratch %s*" url))
+(defun jade-scratch-buffer-name ()
+  "Return the scratch buffer name."
+  "*JS scratch*")
 
 (defun jade-scratch-setup-buffer (buffer)
   "Setup the scratch BUFFER."

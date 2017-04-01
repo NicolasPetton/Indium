@@ -124,7 +124,7 @@ If no buffer exists, create one."
 
 (defun jade-inspector-buffer-name ()
   "Return the inspector buffer name for the current connection."
-  (concat "*JS Inspector " (map-elt jade-connection 'url) "*"))
+  "*JS Inspector*")
 
 (defvar jade-inspector-mode-map
   (let ((map (make-sparse-keymap)))

@@ -55,7 +55,7 @@
 (defun jade-nodejs--connect (host port path)
   "Ask the user for a tab in the list TABS and connects to it."
   (let ((url (format "ws://%s:%s/%s" host port path)))
-    (jade-v8-inspector--open-ws-connection url url)))
+    (jade-v8-inspector--open-ws-connection url)))
 
 (provide 'jade-nodejs)
 ;;; jade-nodejs.el ends here

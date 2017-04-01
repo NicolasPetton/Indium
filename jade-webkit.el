@@ -38,6 +38,7 @@
 (require 'jade-backend)
 (require 'jade-repl)
 (require 'jade-debugger)
+(require 'jade-workspace)
 
 
 (defvar jade-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
@@ -90,27 +91,30 @@ Evaluate CALLBACK on the filtered candidates."
      (lambda (response)
        (jade-webkit--handle-completions-response response prefix callback)))))
 
-(cl-defmethod jade-backend-add-breakpoint ((backend (eql webkit)) url line &optional callback condition)
-    "Request the addition of a breakpoint.
+(cl-defmethod jade-backend-add-breakpoint ((backend (eql webkit)) file line &optional callback condition)
+  "Request the addition of a breakpoint.
 
 The breakpoint is set at URL on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
-  (jade-webkit--send-request
-   `((method . "Debugger.setBreakpointByUrl")
-     (params . ((url . ,url)
-                (lineNumber . ,line)
-                (condition . ,(or condition "")))))
-   (lambda (response)
-     (let* ((breakpoint (map-elt response 'result))
-            (id (map-elt breakpoint 'breakpointId))
-            (locations (map-elt breakpoint 'locations))
-            (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
-       (when line
-         (jade-webkit--register-breakpoint id line buffer-file-name))
-       (when callback
-         (unless line
-           (message "Cannot get breakpoint location"))
-         (funcall callback id line))))))
+  (let ((url (jade-workspace-make-url buffer-file-name)))
+    (unless url
+      (user-error "No URL for the current buffer.  Setup a Jade workspace first"))
+    (jade-webkit--send-request
+     `((method . "Debugger.setBreakpointByUrl")
+       (params . ((url . ,url)
+                  (lineNumber . ,line)
+                  (condition . ,(or condition "")))))
+     (lambda (response)
+       (let* ((breakpoint (map-elt response 'result))
+              (id (map-elt breakpoint 'breakpointId))
+              (locations (map-elt breakpoint 'locations))
+              (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
+         (when line
+           (jade-webkit--register-breakpoint id line buffer-file-name))
+         (when callback
+           (unless line
+             (message "Cannot get breakpoint location"))
+           (funcall callback id line)))))))
 
 (cl-defgeneric jade-backend-remove-breakpoint ((backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."

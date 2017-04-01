@@ -90,6 +90,74 @@ Evaluate CALLBACK on the filtered candidates."
      (lambda (response)
        (jade-v8-inspector--handle-completions-response response prefix callback)))))
 
+(cl-defmethod jade-backend-add-breakpoint ((backend (eql v8-inspector)) file line &optional callback condition)
+    "Request the addition of a breakpoint.
+
+The breakpoint is set at URL on line LINE.  When CALLBACK is
+non-nil, evaluate it with the breakpoint's location and id."
+  (jade-v8-inspector--send-request
+   `((method . "Debugger.setBreakpointByUrl")
+     (params . ((url . ,file)
+                (lineNumber . ,line)
+                (condition . ,(or condition "")))))
+   (lambda (response)
+     (let* ((breakpoint (map-elt response 'result))
+            (id (map-elt breakpoint 'breakpointId))
+            (locations (map-elt breakpoint 'locations))
+            (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
+       (when line
+         (jade-v8-inspector--register-breakpoint id line buffer-file-name))
+       (when callback
+         (unless line
+           (message "Cannot get breakpoint location"))
+         (funcall callback id line))))))
+
+(cl-defgeneric jade-backend-remove-breakpoint ((backend (eql v8-inspector)) id)
+  "Request the removal of the breakpoint with id ID."
+  (jade-v8-inspector--send-request
+   `((method . "Debugger.removeBreakpoint")
+     (params . ((breakpointId . ,id))))
+   (lambda (response)
+     (jade-v8-inspector--unregister-breakpoint id))))
+
+(cl-defgeneric jade-backend-get-breakpoints ((backend (eql v8-inspector)))
+  "Return all breakpoints.
+A breakpoint is a map with the keys `id', `file', and `line'."
+  (let ((breakpoints (map-elt jade-connection 'breakpoints)))
+    (map-keys-apply (lambda (key)
+                      `((id . ,key)
+                        (file . ,(map-nested-elt breakpoints `(,key file)))
+                        (line . ,(map-nested-elt breakpoints `(,key line)))))
+                    breakpoints)))
+
+(defun jade-v8-inspector--register-breakpoint (id line file)
+  "Register the breakpoint with ID at LINE in FILE.
+If a buffer visits FILE with `jade-interaction-mode' turned on,
+the breakpoint can be added back to the buffer."
+  (let ((breakpoint `((line . ,line)
+                      (file . ,file))))
+    (map-put (map-elt jade-connection 'breakpoints) id breakpoint)))
+
+(defun jade-v8-inspector--unregister-breakpoint (id)
+  "Remove the breakpoint with ID from the current connection."
+  (map-delete (map-elt jade-connection 'breakpoints) id))
+
+(cl-defmethod jade-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
+  "Get the properties of the remote object represented by REFERENCE.
+CALLBACK is evaluated with the list of properties.
+
+If ALL-PROPERTIES is non-nil, get all the properties from the
+prototype chain of the remote object."
+  (jade-v8-inspector--send-request
+   `((method . "Runtime.getProperties")
+     (params . ((objectId . ,reference)
+                (generatePreview . t)
+                (ownProperties . ,(or all-properties :json-false)))))
+   (lambda (response)
+     (funcall callback
+              (jade-v8-inspector--properties
+               (map-nested-elt response '(result result)))))))
+
 (cl-defmethod jade-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
@@ -164,33 +232,27 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
   (jade-v8-inspector--send-request `((method . "Debugger.setPauseOnExceptions")
                                (params . ((state . ,state))))))
 
-(defun jade-v8-inspector--open-ws-connection (url websocket-url &optional on-open)
-  "Open a websocket connection to URL using WEBSOCKET-URL.
+(defun jade-v8-inspector--open-ws-connection (websocket-url &optional on-open)
+  "Open a websocket connection to WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
-the connection and buffers.
-
-In a Chrom{e|ium} session, URL corresponds to the url of a tab,
-and WEBSOCKET-URL to its associated `webSocketDebuggerUrl'.
-
-In a NodeJS session, URL and WEBSOCKET-URL should point to the
-same url."
+the connection and buffers."
   (unless websocket-url
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
                   :on-open (lambda (ws)
                              (when on-open
                                (funcall on-open))
-                             (jade-v8-inspector--handle-ws-open ws url))
+                             (jade-v8-inspector--handle-ws-open ws))
                   :on-message #'jade-v8-inspector--handle-ws-message
                   :on-close #'jade-v8-inspector--handle-ws-closed
                   :on-error #'jade-v8-inspector--handle-ws-error))
 
-(defun jade-v8-inspector--make-connection (ws url)
-  "Return a new connection for WS and URL."
+(defun jade-v8-inspector--make-connection (ws)
+  "Return a new connection for WS."
   (let ((connection (make-hash-table)))
     (map-put connection 'ws ws)
-    (map-put connection 'url url)
+    (map-put connection 'url (format "file://%s" default-directory))
     (map-put connection 'backend 'v8-inspector)
     (map-put connection 'callbacks (make-hash-table))
     connection))
@@ -199,8 +261,8 @@ same url."
   "Return the callbacks associated with the current connection."
   (map-elt jade-connection 'callbacks))
 
-(defun jade-v8-inspector--handle-ws-open (ws url)
-  (setq jade-connection (jade-v8-inspector--make-connection ws url))
+(defun jade-v8-inspector--handle-ws-open (ws)
+  (setq jade-connection (jade-v8-inspector--make-connection ws))
   (jade-v8-inspector--enable-tools)
   (switch-to-buffer (jade-repl-buffer-create)))
 

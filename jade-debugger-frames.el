@@ -97,7 +97,7 @@ If no buffer is found, return nil."
 
 (defun jade-debugger-frames-buffer-name ()
   "Return the name of the frames buffer for the current connection."
-  (concat "*JS Frames " (map-elt jade-connection 'url) "*"))
+  "*JS Frames*")
 
 (defun jade-debugger-frames-get-buffer-create ()
   "Create a buffer for listing frames unless one exists, and return it."

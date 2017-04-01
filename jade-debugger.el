@@ -349,7 +349,7 @@ If a buffer already exists, just return it."
   "Return the name of a debugger buffer.
 This name should used when no local file can be found for a stack
 frame."
-  (concat "*JS Debugger " (map-elt jade-connection 'url) "*"))
+  "*JS Debugger*")
 
 (defun jade-debugger-setup-buffer (buffer)
   (with-current-buffer buffer

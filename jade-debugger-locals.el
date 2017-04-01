@@ -77,7 +77,7 @@ Unless NO-POP in non-nil, pop the locals buffer."
 
 (defun jade-debugger-locals-buffer-name ()
   "Return the name of the buffer to use to inspect locals."
-  (concat "*JS Debugger Locals " (map-elt jade-connection 'url) "*"))
+  "*JS Debugger Locals*")
 
 (defun jade-debugger-locals-get-buffer-create ()
   "Create a locals buffer unless one exists, and return it."
