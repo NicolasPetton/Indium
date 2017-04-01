@@ -55,7 +55,7 @@
   (websocket-close (map-elt jade-connection 'ws)))
 
 (cl-defmethod jade-backend-reconnect ((backend (eql webkit)))
-  (let* ((url (map-elt connection 'url))
+  (let* ((url (map-elt jade-connection 'url))
          (websocket-url (websocket-url (map-elt jade-connection 'ws))))
     (jade-webkit--open-ws-connection url
                                      websocket-url
@@ -114,7 +114,7 @@ non-nil, evaluate it with the breakpoint's location and id."
          (when callback
            (unless line
              (message "Cannot get breakpoint location"))
-           (funcall callback id line)))))))
+           (funcall callback line id condition)))))))
 
 (cl-defgeneric jade-backend-remove-breakpoint ((backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."
@@ -274,7 +274,8 @@ same url."
 (defun jade-webkit--handle-ws-open (ws url)
   (setq jade-connection (jade-webkit--make-connection ws url))
   (jade-webkit--enable-tools)
-  (switch-to-buffer (jade-repl-buffer-create)))
+  (switch-to-buffer (jade-repl-buffer-create))
+  (jade-breakpoint-restore-breakpoints))
 
 (defun jade-webkit--handle-ws-message (ws frame)
   (let* ((message (jade-webkit--read-ws-message frame))

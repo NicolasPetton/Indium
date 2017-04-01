@@ -58,9 +58,9 @@ CONDITION is true."
 This function does not add breakpoints."
   (seq-do (lambda (brk)
             (jade-breakpoint-added (current-buffer)
-                                   (map-elt brk 'id)
-                                   (map-elt brk 'line)))
-          (jade-backend-get-breakpoints (jade-backend))))
+                                   (map-elt brk 'line)
+                                   (map-elt brk 'id)))
+          (jade-backend-get-breakpoints-in-file buffer-file-name)))
 
 (defun jade-breakpoint-remove-breakpoints-from-buffer ()
   "Remove all breakpoint markers from the current buffer.
@@ -70,18 +70,33 @@ This function does no unset breakpoints,"
                    'jade-breakpoint
                    t))
 
-(defun jade-breakpoint-added (buffer id line)
-  "Add a breakpoint marker to BUFFER with ID.
-The marker is set at LINE."
+(defun jade-breakpoint-added (buffer line id &optional condition)
+  "Add a breakpoint marker to BUFFER LINE.
+Store the ID and CONDITION of the breakpoint."
   (if line
       (save-excursion
-        (switch-to-buffer buffer)
-        (goto-line (1+ line))
-        (jade-breakpoint--put-icon id))
+        (with-current-buffer buffer
+          (goto-line (1+ line))
+          (jade-breakpoint--put-icon id condition)))
     (message "Cannot find breakpoint line.")))
 
-(defun jade-breakpoint--put-icon (id)
-  "Add a breakpoint icon on the current line with id ID.
+(defun jade-breakpoint-restore-breakpoints ()
+  "Restore BREAKPOINTS set to all buffers.
+This function is used when reconnecting to a new connection."
+  (seq-doseq (buf (buffer-list))
+    (with-current-buffer buf
+      (save-excursion
+        (let ((overlays (overlays-in (point-min) (point-max))))
+          (seq-doseq (ov overlays)
+            (when (overlay-get ov 'jade-breakpoint)
+              (let ((condition (overlay-get ov 'jade-condition))
+                    (start (overlay-start ov))
+                    (end (overlay-end ov)))
+                (goto-char (overlay-start ov))
+                (jade-breakpoint-add)))))))))
+
+(defun jade-breakpoint--put-icon (id condition)
+  "Add a breakpoint icon on the current line with ID and CONDITION.
 The icon is added to the left fringe."
   (let ((ov (make-overlay (point-at-bol) (point-at-eol))))
     (overlay-put ov
@@ -92,7 +107,11 @@ The icon is added to the left fringe."
                  t)
     (overlay-put ov
                  'jade-breakpoint-id
-                 id)))
+                 id)
+    (when condition
+      (overlay-put ov
+                  'jade-breakpoint-condition
+                  condition))))
 
 (defun jade-breakpoint--remove-icon ()
   "Remove the breakpoint icon from the current line."
