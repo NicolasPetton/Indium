@@ -348,7 +348,6 @@ inspectors."
 (defun jade-v8-inspector--enable-runtime ()
   "Enable the runtime on the current tab."
   (jade-v8-inspector--send-request '((method . "Runtime.enable")))
-  (jade-v8-inspector--send-request '((method . "Runtime.run")))
   (jade-v8-inspector--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
 
 (defun jade-v8-inspector--enable-debugger ()
