@@ -52,18 +52,40 @@
 (require 'subr-x)
 
 (defun jade-workspace-lookup-file (url)
-  "Return a local file matching URL in the current workspace directories.
+  "Return a local file matching URL for the current connection.
 If no file is found, return nil."
+  (or (jade-workspace--lookup-using-file-protocol url)
+      (jade-workspace--lookup-using-workspace url)))
+
+(defun jade-workspace--lookup-using-file-protocol (url)
+  "Return a local file matching URL if URL uses the file:// protocol."
+  (when (jade-workspace--file-protocol-p)
+    (let* ((url (url-generic-parse-url url))
+           (path (car (url-path-and-query url))))
+      (when (file-regular-p path)
+        path))))
+
+(defun jade-workspace--lookup-using-workspace (url)
+  "Return a local file matching URL using the current Jade workspace."
   (if-let ((root (jade-workspace-root)))
-      (let* ((path (seq-drop (car (url-path-and-query
-                                  (url-generic-parse-url url)))
-                            1))
-            (file (expand-file-name path root)))
-        (when (and (file-exists-p file)
-                   (file-regular-p file))
-          file))))
+          (let* ((path (seq-drop (car (url-path-and-query
+                                       (url-generic-parse-url url)))
+                                 1))
+                 (file (expand-file-name path root)))
+            (when (file-regular-p file)
+              file))))
 
 (defun jade-workspace-make-url (file)
+  "Return the url associated with the local FILE."
+  (or (jade-workspace--make-url-using-file-protocol file)
+      (jade-workspace--make-url-using-workspace file)))
+
+(defun jade-workspace--make-url-using-file-protocol (file)
+  "If the current connection uses the file protocol, return FILE."
+  (when (jade-workspace--file-protocol-p)
+    (format "file://%s" file)))
+
+(defun jade-workspace--make-url-using-workspace (file)
   "Return the url associated with the local FILE.
 The url is built using `jade-workspace-root'."
   (if-let ((root (jade-workspace-root)))
@@ -71,6 +93,11 @@ The url is built using `jade-workspace-root'."
              (path (file-relative-name file root)))
         (setf (url-filename url) (jade-workspace--absolute-path path))
         (url-recreate-url url))))
+
+(defun jade-workspace--file-protocol-p ()
+  "Return non-nil if the current connection uses the file protocol."
+  (let ((url (url-generic-parse-url (map-elt jade-connection 'url))))
+    (string= (url-type url) "file")))
 
 (defun jade-workspace--absolute-path (path)
   "Return PATH as absolute.

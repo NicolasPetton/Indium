@@ -45,26 +45,38 @@
 
 (ert-deftest jade-workspace-make-url-with-no-workspace-test ()
   (with-mock (mock (jade-workspace-root) => nil)
-             (let ((connection '((url . "http://localhost:9229"))))
-               (should (null (jade-workspace-make-url "./jade-workspace-test.el" connection))))))
+             (let ((jade-connection '((url . "http://localhost:9229"))))
+               (should (null (jade-workspace-make-url "./jade-workspace-test.el"))))))
 
 (ert-deftest jade-workspace-make-url-test ()
   (with-mock (mock (jade-workspace-root) => default-directory)
-             (let ((connection '((url . "http://localhost:9229"))))
-               (should (equal (jade-workspace-make-url "./jade-workspace-test.el" connection)
+             (let ((jade-connection '((url . "http://localhost:9229"))))
+               (should (equal (jade-workspace-make-url "./jade-workspace-test.el")
                               "http://localhost:9229/jade-workspace-test.el")))))
 
 (ert-deftest jade-workspace-make-url-strips-query-string-test ()
   (with-mock (mock (jade-workspace-root) => default-directory)
-             (let ((connection '((url . "http://localhost:9229?foo=bar"))))
-               (should (equal (jade-workspace-make-url "./jade-workspace-test.el" connection)
+             (let ((jade-connection '((url . "http://localhost:9229?foo=bar"))))
+               (should (equal (jade-workspace-make-url "./jade-workspace-test.el")
                               "http://localhost:9229/jade-workspace-test.el")))))
 
 (ert-deftest jade-workspace-make-strips-connection-path-test ()
   (with-mock (mock (jade-workspace-root) => default-directory)
-             (let ((connection '((url . "http://localhost:9229/foo/bar"))))
-               (should (equal (jade-workspace-make-url "./jade-workspace-test.el" connection)
+             (let ((jade-connection '((url . "http://localhost:9229/foo/bar"))))
+               (should (equal (jade-workspace-make-url "./jade-workspace-test.el")
                               "http://localhost:9229/jade-workspace-test.el")))))
+
+(ert-deftest jade-workspace-lookup-file-protocol-test ()
+  (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
+         (file (expand-file-name "jade-workspace-test.el"))
+         (url (format "file://%s" file)))
+    (should (equal (jade-workspace-lookup-file url)
+                   file))))
+
+(ert-deftest jade-workspace-make-url-file-protocol-test ()
+  (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
+         (file (expand-file-name "jade-workspace-test.el")))
+    (should (equal (jade-workspace-make-url file) (format "file://%s" file)))))
 
 (provide 'jade-workspace-test)
 ;;; jade-workspace-test.el ends here
