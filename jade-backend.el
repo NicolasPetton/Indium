@@ -77,7 +77,8 @@ The new connection is based on the current (usually closed) one."
   (seq-map (lambda (buf)
              (with-current-buffer buf
                (when buffer-file-name
-                 (jade-debugger-unset-current-buffer)))
+                 (jade-debugger-unset-current-buffer)
+                 (jade-breakpoint-remove-breakpoints-from-buffer)))
              (when-let ((buf (jade-repl-get-buffer)))
                (kill-buffer buf)))
            (buffer-list)))
