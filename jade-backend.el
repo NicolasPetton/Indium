@@ -78,10 +78,10 @@ The new connection is based on the current (usually closed) one."
              (with-current-buffer buf
                (when buffer-file-name
                  (jade-debugger-unset-current-buffer)
-                 (jade-breakpoint-remove-breakpoints-from-buffer)))
-             (when-let ((buf (jade-repl-get-buffer)))
-               (kill-buffer buf)))
-           (buffer-list)))
+                 (jade-breakpoint-remove-breakpoints-from-buffer))))
+           (buffer-list))
+  (when-let ((buf (jade-repl-get-buffer)))
+    (kill-buffer buf)))
 
 ;;; jade-connection methods
 
