@@ -127,8 +127,8 @@ current buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
-    (define-key map (kbd "C-c C-b") #'jade-toggle-breakpoint)
-    (define-key map (kbd "C-c M-b") #'jade-remove-all-breakpoints-from-buffer)
+    (define-key map (kbd "C-c b b") #'jade-toggle-breakpoint)
+    (define-key map (kbd "C-c b K") #'jade-remove-all-breakpoints-from-buffer)
     map))
 
 ;;;###autoload
