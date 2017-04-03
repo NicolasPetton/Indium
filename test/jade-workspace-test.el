@@ -23,60 +23,67 @@
 
 (require 'ert)
 (require 'el-mock)
+(require 'assess)
 (require 'jade-workspace)
+
+(defvar jade-workspace--test-fs
+  '(".jade"
+    ("js" ("app.js")))
+  "Fake filesystem used in workspace tests.")
 
 (ert-deftest jade-workspace-lookup-file-with-no-workspace-test ()
   (with-mock (mock (jade-workspace-root) => nil)
              (should (null (jade-workspace-lookup-file "http://localhost:9229/foo/bar")))))
 
 (ert-deftest jade-workspace-lookup-file-that-exists-test ()
-  (with-mock (mock (jade-workspace-root) => default-directory)
-             (should (equal (expand-file-name "jade-workspace-test.el")
-                            (jade-workspace-lookup-file "http://localhost:9229/jade-workspace-test.el")))))
+  (assess-with-filesystem jade-workspace--test-fs
+      (should (equal (expand-file-name "js/app.js")
+                     (jade-workspace-lookup-file "http://localhost:9229/js/app.js")))))
 
 (ert-deftest jade-workspace-lookup-file-ignore-query-string-test ()
-  (with-mock (mock (jade-workspace-root) => default-directory)
-             (should (equal (expand-file-name "jade-workspace-test.el")
-                            (jade-workspace-lookup-file "http://localhost:9229/jade-workspace-test.el?foo=bar")))))
+  (assess-with-filesystem jade-workspace--test-fs
+      (should (equal (expand-file-name "js/app.js")
+                  (jade-workspace-lookup-file "http://localhost:9229/js/app.js?foo=bar")))))
 
 (ert-deftest jade-workspace-lookup-file-that-does-not-exist-test ()
-  (with-mock (mock (jade-workspace-root) => default-directory)
-             (should (null (jade-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
+  (assess-with-filesystem jade-workspace--test-fs
+    (should (null (jade-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
 
 (ert-deftest jade-workspace-make-url-with-no-workspace-test ()
-  (with-mock (mock (jade-workspace-root) => nil)
-             (let ((jade-connection '((url . "http://localhost:9229"))))
-               (should (null (jade-workspace-make-url "./jade-workspace-test.el"))))))
+  (let ((jade-connection '((url . "http://localhost:9229"))))
+    (should (null (jade-workspace-make-url "js/app.js")))))
 
 (ert-deftest jade-workspace-make-url-test ()
-  (with-mock (mock (jade-workspace-root) => default-directory)
-             (let ((jade-connection '((url . "http://localhost:9229"))))
-               (should (equal (jade-workspace-make-url "./jade-workspace-test.el")
-                              "http://localhost:9229/jade-workspace-test.el")))))
+  (let ((jade-connection '((url . "http://localhost:9229"))))
+    (assess-with-filesystem jade-workspace--test-fs
+      (should (equal (jade-workspace-make-url "js/app.js")
+                     "http://localhost:9229/js/app.js")))))
 
 (ert-deftest jade-workspace-make-url-strips-query-string-test ()
-  (with-mock (mock (jade-workspace-root) => default-directory)
-             (let ((jade-connection '((url . "http://localhost:9229?foo=bar"))))
-               (should (equal (jade-workspace-make-url "./jade-workspace-test.el")
-                              "http://localhost:9229/jade-workspace-test.el")))))
+  (let ((jade-connection '((url . "http://localhost:9229?foo=bar"))))
+    (assess-with-filesystem jade-workspace--test-fs
+      (should (equal (jade-workspace-make-url "js/app.js")
+                    "http://localhost:9229/js/app.js")))))
 
 (ert-deftest jade-workspace-make-strips-connection-path-test ()
-  (with-mock (mock (jade-workspace-root) => default-directory)
-             (let ((jade-connection '((url . "http://localhost:9229/foo/bar"))))
-               (should (equal (jade-workspace-make-url "./jade-workspace-test.el")
-                              "http://localhost:9229/jade-workspace-test.el")))))
+  (let ((jade-connection '((url . "http://localhost:9229/foo/bar"))))
+    (assess-with-filesystem jade-workspace--test-fs
+     (should (equal (jade-workspace-make-url "js/app.js")
+                    "http://localhost:9229/js/app.js")))))
 
 (ert-deftest jade-workspace-lookup-file-protocol-test ()
-  (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
-         (file (expand-file-name "jade-workspace-test.el"))
-         (url (format "file://%s" file)))
-    (should (equal (jade-workspace-lookup-file url)
-                   file))))
+  (assess-with-filesystem jade-workspace--test-fs
+    (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
+          (file (expand-file-name "js/app.js"))
+          (url (format "file://%s" file)))
+     (should (equal (jade-workspace-lookup-file url)
+                    file)))))
 
 (ert-deftest jade-workspace-make-url-file-protocol-test ()
-  (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
-         (file (expand-file-name "jade-workspace-test.el")))
-    (should (equal (jade-workspace-make-url file) (format "file://%s" file)))))
+  (assess-with-filesystem jade-workspace--test-fs
+    (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
+           (file (expand-file-name "js/app.js")))
+      (should (equal (jade-workspace-make-url file) (format "file://%s" file))))))
 
 (provide 'jade-workspace-test)
 ;;; jade-workspace-test.el ends here

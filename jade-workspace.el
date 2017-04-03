@@ -136,7 +136,7 @@ which we're looking."
                     (null file)
                     (string-match locate-dominating-stop-dir-regexp file)))
       (setq try (if (stringp name)
-                    (projectile-file-exists-p (expand-file-name name file))
+                    (file-exists-p (expand-file-name name file))
                   (funcall name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory

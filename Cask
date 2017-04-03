@@ -11,4 +11,5 @@
  (depends-on "el-mock")
  (depends-on "seq")
  (depends-on "map")
- (depends-on "js2-mode"))
+ (depends-on "js2-mode")
+ (depends-on "assess"))
