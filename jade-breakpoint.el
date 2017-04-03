@@ -132,8 +132,9 @@ If there is no breakpoint set on the line, return nil."
               (overlay-get ov 'jade-breakpoint-id))
             (overlays-at (point))))
 
-(define-fringe-bitmap 'jade-breakpoint
-  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
+(and (display-images-p)
+     (define-fringe-bitmap 'jade-breakpoint
+       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
 (provide 'jade-breakpoint)
 ;;; jade-breakpoint.el ends here
