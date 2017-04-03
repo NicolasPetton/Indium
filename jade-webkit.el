@@ -1,6 +1,6 @@
 ;;; jade-webkit.el --- Webkit/Blink backend for jade  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016  Nicolas Petton
+;; Copyright (C) 2016-2017  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: tools, javascript
