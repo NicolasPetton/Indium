@@ -2,6 +2,8 @@
 
 _**J**avaScript **A**wesome **D**evelopment **E**nvironment (in Emacs)_
 
+![REPL](./screenshots/debugger.gif)
+
 Jade connects to a browser tab or nodejs process and provides many features for
 JavaScript development, including:
 
@@ -69,6 +71,55 @@ and `PATH` are taken from the `ws` parameter of the above URL.
 
 Connecting Jade to the node process will open a debugger on the first line of the application code.
 
+### Debugging local files
+
+Jade is able to use local files when debugging.  Once set up, breakpoints can
+also be added/remove from local files.
+
+How to enable it:
+
+- NodeJS: Nothing to do, it just works
+- Chrome (`file://` protocol): Nothing to do, it just works
+- Chrome (`http://`/`https://` protocol): Place a `.jade` file in the root of
+  the web directory where JavaScript files will be served to setup a workspace.
+
+#### Setting up a workspace
+  
+When files are served using the `http://` protocol, Jade will try to find
+local file by looking up a `.jade` file in the project.
+
+##### Starting the connection when using a .jade file
+
+When using a `.jade` file, make sure to start the connection using
+`jade-connect-to-chrome` from the same directory (or a subdirectory).
+
+##### Example configuration
+
+With the following directory structure:
+
+```
+ project/ (current directory)
+    www/
+       index.html
+       css/
+          style.css
+       js/
+          app.js
+       .jade
+```
+
+For the following URL "http://localhost:3000/js/app.js"
+`jade-workspace-lookup-file` will return "./www/js/app.js".
+
+#### Adding/removing breakpoints
+
+- `C-c b b`: Toggle a breakpoint
+- `C-u C-c b b`: Toggle a breakpoint with condition
+- `C-c b K`: Remove all breakpoints from the current buffer
+
+Note: Breakpoints are persistent: if the connection is closed, when a new
+connection is made Jade will attempt to add back all breakpoints.
+
 ### JavaScript evaluation in JS buffers
 
 Add the following to enable evaluation in all JS buffers:
@@ -85,7 +136,7 @@ The entire buffer can also be executed with `jade-eval-buffer`.
 Jade is young, here's a list of missing/wanted features
 
 - ~~Code evaluation using `C-x C-e` from project JS buffers~~
-- Adding breakpoints (to remove the need for `debugger` statements)
+- ~~Adding breakpoints (to remove the need for `debugger` statements)~~
 - Network inspector (could get inspiration from restclient.el)
 - DOM inspector
 - Start processes (~~chromium~~, node, grunt, gulp, etc.) from Emacs and attach a
