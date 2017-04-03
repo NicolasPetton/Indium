@@ -1,4 +1,4 @@
-# Jade [![MELPA](https://melpa.org/packages/jade-badge.svg)](https://melpa.org/#/jade) [![Build Status](https://ci.petton.fr/api/badges/nico/jade/status.svg)](https://ci.petton.fr/nico/jade)
+# Jade [![MELPA](https://melpa.org/packages/jade-badge.svg)](https://melpa.org/#/jade) [![Build Status](https://travis-ci.org/NicolasPetton/jade.svg?branch=master)](https://travis-ci.org/NicolasPetton/jade)
 
 _**J**avaScript **A**wesome **D**evelopment **E**nvironment (in Emacs)_
 
