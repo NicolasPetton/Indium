@@ -13,7 +13,7 @@ JavaScript development, including:
 - JavaScript evaluation in JS buffers with `jade-interaction-mode`;
 - a stepping Debugger, similar to `edebug`, or `cider`.
 
-*Installation instruction and other documentation on readthedocs [here](https://jade.readthedocs.io).*
+**Installation instruction and other documentation on readthedocs [here](https://jade.readthedocs.io).**
 
 ## Screenshots
 
