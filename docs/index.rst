@@ -6,17 +6,21 @@
 Welcome to Jade's documentation!
 ================================
 
-Contents:
+.. include:: intro.rst
+
+Table of contents
+-----------------
 
 .. toctree::
    :maxdepth: 2
 
-
+   installation
+   setup
+   code-evaluation
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

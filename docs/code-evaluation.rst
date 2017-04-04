@@ -1,0 +1,34 @@
+Interaction in JS buffers
+=========================
+
+To enable interaction in all JavaScript buffers, add something like the
+following to your Emacs configuration: ::
+
+  (require 'jade)
+  (add-hook 'js-mode-hook #'jade-interaction-mode)
+
+When ``jade-interaction-mode`` is on, you can evaluate code and add/remove
+breakpoints from your buffers.
+
+Evaluating and inspecting
+-------------------------
+
+To evaluate a JavaScript expression, place your cursor right at the end of the
+expression and press ``C-x C-e``.
+
+To inspect the result of an expression, press ``C-x M-i``.
+
+The entire buffer can be evaluating with ``M-x jade-eval-buffer``.
+
+Adding and removing breakpoints
+-------------------------------
+
+You need to first make sure that Jade is set up correctly to use local files
+(see :ref:`local-files`).
+
+- ``C-c b b``: Toggle a breakpoint
+- ``C-u C-c b b``: Toggle a breakpoint with condition
+- ``C-c b K``: Remove all breakpoints from the current buffer
+
+.. Note:: Breakpoints are persistent: if the connection is closed, when a new
+          connection is made Jade will attempt to add back all breakpoints.
