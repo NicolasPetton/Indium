@@ -55,8 +55,6 @@ Copyright @copyright{} 2017, Nicolas Petton
 
 Jade is a JavaScript development environment for Emacs@footnote{http://gnu.org/software/emacs}.
 
-@image{debugger,,,,gif}
-
 Jade connects to a browser tab or nodejs process and provides several features
 for JavaScript development, including:
 
@@ -79,8 +77,6 @@ JavaScript evaluation in JS buffers with @code{jade-interaction-mode};
 a stepping Debugger, similar to @code{edebug}, or @code{cider}.
 @end itemize
 
-See more @ref{1,,Jade Screenshots}.
-
 @menu
 * Table of contents:: 
 * Indices and tables:: 
@@ -93,7 +89,6 @@ Table of contents
 * Installation:: 
 * Getting up and running:: 
 * Interaction in JS buffers:: 
-* Jade Screenshots:: 
 
 Installation
 
@@ -115,7 +110,7 @@ Interaction in JS buffers
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index welcome-to-jade-s-documentation}@anchor{2}@anchor{index table-of-contents}@anchor{3}
+@anchor{index welcome-to-jade-s-documentation}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -123,12 +118,11 @@ Interaction in JS buffers
 * Installation:: 
 * Getting up and running:: 
 * Interaction in JS buffers:: 
-* Jade Screenshots:: 
 
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation installation}@anchor{4}@anchor{installation doc}@anchor{5}
+@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
 @section Installation
 
 
@@ -144,7 +138,7 @@ Jade is availabe on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{htt
 @end menu
 
 @node Using MELPA,Manual installation,,Installation
-@anchor{installation using-melpa}@anchor{6}
+@anchor{installation using-melpa}@anchor{5}
 @subsection Using MELPA
 
 
@@ -172,7 +166,7 @@ M-x package-refresh-contents [RET]
 @end example
 
 @node Manual installation,,Using MELPA,Installation
-@anchor{installation manual-installation}@anchor{7}
+@anchor{installation manual-installation}@anchor{6}
 @subsection Manual installation
 
 
@@ -188,7 +182,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,Interaction in JS buffers,Installation,Table of contents
-@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}@anchor{setup doc}@anchor{a}
+@anchor{setup up-and-running}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup doc}@anchor{9}
 @section Getting up and running
 
 
@@ -200,7 +194,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup nodejs}@anchor{b}@anchor{setup id1}@anchor{c}
+@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
 @subsection NodeJS
 
 
@@ -231,7 +225,7 @@ Connecting Jade to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{d}@anchor{setup chrome}@anchor{e}
+@anchor{setup chrome-chromium}@anchor{c}@anchor{setup chrome}@anchor{d}
 @subsection Chrome/Chromium
 
 
@@ -255,7 +249,7 @@ M-x jade-connect-to-chrome
 @end example
 
 @node Using local files when debugging,,Chrome/Chromium,Getting up and running
-@anchor{setup using-local-files-when-debugging}@anchor{f}@anchor{setup local-files}@anchor{10}
+@anchor{setup local-files}@anchor{e}@anchor{setup using-local-files-when-debugging}@anchor{f}
 @subsection Using local files when debugging
 
 
@@ -304,8 +298,8 @@ directory!
 @end quotation
 @end cartouche
 
-@node Interaction in JS buffers,Jade Screenshots,Getting up and running,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{11}@anchor{code-evaluation doc}@anchor{12}
+@node Interaction in JS buffers,,Getting up and running,Table of contents
+@anchor{code-evaluation interaction-in-js-buffers}@anchor{10}@anchor{code-evaluation doc}@anchor{11}
 @section Interaction in JS buffers
 
 
@@ -327,7 +321,7 @@ breakpoints from your buffers.
 @end menu
 
 @node Evaluating and inspecting,Adding and removing breakpoints,,Interaction in JS buffers
-@anchor{code-evaluation evaluating-and-inspecting}@anchor{13}
+@anchor{code-evaluation evaluating-and-inspecting}@anchor{12}
 @subsection Evaluating and inspecting
 
 
@@ -339,12 +333,12 @@ To inspect the result of an expression, press @code{C-x M-i}.
 The entire buffer can be evaluating with @code{M-x jade-eval-buffer}.
 
 @node Adding and removing breakpoints,,Evaluating and inspecting,Interaction in JS buffers
-@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{14}
+@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{13}
 @subsection Adding and removing breakpoints
 
 
 You need to first make sure that Jade is set up correctly to use local files
-(see @ref{10,,Using local files when debugging}).
+(see @ref{e,,Using local files when debugging}).
 
 
 @itemize -
@@ -366,42 +360,8 @@ connection is made Jade will attempt to add back all breakpoints.
 @end quotation
 @end cartouche
 
-@node Jade Screenshots,,Interaction in JS buffers,Table of contents
-@anchor{screenshots jade-screenshots}@anchor{15}@anchor{screenshots doc}@anchor{16}@anchor{screenshots screenshots}@anchor{1}
-@section Jade Screenshots
-
-
-
-@itemize *
-
-@item 
-The REPL with company-mode
-
-@image{repl,,,,png}
-
-@item 
-The REPL showing clickable output
-
-@image{repl2,,,,png}
-
-@item 
-The inspector
-
-@image{inspector,,,,png}
-
-@item 
-The stepping debugger, and an inspector on locals
-
-@image{debugger,,,,png}
-
-@item 
-Recorded video of the stepping debugger
-
-@image{debugger,,,,gif}
-@end itemize
-
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{17}
+@anchor{index indices-and-tables}@anchor{14}
 @chapter Indices and tables
 
 

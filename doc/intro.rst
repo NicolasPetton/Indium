@@ -1,7 +1,5 @@
 Jade is a JavaScript development environment for `Emacs <http://gnu.org/software/emacs>`_.
 
-.. image:: _static/debugger.gif
-
 Jade connects to a browser tab or nodejs process and provides several features
 for JavaScript development, including:
 
@@ -10,5 +8,3 @@ for JavaScript development, including:
 * a scratch buffer (``M-x jade-scratch``);
 * JavaScript evaluation in JS buffers with ``jade-interaction-mode``;
 * a stepping Debugger, similar to ``edebug``, or ``cider``.
-
-See more :ref:`screenshots`.

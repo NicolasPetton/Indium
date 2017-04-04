@@ -17,7 +17,6 @@ Table of contents
    installation
    setup
    code-evaluation
-   screenshots
 
 Indices and tables
 ------------------
