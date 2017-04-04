@@ -320,7 +320,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'Jade', 'Jade Documentation',
-     author, 'Jade', 'One line description of project.',
+     author, 'Jade', 'JavaScript development environment for Emacs.',
      'Miscellaneous'),
 ]
 
