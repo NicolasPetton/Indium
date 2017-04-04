@@ -1,4 +1,4 @@
-# Jade [![MELPA](https://melpa.org/packages/jade-badge.svg)](https://melpa.org/#/jade) [![Build Status](https://travis-ci.org/NicolasPetton/jade.svg?branch=master)](https://travis-ci.org/NicolasPetton/jade)
+# Jade [![MELPA](https://melpa.org/packages/jade-badge.svg)](https://melpa.org/#/jade) [![Build Status](https://travis-ci.org/NicolasPetton/jade.svg?branch=master)](https://travis-ci.org/NicolasPetton/jade) [![Documentation Status](https://readthedocs.org/projects/jade/badge/?version=latest)](http://jade.readthedocs.io/en/latest/?badge=latest)
 
 _**J**avaScript **A**wesome **D**evelopment **E**nvironment (in Emacs)_
 
