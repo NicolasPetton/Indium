@@ -10,9 +10,9 @@
 @paragraphindent 0
 @exampleindent 4
 @finalout
-@dircategory Miscellaneous
+@dircategory Emacs
 @direntry
-* Jade: (Jade.info). One line description of project.
+* Jade: (Jade.info). JavaScript development environment for Emacs.
 @end direntry
 
 @definfoenclose strong,`,'
@@ -115,7 +115,7 @@ Interaction in JS buffers
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{2}@anchor{index welcome-to-jade-s-documentation}@anchor{3}
+@anchor{index welcome-to-jade-s-documentation}@anchor{2}@anchor{index table-of-contents}@anchor{3}
 @chapter Table of contents
 
 
@@ -128,7 +128,7 @@ Interaction in JS buffers
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation doc}@anchor{4}@anchor{installation installation}@anchor{5}
+@anchor{installation installation}@anchor{4}@anchor{installation doc}@anchor{5}
 @section Installation
 
 
@@ -200,7 +200,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup id1}@anchor{b}@anchor{setup nodejs}@anchor{c}
+@anchor{setup nodejs}@anchor{b}@anchor{setup id1}@anchor{c}
 @subsection NodeJS
 
 
@@ -367,7 +367,7 @@ connection is made Jade will attempt to add back all breakpoints.
 @end cartouche
 
 @node Jade Screenshots,,Interaction in JS buffers,Table of contents
-@anchor{screenshots screenshots}@anchor{1}@anchor{screenshots jade-screenshots}@anchor{15}@anchor{screenshots doc}@anchor{16}
+@anchor{screenshots jade-screenshots}@anchor{15}@anchor{screenshots doc}@anchor{16}@anchor{screenshots screenshots}@anchor{1}
 @section Jade Screenshots
 
 
