@@ -47,6 +47,12 @@ with a link to an inspector on that object."
       (jade-render-object-link value)
     (jade-render-description value)))
 
+(defun jade-render-value-to-string (value)
+  "Return a string representation of VALUE."
+  (with-temp-buffer
+    (jade-render-value value)
+    (buffer-string)))
+
 (defun jade-render-description (value)
   (let ((description (jade-description-string value)))
     (insert

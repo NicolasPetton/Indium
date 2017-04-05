@@ -250,7 +250,7 @@ Evaluation happens in the context of the current call frame."
   (jade-backend-evaluate (jade-backend)
                          expression
                          (lambda (value _error)
-                           (message (jade-description-string value)))))
+                           (message "%s" (jade-render-value-to-string value)))))
 
 (defun jade-debugger-eval-last-node ()
   "Evaluate the node before point."

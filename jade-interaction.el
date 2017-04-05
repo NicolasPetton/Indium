@@ -53,11 +53,11 @@ current buffer."
   (jade-interaction--ensure-connection)
   (jade-eval (js2-node-string (jade-interaction-node-before-point))
              (lambda (value _error)
-               (let ((description (jade-description-string value)))
+               (let ((description (jade-render-value-to-string value)))
                  (if arg
                      (save-excursion
                        (insert description))
-                   (message description))))))
+                   (message "%s" description))))))
 
 (defun jade-reload ()
   "Reload the page."
