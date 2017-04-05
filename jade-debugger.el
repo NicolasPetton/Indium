@@ -247,30 +247,25 @@ buffer visiting it."
   "Prompt for EXPRESSION to be evaluated.
 Evaluation happens in the context of the current call frame."
   (interactive "sEvaluate on frame: ")
-  (jade-debugger-eval expression
-                      (lambda (value _error)
-                        (message (jade-description-string value)))))
+  (jade-backend-evaluate (jade-backend)
+                         expression
+                         (lambda (value _error)
+                           (message (jade-description-string value)))))
 
 (defun jade-debugger-eval-last-node ()
   "Evaluate the node before point."
   (interactive)
   (jade-debugger-evaluate (js2-node-string (jade-interaction-node-before-point))))
 
-(defun jade-debugger-eval (expression callback)
-  "Evaluate EXPRESSION and call CALLBACK with the returned value.
-Evaluation happens in the context of the current call frame."
-  (jade-backend-evaluate (jade-backend)
-                         expression
-                         callback))
-
 (defun jade-debugger-inspect-last-node ()
   "Evaluate and inspect the node before point."
   (interactive)
-  (jade-debugger-eval (js2-node-string (jade-interaction-node-before-point))
-                      (lambda (result error)
-                        (when error
-                          (message "JS error: %s" result))
-                        (jade-inspector-inspect result))))
+  (jade-backend-evaluate (jade-backend)
+                         (js2-node-string (jade-interaction-node-before-point))
+                         (lambda (result error)
+                           (when error
+                             (message "JS error: %s" result))
+                           (jade-inspector-inspect result))))
 
 ;; Debugging context
 
