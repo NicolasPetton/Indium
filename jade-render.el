@@ -165,6 +165,15 @@ definitions."
   (let ((function (get-text-property (point) 'jade-action)))
     (funcall function)))
 
+(defun jade-message (&rest args)
+  "Like `message', with font-locking for JavaScript."
+  (let ((string (with-temp-buffer
+                  (js-mode)
+                  (insert (apply #'format args))
+                  (font-lock-fontify-region (point-min) (point-max))
+                  (buffer-string))))
+    (message "%s" string)))
+
 (defun jade-render--truncate-string-to-newline (string)
   "Return STRING truncated before the first newline.
 If STRING is truncated, append ellipsis."

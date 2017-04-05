@@ -57,7 +57,7 @@ current buffer."
                  (if arg
                      (save-excursion
                        (insert description))
-                   (message "%s" description))))))
+                   (jade-message "%s" description))))))
 
 (defun jade-reload ()
   "Reload the page."
