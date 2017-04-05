@@ -28,14 +28,15 @@
 (require 'seq)
 (require 'jade-render)
 
-(declare 'jade-debugger-get-current-scopes-properties)
+(declare-function jade-debugger-get-current-scopes "jade-debugger" ())
+(declare-function jade-debugger-get-scope-properties "jade-debugger" (scope callback))
 
 (defun jade-debugger-litable-setup-buffer ()
   "Render locals in the current buffer."
   (let ((scope (car (jade-debugger-get-current-scopes))))
     (jade-debugger-get-scope-properties
      scope
-     (lambda (properties scope)
+     (lambda (properties _)
        ;; This is just cosmetic, don't break the session
        (ignore-errors
          (js2-mode-wait-for-parse
@@ -56,8 +57,7 @@
       (cond ((js2-function-node-p node)
              (jade-debugger-litable-visit-function-node node properties)))
       (cond ((jade-debugger-litable-local-name-node-p node)
-             (jade-debugger-litable-visit-name-node node properties)
-             )))
+             (jade-debugger-litable-visit-name-node node properties))))
     t))
 
 (defun jade-debugger-litable-visit-function-node (node properties)
@@ -67,9 +67,11 @@
           (js2-function-node-params node)))
 
 (defun jade-debugger-litable-visit-name-node (node properties)
+  "Visit a JS2 name NODE to add an overlay displaying PROPERTIES."
   (jade-debugger-litable-maybe-add-value-overlay node properties))
 
 (defun jade-debugger-litable-local-name-node-p (node)
+  "Return non-nil if NODE represents a local variable."
   (let ((parent (js2-node-parent node)))
     (and parent (js2-name-node-p node)
          (or (js2-var-init-node-p parent)
@@ -77,13 +79,12 @@
 
 (defun jade-debugger-litable-visit-var-init-node (node properties)
   "Visit variable initialization NODE with PROPERTIES."
-  (let ((props))
-   (seq-do (lambda (param)
-             (jade-debugger-litable-maybe-add-value-overlay param properties))
-           (js2-function-node-params node))))
+  (seq-do (lambda (param)
+            (jade-debugger-litable-maybe-add-value-overlay param properties))
+          (js2-function-node-params node)))
 
 (defun jade-debugger-litable-maybe-add-value-overlay (node properties)
-  "If NODE matches PROPERTIES, add a value overlay."
+  "If NODE match PROPERTIES, add a value overlay."
   (if-let ((name (buffer-substring-no-properties (js2-node-abs-pos node)
                                                  (js2-node-abs-end node)))
            (property (seq-find (lambda (property)
