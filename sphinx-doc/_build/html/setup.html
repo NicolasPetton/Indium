@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting up and running &#8212; Jade 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interaction in JS buffers" href="code-evaluation.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-up-and-running">
+<span id="up-and-running"></span><h1>Getting up and running<a class="headerlink" href="#getting-up-and-running" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="nodejs">
+<span id="id1"></span><h2>NodeJS<a class="headerlink" href="#nodejs" title="Permalink to this headline">¶</a></h2>
+<p>Nodejs &gt;= <code class="docutils literal"><span class="pre">7.0</span></code> is required for Jade to work.</p>
+<p>Start a node process with the <code class="docutils literal"><span class="pre">--inspect</span></code> flag:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">node</span> <span class="o">--</span><span class="n">inspect</span> <span class="n">myfile</span><span class="o">.</span><span class="n">js</span>
+</pre></div>
+</div>
+<p>If you wish to break on the first line of the application code, start node using:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">node</span> <span class="o">--</span><span class="n">inspect</span> <span class="o">--</span><span class="n">debug</span><span class="o">-</span><span class="n">brk</span> <span class="n">myfile</span><span class="o">.</span><span class="n">js</span>
+</pre></div>
+</div>
+<p>Node will tell you to open an URL in Chrome:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>chrome-devtools://inspector.html?...&amp;ws=127.0.0.1:PORT/PATH
+</pre></div>
+</div>
+<p>Evaluate <code class="docutils literal"><span class="pre">M-x</span> <span class="pre">jade-connect-to-nodejs</span> <span class="pre">RET</span> <span class="pre">127.0.0.1</span> <span class="pre">RET</span> <span class="pre">PORT</span> <span class="pre">RET</span> <span class="pre">PATH</span></code>,
+<code class="docutils literal"><span class="pre">PORT</span></code> and <code class="docutils literal"><span class="pre">PATH</span></code> are the ones from the <cite>ws</cite> parameter of the above URL.</p>
+<p>Connecting Jade to the node process will open a debugger on the first line of
+the application code if you passed the CLI argument <code class="docutils literal"><span class="pre">--debug-brk</span></code>.</p>
+</div>
+<div class="section" id="chrome-chromium">
+<span id="chrome"></span><h2>Chrome/Chromium<a class="headerlink" href="#chrome-chromium" title="Permalink to this headline">¶</a></h2>
+<p>Chrome/Chromium &gt;= <code class="docutils literal"><span class="pre">54.0</span></code> is required for Jade to properly work (debugging
+protocol <code class="docutils literal"><span class="pre">v1.2</span></code>).</p>
+<p>Start Chrome/Chromium with the <code class="docutils literal"><span class="pre">--remote-debugging-port</span></code> flag like the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chromium</span> <span class="o">--</span><span class="n">remote</span><span class="o">-</span><span class="n">debugging</span><span class="o">-</span><span class="n">port</span><span class="o">=</span><span class="mi">9222</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">localhost</span><span class="p">:</span><span class="mi">3000</span>
+</pre></div>
+</div>
+<p>Make sure that no instance of Chrome is already running, otherwise Chrome will
+simply open a new tab on the existing Chrome instance, and the
+<code class="docutils literal"><span class="pre">remote-debugging-port</span></code> will not be set.</p>
+<p>To connect to a tab, run from Emacs:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">M</span><span class="o">-</span><span class="n">x</span> <span class="n">jade</span><span class="o">-</span><span class="n">connect</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">chrome</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-local-files-when-debugging">
+<span id="local-files"></span><h2>Using local files when debugging<a class="headerlink" href="#using-local-files-when-debugging" title="Permalink to this headline">¶</a></h2>
+<p>Jade can use local files when debugging, or to set breakpoints.</p>
+<div class="admonition hint">
+<p class="first admonition-title">Hint</p>
+<p class="last">When using <code class="docutils literal"><span class="pre">NodeJS</span></code>, or when the connected tab uses the <code class="docutils literal"><span class="pre">file://</span></code>
+URL, Jade will by itself use local files from disk.  In this case
+there is nothing to setup.</p>
+</div>
+<p>If the Chrome connection uses the <code class="docutils literal"><span class="pre">http://</span></code> or <code class="docutils literal"><span class="pre">https://</span></code> protocol, you will
+have to tell Jade where to find the corresponding JavaScript files on disk by
+setting up a workspace.</p>
+<p>To do that, place an empty <code class="docutils literal"><span class="pre">.jade</span></code> marker file in the root folder where your
+<strong>web server serves static files</strong>.</p>
+<p>The <code class="docutils literal"><span class="pre">.jade</span></code> file should not always be placed in the directory that contains
+your JavaScript files. It has to be in the root folder containing static
+files. Most of the time, it is at least one level above.</p>
+<p>Given the following project structure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">project</span><span class="o">/</span> <span class="p">(</span><span class="n">current</span> <span class="n">directory</span><span class="p">)</span>
+   <span class="n">www</span><span class="o">/</span>
+      <span class="n">index</span><span class="o">.</span><span class="n">html</span>
+      <span class="n">css</span><span class="o">/</span>
+         <span class="n">style</span><span class="o">.</span><span class="n">css</span>
+      <span class="n">js</span><span class="o">/</span>
+         <span class="n">app</span><span class="o">.</span><span class="n">js</span>
+      <span class="o">.</span><span class="n">jade</span>
+</pre></div>
+</div>
+<p>Jade will lookup the file <code class="docutils literal"><span class="pre">www/js/app.js</span></code> for the URL
+&#8220;<a class="reference external" href="http://localhost:3000/js/app.js">http://localhost:3000/js/app.js</a>&#8221;.</p>
+<div class="admonition danger">
+<p class="first admonition-title">Danger</p>
+<p class="last">In order for this setup to work, make sure to call
+<code class="docutils literal"><span class="pre">jade-connect-to-chrome</span></code> from somewhere within the workspace
+directory!</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting up and running</a><ul>
+<li><a class="reference internal" href="#nodejs">NodeJS</a></li>
+<li><a class="reference internal" href="#chrome-chromium">Chrome/Chromium</a></li>
+<li><a class="reference internal" href="#using-local-files-when-debugging">Using local files when debugging</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="code-evaluation.html" title="next chapter">Interaction in JS buffers</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/setup.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Nicolas Petton.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/setup.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

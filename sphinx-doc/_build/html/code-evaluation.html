@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Interaction in JS buffers &#8212; Jade 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Getting up and running" href="setup.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="interaction-in-js-buffers">
+<h1>Interaction in JS buffers<a class="headerlink" href="#interaction-in-js-buffers" title="Permalink to this headline">¶</a></h1>
+<p>Jade comes with a minor mode called <code class="docutils literal"><span class="pre">jade-interaction-mode</span></code> for interactive
+programming. To enable it in all JavaScript buffers, add something
+like the following to your Emacs configuration:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">require</span> <span class="s1">&#39;jade)</span>
+<span class="p">(</span><span class="n">add</span><span class="o">-</span><span class="n">hook</span> <span class="s1">&#39;js-mode-hook #&#39;</span><span class="n">jade</span><span class="o">-</span><span class="n">interaction</span><span class="o">-</span><span class="n">mode</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal"><span class="pre">jade-interaction-mode</span></code> is on, you can evaluate code, inspect objects and
+add or remove breakpoints from your buffers.</p>
+<div class="section" id="evaluating-and-inspecting">
+<h2>Evaluating and inspecting<a class="headerlink" href="#evaluating-and-inspecting" title="Permalink to this headline">¶</a></h2>
+<p>To evaluate the JavaScript expression preceding the point, press <code class="docutils literal"><span class="pre">C-x</span> <span class="pre">C-e</span></code>.</p>
+<p>To inspect the result of an expression, press <code class="docutils literal"><span class="pre">C-x</span> <span class="pre">M-i</span></code>.</p>
+<p>The entire buffer can be evaluating with <code class="docutils literal"><span class="pre">M-x</span> <span class="pre">jade-eval-buffer</span></code>.</p>
+</div>
+<div class="section" id="adding-and-removing-breakpoints">
+<h2>Adding and removing breakpoints<a class="headerlink" href="#adding-and-removing-breakpoints" title="Permalink to this headline">¶</a></h2>
+<p>You need to first make sure that Jade is set up correctly to use local files
+(see <a class="reference internal" href="setup.html#local-files"><span class="std std-ref">Using local files when debugging</span></a>).</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">C-c</span> <span class="pre">b</span> <span class="pre">b</span></code>: Toggle a breakpoint</li>
+<li><code class="docutils literal"><span class="pre">C-u</span> <span class="pre">C-c</span> <span class="pre">b</span> <span class="pre">b</span></code>: Toggle a breakpoint with condition</li>
+<li><code class="docutils literal"><span class="pre">C-c</span> <span class="pre">b</span> <span class="pre">K</span></code>: Remove all breakpoints from the current buffer</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Breakpoints are persistent: if the connection is closed, when a new
+connection is made Jade will attempt to add back all breakpoints.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Interaction in JS buffers</a><ul>
+<li><a class="reference internal" href="#evaluating-and-inspecting">Evaluating and inspecting</a></li>
+<li><a class="reference internal" href="#adding-and-removing-breakpoints">Adding and removing breakpoints</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="setup.html" title="previous chapter">Getting up and running</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/code-evaluation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Nicolas Petton.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/code-evaluation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

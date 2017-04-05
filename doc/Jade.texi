@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Jade 0.3.1, Apr 04, 2017
+Jade 0.3.1, Apr 05, 2017
 
 Nicolas Petton
 
@@ -182,7 +182,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,Interaction in JS buffers,Installation,Table of contents
-@anchor{setup up-and-running}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup doc}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -225,7 +225,7 @@ Connecting Jade to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{c}@anchor{setup chrome}@anchor{d}
+@anchor{setup chrome}@anchor{c}@anchor{setup chrome-chromium}@anchor{d}
 @subsection Chrome/Chromium
 
 
@@ -299,20 +299,21 @@ directory!
 @end cartouche
 
 @node Interaction in JS buffers,,Getting up and running,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{10}@anchor{code-evaluation doc}@anchor{11}
+@anchor{code-evaluation doc}@anchor{10}@anchor{code-evaluation interaction-in-js-buffers}@anchor{11}
 @section Interaction in JS buffers
 
 
-To enable interaction in all JavaScript buffers, add something like the
-following to your Emacs configuration:
+Jade comes with a minor mode called @code{jade-interaction-mode} for interactive
+programming. To enable it in all JavaScript buffers, add something
+like the following to your Emacs configuration:
 
 @example
 (require 'jade)
 (add-hook 'js-mode-hook #'jade-interaction-mode)
 @end example
 
-When @code{jade-interaction-mode} is on, you can evaluate code and add/remove
-breakpoints from your buffers.
+When @code{jade-interaction-mode} is on, you can evaluate code, inspect objects and
+add or remove breakpoints from your buffers.
 
 @menu
 * Evaluating and inspecting:: 
@@ -325,8 +326,7 @@ breakpoints from your buffers.
 @subsection Evaluating and inspecting
 
 
-To evaluate a JavaScript expression, place your cursor right at the end of the
-expression and press @code{C-x C-e}.
+To evaluate the JavaScript expression preceding the point, press @code{C-x C-e}.
 
 To inspect the result of an expression, press @code{C-x M-i}.
 
