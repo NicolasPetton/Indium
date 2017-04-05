@@ -252,21 +252,6 @@ Evaluation happens in the context of the current call frame."
                          (lambda (value _error)
                            (message "%s" (jade-render-value-to-string value)))))
 
-(defun jade-debugger-eval-last-node ()
-  "Evaluate the node before point."
-  (interactive)
-  (jade-debugger-evaluate (js2-node-string (jade-interaction-node-before-point))))
-
-(defun jade-debugger-inspect-last-node ()
-  "Evaluate and inspect the node before point."
-  (interactive)
-  (jade-backend-evaluate (jade-backend)
-                         (js2-node-string (jade-interaction-node-before-point))
-                         (lambda (result error)
-                           (when error
-                             (message "JS error: %s" result))
-                           (jade-inspector-inspect result))))
-
 ;; Debugging context
 
 (defun jade-debugger-setup-context (frames current-frame)
@@ -376,8 +361,6 @@ frame."
     (define-key map (kbd "e") #'jade-debugger-evaluate)
     (define-key map (kbd "n") #'jade-debugger-next-frame)
     (define-key map (kbd "p") #'jade-debugger-previous-frame)
-    (define-key map (kbd "C-x C-e") #'jade-debugger-eval-last-node)
-    (define-key map (kbd "C-c M-i") #'jade-debugger-inspect-last-node)
     map))
 
 (define-minor-mode jade-debugger-mode
@@ -386,7 +369,8 @@ frame."
 \\{jade-debugger-mode-map}"
   :group 'jade
   :lighter " JS-debug"
-  :keymap jade-debugger-mode-map)
+  :keymap jade-debugger-mode-map
+  (jade-interaction-mode 1))
 
 (provide 'jade-debugger)
 ;;; jade-debugger.el ends here
