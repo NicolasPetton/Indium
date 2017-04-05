@@ -20,6 +20,12 @@ To inspect the result of an expression, press ``C-x M-i``.
 
 The entire buffer can be evaluating with ``M-x jade-eval-buffer``.
 
+Switching to the REPL buffer
+----------------------------
+
+Press ``C-c C-z`` from any buffer with ``jade-interaction-mode`` turned on to
+switch back to the REPL buffer.
+
 Adding and removing breakpoints
 -------------------------------
 

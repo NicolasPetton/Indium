@@ -23,9 +23,11 @@
 (require 'js2-mode)
 (require 'map)
 (require 'seq)
+(require 'subr-x)
 (require 'jade-backend)
 (require 'jade-inspector)
 (require 'jade-breakpoint)
+(require 'jade-repl)
 (require 'jade-render)
 
 (defun jade-eval (string &optional callback)
@@ -72,6 +74,13 @@ current buffer."
   (jade-eval (js2-node-string (jade-interaction-node-before-point))
              (lambda (result _error)
                (jade-inspector-inspect result))))
+
+(defun jade-switch-to-repl-buffer ()
+  "Switch to the repl buffer if any."
+  (interactive)
+  (if-let ((buf (jade-repl-get-buffer)))
+      (switch-to-buffer buf)
+    (user-error "No REPL buffer open")))
 
 (defun jade-toggle-breakpoint (arg)
   "Add a breakpoint at point."
@@ -127,6 +136,7 @@ current buffer."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'jade-eval-last-node)
     (define-key map (kbd "C-c M-i") #'jade-inspect-last-node)
+    (define-key map (kbd "C-c C-z") #'jade-switch-to-repl-buffer)
     (define-key map (kbd "C-c b b") #'jade-toggle-breakpoint)
     (define-key map (kbd "C-c b K") #'jade-remove-all-breakpoints-from-buffer)
     map))
