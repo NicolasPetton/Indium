@@ -4,5 +4,5 @@
 TAGS
 .cask
 docs/_build/
-doc/_build/
+sphinx-doc/_build/
 Jade.info
