@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Jade 0.3.1, Apr 05, 2017
+Jade 0.3.3, Apr 06, 2017
 
 Nicolas Petton
 
@@ -104,6 +104,7 @@ Getting up and running
 Interaction in JS buffers
 
 * Evaluating and inspecting:: 
+* Switching to the REPL buffer:: 
 * Adding and removing breakpoints:: 
 
 @end detailmenu
@@ -317,11 +318,12 @@ add or remove breakpoints from your buffers.
 
 @menu
 * Evaluating and inspecting:: 
+* Switching to the REPL buffer:: 
 * Adding and removing breakpoints:: 
 
 @end menu
 
-@node Evaluating and inspecting,Adding and removing breakpoints,,Interaction in JS buffers
+@node Evaluating and inspecting,Switching to the REPL buffer,,Interaction in JS buffers
 @anchor{code-evaluation evaluating-and-inspecting}@anchor{12}
 @subsection Evaluating and inspecting
 
@@ -332,8 +334,16 @@ To inspect the result of an expression, press @code{C-x M-i}.
 
 The entire buffer can be evaluating with @code{M-x jade-eval-buffer}.
 
-@node Adding and removing breakpoints,,Evaluating and inspecting,Interaction in JS buffers
-@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{13}
+@node Switching to the REPL buffer,Adding and removing breakpoints,Evaluating and inspecting,Interaction in JS buffers
+@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{13}
+@subsection Switching to the REPL buffer
+
+
+Press @code{C-c C-z} from any buffer with @code{jade-interaction-mode} turned on to
+switch back to the REPL buffer.
+
+@node Adding and removing breakpoints,,Switching to the REPL buffer,Interaction in JS buffers
+@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{14}
 @subsection Adding and removing breakpoints
 
 
@@ -361,7 +371,7 @@ connection is made Jade will attempt to add back all breakpoints.
 @end cartouche
 
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{14}
+@anchor{index indices-and-tables}@anchor{15}
 @chapter Indices and tables
 
 
