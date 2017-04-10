@@ -85,8 +85,7 @@ current buffer."
 (defun jade-toggle-breakpoint (arg)
   "Add a breakpoint at point."
   (interactive "P")
-  (jade-interaction--ensure-connection)
-  (if (jade-breakpoint-at-point)
+  (if (jade-breakpoint-on-current-line-p)
       (jade-breakpoint-remove)
     (jade-breakpoint-add
      (when arg (read-from-minibuffer "Breakpoint condition: ")))))
@@ -94,7 +93,6 @@ current buffer."
 (defun jade-remove-all-breakpoints-from-buffer ()
   "Remove all breakpoints from the current buffer."
   (interactive)
-  (jade-interaction--ensure-connection)
   (jade-breakpoint-remove-all))
 
 (defun jade-interaction-node-before-point ()

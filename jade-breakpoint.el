@@ -19,6 +19,11 @@
 
 ;;; Commentary:
 
+;; Add and remove breakpoints to a buffer.
+;;
+;; Breakpoints are added even if Jade is not connected.  In such case, Jade will
+;; attempt to put all breakpoints when a connection is made.
+
 ;; Add or remove breakpoints from buffers.
 
 ;;; Code:
@@ -31,35 +36,39 @@
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (jade-backend-add-breakpoint (jade-backend)
-                               buffer-file-name
-                               (1- (line-number-at-pos))
-                               (apply-partially #'jade-breakpoint-added
-                                                (current-buffer))
-                               condition))
+  (let ((ov (jade-breakpoint--put-icon condition)))
+    (when jade-connection
+      (jade-backend-add-breakpoint (jade-backend)
+                                   buffer-file-name
+                                   (1- (line-number-at-pos))
+                                   (lambda (line id condition)
+                                     (jade-breakpoint-added id ov))
+                                   condition))))
 
 (defun jade-breakpoint-remove ()
   "Remove the breakpoint from the current line."
-  (if-let ((id (jade-breakpoint-at-point)))
-      (progn
-        (jade-backend-remove-breakpoint (jade-backend) id)
-        (jade-breakpoint--remove-icon))))
+  (if-let ((id (jade-breakpoint-id-at-point)))
+      (when jade-connection
+        (jade-backend-remove-breakpoint (jade-backend) id)))
+  (jade-breakpoint--remove-icon))
 
 (defun jade-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
   (jade-breakpoint-remove-breakpoints-from-buffer)
-  (seq-do (lambda (brk)
-            (jade-backend-remove-breakpoint (jade-backend)
-                                            (map-elt brk 'id)))
-          (jade-backend-get-breakpoints-in-file buffer-file-name)))
+  (when jade-connection
+    (seq-do (lambda (brk)
+              (jade-backend-remove-breakpoint (jade-backend)
+                                              (map-elt brk 'id)))
+            (jade-backend-get-breakpoints-in-file buffer-file-name))))
 
 (defun jade-breakpoint-add-breakpoints-to-buffer ()
   "Add all breakpoints markers to the current buffer.
 This function does not add breakpoints."
   (seq-do (lambda (brk)
-            (jade-breakpoint-added (current-buffer)
-                                   (map-elt brk 'line)
-                                   (map-elt brk 'id)))
+            (save-excursion
+              (goto-line (1+ (map-elt brk 'line)))
+              (let ((ov (jade-breakpoint--put-icon)))
+                (jade-breakpoint-added (map-elt brk 'id) ov))))
           (jade-backend-get-breakpoints-in-file buffer-file-name)))
 
 (defun jade-breakpoint-remove-breakpoints-from-buffer ()
@@ -70,22 +79,9 @@ This function does no unset breakpoints,"
                    'jade-breakpoint
                    t))
 
-(defun jade-breakpoint-added (buffer line id &optional condition)
-  "Add a breakpoint marker to BUFFER LINE.
-Store the ID and CONDITION of the breakpoint."
-  (if line
-      (save-excursion
-        (with-current-buffer buffer
-          (goto-line (1+ line))
-          (jade-breakpoint--put-icon id condition)))
-    (progn
-      (with-current-buffer buffer
-        (message "Cannot set breakpoint.  Is %s loaded?"
-                 (file-name-nondirectory buffer-file-name))
-        ;; We could not locate the breakpoint, so try to remove it.  This happens
-        ;; mostly when trying to set a breakpoint to a file that the backend has
-        ;; not loaded yet.
-        (jade-backend-remove-breakpoint (jade-backend) id)))))
+(defun jade-breakpoint-added (id overlay)
+  "Add the breakpoint ID to OVERLAY."
+  (jade-breakpoint--put-id id overlay))
 
 (defun jade-breakpoint-restore-breakpoints ()
   "Restore BREAKPOINTS set to all buffers.
@@ -102,9 +98,12 @@ This function is used when reconnecting to a new connection."
                 (goto-char (overlay-start ov))
                 (jade-breakpoint-add)))))))))
 
-(defun jade-breakpoint--put-icon (id condition)
-  "Add a breakpoint icon on the current line with ID and CONDITION.
-The icon is added to the left fringe."
+(defun jade-breakpoint--put-icon (&optional condition)
+  "Add a breakpoint icon on the current line.
+The icon is added to the left fringe.
+
+When CONDITION is non-nil, add it to the breakpoint overlay.
+Return the overlay."
   (let ((ov (make-overlay (point-at-bol) (point-at-eol))))
     (overlay-put ov
                  'before-string
@@ -112,13 +111,17 @@ The icon is added to the left fringe."
     (overlay-put ov
                  'jade-breakpoint
                  t)
-    (overlay-put ov
-                 'jade-breakpoint-id
-                 id)
     (when condition
       (overlay-put ov
-                  'jade-breakpoint-condition
-                  condition))))
+                   'jade-breakpoint-condition
+                   condition))
+    ov))
+
+(defun jade-breakpoint--put-id (id overlay)
+  "Put the ID of the breakpoint to OVERLAY."
+  (overlay-put overlay
+               'jade-breakpoint-id
+               id))
 
 (defun jade-breakpoint--remove-icon ()
   "Remove the breakpoint icon from the current line."
@@ -132,11 +135,17 @@ The icon is added to the left fringe."
   (propertize "b" 'display
               (list 'left-fringe 'jade-breakpoint 'jade-breakpoint-face)))
 
-(defun jade-breakpoint-at-point ()
+(defun jade-breakpoint-id-at-point ()
   "Return the id of the breakpoint on the current line.
 If there is no breakpoint set on the line, return nil."
   (seq-some (lambda (ov)
               (overlay-get ov 'jade-breakpoint-id))
+            (overlays-at (point))))
+
+(defun jade-breakpoint-on-current-line-p ()
+  "Return non-nil if there is a breakpoint on the current line."
+  (seq-some (lambda (ov)
+              (overlay-get ov 'jade-breakpoint))
             (overlays-at (point))))
 
 (and (display-images-p)

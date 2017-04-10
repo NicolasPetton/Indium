@@ -370,7 +370,8 @@ frame."
   :group 'jade
   :lighter " JS-debug"
   :keymap jade-debugger-mode-map
-  (jade-interaction-mode 1))
+  (unless jade-interaction-mode
+    (jade-interaction-mode)))
 
 (provide 'jade-debugger)
 ;;; jade-debugger.el ends here
