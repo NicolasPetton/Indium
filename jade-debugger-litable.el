@@ -105,7 +105,8 @@ Ignore if the object name of NODE is not in the current scope."
       (unless (seq-contains (overlay-get ov 'jade-properties) name)
         (if-let ((existing-contents (overlay-get ov 'after-string)))
             (setq contents (concat existing-contents ", " contents))
-          (setq contents (concat " => " contents)))
+          (setq contents (concat " " contents)))
+        (setq contents (jade-debugger-litable--overlay-string contents))
         (font-lock-prepend-text-property 0
                                          (seq-length contents)
                                          'face
@@ -117,6 +118,16 @@ Ignore if the object name of NODE is not in the current scope."
         (overlay-put ov
                      'after-string
                      contents)))))
+
+(defun jade-debugger-litable--overlay-string (string)
+  "Return the STRING to be added to an overlay at the end of the line.
+If the display string overflows, trim it to avoid truncating the line."
+  (save-excursion
+    (goto-char (point-at-eol))
+    (if (>= (+ (seq-length string) (current-column)) (window-width))
+        (let ((width (- (window-width) (current-column) 1)))
+          (truncate-string-to-width string width 0 nil "..."))
+      string)))
 
 (defun jade-debugger-litable--get-overlay-at-pos ()
   "Return the overlay for litable at point.
