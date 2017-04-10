@@ -78,7 +78,14 @@ Store the ID and CONDITION of the breakpoint."
         (with-current-buffer buffer
           (goto-line (1+ line))
           (jade-breakpoint--put-icon id condition)))
-    (message "Cannot find breakpoint line.")))
+    (progn
+      (with-current-buffer buffer
+        (message "Cannot set breakpoint.  Is %s loaded?"
+                 (file-name-nondirectory buffer-file-name))
+        ;; We could not locate the breakpoint, so try to remove it.  This happens
+        ;; mostly when trying to set a breakpoint to a file that the backend has
+        ;; not loaded yet.
+        (jade-backend-remove-breakpoint (jade-backend) id)))))
 
 (defun jade-breakpoint-restore-breakpoints ()
   "Restore BREAKPOINTS set to all buffers.
