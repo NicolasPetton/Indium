@@ -125,6 +125,14 @@ non-nil, evaluate it with the breakpoint's location and id.")
   "Return all breakpoints.
 A breakpoint is a map with the keys `id', `file', and `line'.")
 
+(defun jade-backend-remove-all-breakpoints-from-buffer (buffer)
+  "Remove all breakpoints from BUFFER."
+  (with-current-buffer buffer
+    (seq-do (lambda (brk)
+              (jade-backend-remove-breakpoint (jade-backend)
+                                              (map-elt brk 'id)))
+            (jade-backend-get-breakpoints-in-file buffer-file-name))))
+
 (defun jade-backend-get-breakpoints-in-file (file)
   "Return all breakpoints in FILE."
   (let ((breakpoints (jade-backend-get-breakpoints (jade-backend))))

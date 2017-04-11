@@ -159,6 +159,12 @@ current buffer."
   "Function to be evaluated when `jade-interaction-mode' is turned off."
   (jade-breakpoint-remove-breakpoints-from-buffer))
 
+(defun jade-interaction-update-breakpoints ()
+  "Update breakpoints in the current buffer."
+  (when (and jade-interaction-mode jade-connection)
+    (jade-breakpoint-update-breakpoints)))
+
+(add-hook 'after-save-hook #'jade-interaction-update-breakpoints)
 
 (provide 'jade-interaction)
 ;;; jade-interaction.el ends here

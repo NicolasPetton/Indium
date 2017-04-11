@@ -55,11 +55,7 @@ CONDITION is true."
 (defun jade-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
   (jade-breakpoint-remove-breakpoints-from-buffer)
-  (when jade-connection
-    (seq-do (lambda (brk)
-              (jade-backend-remove-breakpoint (jade-backend)
-                                              (map-elt brk 'id)))
-            (jade-backend-get-breakpoints-in-file buffer-file-name))))
+  (jade-backend-remove-all-breakpoints-from-buffer (current-buffer)))
 
 (defun jade-breakpoint-add-breakpoints-to-buffer ()
   "Add all breakpoints markers to the current buffer.
@@ -83,8 +79,14 @@ This function does no unset breakpoints,"
   "Add the breakpoint ID to OVERLAY."
   (jade-breakpoint--put-id id overlay))
 
+(defun jade-breakpoint-update-breakpoints ()
+  "Update all breakpoints for the current buffer in the backend."
+  (when jade-connection
+    (jade-backend-remove-all-breakpoints-from-buffer (current-buffer))
+    (jade-breakpoint-restore-breakpoints)))
+
 (defun jade-breakpoint-restore-breakpoints ()
-  "Restore BREAKPOINTS set to all buffers.
+  "Restore all breakpoints set to all buffers.
 This function is used when reconnecting to a new connection."
   (seq-doseq (buf (buffer-list))
     (with-current-buffer buf
@@ -92,11 +94,10 @@ This function is used when reconnecting to a new connection."
         (let ((overlays (overlays-in (point-min) (point-max))))
           (seq-doseq (ov overlays)
             (when (overlay-get ov 'jade-breakpoint)
-              (let ((condition (overlay-get ov 'jade-condition))
-                    (start (overlay-start ov))
-                    (end (overlay-end ov)))
-                (goto-char (overlay-start ov))
-                (jade-breakpoint-add)))))))))
+              (let ((condition (overlay-get ov 'jade-breakpoint-condition))
+                    (start (overlay-start ov)))
+                (goto-char start)
+                (jade-breakpoint-add condition)))))))))
 
 (defun jade-breakpoint--put-icon (&optional condition)
   "Add a breakpoint icon on the current line.
