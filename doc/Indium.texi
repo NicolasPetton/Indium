@@ -130,7 +130,7 @@ Interaction in JS buffers
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -205,9 +205,12 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup doc}@anchor{7}@anchor{setup up-and-running}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
+@anchor{setup getting-up-and-running}@anchor{7}@anchor{setup doc}@anchor{8}@anchor{setup up-and-running}@anchor{9}
 @section Getting up and running
 
+
+If you have @code{Jade} installed, you should read the migration-from-jade
+page first.
 
 @menu
 * NodeJS:: 
@@ -217,7 +220,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
+@anchor{setup nodejs}@anchor{a}@anchor{setup id1}@anchor{b}
 @subsection NodeJS
 
 
@@ -322,7 +325,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl doc}@anchor{10}@anchor{repl the-repl}@anchor{11}@anchor{repl repl}@anchor{12}
+@anchor{repl repl}@anchor{10}@anchor{repl doc}@anchor{11}@anchor{repl the-repl}@anchor{12}
 @section The REPL
 
 
@@ -339,7 +342,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{8,,Getting up and running}).
+connection is made (see @ref{9,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -473,7 +476,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation doc}@anchor{18}@anchor{code-evaluation interaction-in-js-buffers}@anchor{19}
+@anchor{code-evaluation interaction-in-js-buffers}@anchor{18}@anchor{code-evaluation doc}@anchor{19}
 @section Interaction in JS buffers
 
 
@@ -513,7 +516,7 @@ The entire buffer can be evaluating with @code{M-x indium-eval-buffer}.
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{12,,The REPL}).
+switch back to the REPL buffer (see @ref{10,,The REPL}).
 
 @node Adding and removing breakpoints,,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{1d}
@@ -557,12 +560,12 @@ updated automatically.  You can either refresh the page or evaluate
 @end cartouche
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger doc}@anchor{1f}@anchor{debugger the-stepping-debugger}@anchor{20}@anchor{debugger debugger}@anchor{1e}
+@anchor{debugger doc}@anchor{1f}@anchor{debugger debugger}@anchor{1e}@anchor{debugger the-stepping-debugger}@anchor{20}
 @section The stepping debugger
 
 
 @node The inspector,,The stepping debugger,Table of contents
-@anchor{inspector doc}@anchor{21}@anchor{inspector the-inspector}@anchor{22}@anchor{inspector inspector}@anchor{1b}
+@anchor{inspector doc}@anchor{21}@anchor{inspector inspector}@anchor{1b}@anchor{inspector the-inspector}@anchor{22}
 @section The inspector
 
 

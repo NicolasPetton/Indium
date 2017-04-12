@@ -69,9 +69,9 @@ setting up a workspace.
 To do that, place an empty ``.indium`` marker file in the root folder where your
 **web server serves static files**.
 
-The ``.indium`` file should not always be placed in the directory that contains
-your JavaScript files. It has to be in the root folder containing static
-files. Most of the time, it is at least one level above.
+The root folder where the ``.indium`` file should be put is not always the
+directory that contains your JavaScript files. It should to be the root folder
+containing static files. Most of the time, it is at least one level above.
 
 Given the following project structure: ::
 
