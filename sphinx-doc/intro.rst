@@ -8,3 +8,8 @@ for JavaScript development, including:
 * a scratch buffer (``M-x jade-scratch``);
 * JavaScript evaluation in JS buffers with ``jade-interaction-mode``;
 * a stepping Debugger, similar to ``edebug``, or ``cider``.
+
+This documentation can be read online at https://jade.readthedocs.io.
+
+It is also available in Info format and be consulted from within Emacs with
+``C-h i m jade RET``.
