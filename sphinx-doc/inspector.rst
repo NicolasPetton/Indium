@@ -1,0 +1,4 @@
+.. _inspector:
+
+The inspector
+=============

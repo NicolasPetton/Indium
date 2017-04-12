@@ -16,7 +16,7 @@ Evaluating and inspecting
 
 To evaluate the JavaScript expression preceding the point, press ``C-x C-e``.
 
-To inspect the result of an expression, press ``C-x M-i``.
+To inspect the result of an expression, press ``C-c M-i`` (see :ref:`inspector`).
 
 The entire buffer can be evaluating with ``M-x jade-eval-buffer``.
 
@@ -24,7 +24,7 @@ Switching to the REPL buffer
 ----------------------------
 
 Press ``C-c C-z`` from any buffer with ``jade-interaction-mode`` turned on to
-switch back to the REPL buffer.
+switch back to the REPL buffer (see :ref:`repl`).
 
 Adding and removing breakpoints
 -------------------------------
@@ -36,5 +36,15 @@ You need to first make sure that Jade is set up correctly to use local files
 - ``C-u C-c b b``: Toggle a breakpoint with condition
 - ``C-c b K``: Remove all breakpoints from the current buffer
 
+Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
+Jade debugger pop up (see :ref:`debugger`).
+  
 .. Note:: Breakpoints are persistent: if the connection is closed, when a new
           connection is made Jade will attempt to add back all breakpoints.
+
+.. Warning:: When modifying JavaScript buffers, it is up to the user to update
+             the browser tab.  Jade will attempt to update breakpoint locations
+             when saving a buffer, but the runtime script contents won't be
+             updated automatically.  You can either refresh the page or evaluate
+             ``jade-reload``.
+             

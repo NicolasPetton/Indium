@@ -87,6 +87,6 @@ Given the following project structure: ::
 Jade will lookup the file ``www/js/app.js`` for the URL
 "http://localhost:3000/js/app.js".
 
-.. DANGER:: In order for this setup to work, make sure to call
+.. WARNING:: In order for this setup to work, make sure to call
             ``jade-connect-to-chrome`` from somewhere within the workspace
             directory!

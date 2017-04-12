@@ -16,8 +16,11 @@ Table of contents
 
    installation
    setup
+   repl
    code-evaluation
-
+   debugger
+   inspector
+   
 Indices and tables
 ------------------
 
