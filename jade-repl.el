@@ -245,14 +245,17 @@ optional."
 (defun jade-repl--emit-message-url-line (url line)
   "Emit the URL and LINE for a message."
   (unless (seq-empty-p url)
-    (insert "\nFrom "
-            (propertize (if line
-                            (format "%s:%s" url line)
-                          url)
-                        'font-lock-face 'jade-link-face
-                        'jade-action (lambda ()
-                                       (browse-url url))
-                        'rear-nonsticky '(font-lock-face jade-action)))))
+    (let ((path (jade-workspace-lookup-file-safe url)))
+     (insert "\nFrom "
+             (propertize (if line
+                             (format "%s:%s" path line)
+                           path)
+                         'font-lock-face 'jade-link-face
+                         'jade-action (lambda ()
+                                        (if (file-regular-p path)
+                                            (find-file path)
+                                          (browse-url path)))
+                         'rear-nonsticky '(font-lock-face jade-action))))))
 
 (defun jade-repl-next-input ()
   "Insert the content of the next input in the history."

@@ -57,6 +57,10 @@ If no file is found, return nil."
   (or (jade-workspace--lookup-using-file-protocol url)
       (jade-workspace--lookup-using-workspace url)))
 
+(defun jade-workspace-lookup-file-safe (url)
+  "Find a local file for URL, or return URL is no file can be found."
+  (or (jade-workspace-lookup-file url) url))
+
 (defun jade-workspace--lookup-using-file-protocol (url)
   "Return a local file matching URL if URL uses the file:// protocol."
   (when (jade-workspace--file-protocol-p)

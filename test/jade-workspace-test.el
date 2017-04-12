@@ -49,6 +49,17 @@
   (assess-with-filesystem jade-workspace--test-fs
     (should (null (jade-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
 
+(ert-deftest jade-workspace-lookup-file-safe-fallback-test ()
+  (assess-with-filesystem jade-workspace--test-fs
+    (let ((url "http://localhost:9229/non-existant-file-name.js"))
+      (should (equal url (jade-workspace-lookup-file-safe url))))))
+
+(ert-deftest jade-workspace-lookup-file-safe-test ()
+  (assess-with-filesystem jade-workspace--test-fs
+    (let ((url "http://localhost:9229/js/app.js")
+          (file (expand-file-name "js/app.js")))
+      (should (equal file (jade-workspace-lookup-file-safe url))))))
+
 (ert-deftest jade-workspace-make-url-with-no-workspace-test ()
   (let ((jade-connection '((url . "http://localhost:9229"))))
     (should (null (jade-workspace-make-url "js/app.js")))))
