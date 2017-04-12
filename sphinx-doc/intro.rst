@@ -11,5 +11,5 @@ for JavaScript development, including:
 
 This documentation can be read online at https://indium.readthedocs.io.
 
-It is also available in Info format and be consulted from within Emacs with
+It is also available in Info format and can be consulted from within Emacs with
 ``C-h i m indium RET``.
