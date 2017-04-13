@@ -1,4 +1,4 @@
-;;; jade-webkit.el --- Webkit/Blink backend for jade  -*- lexical-binding: t; -*-
+;;; indium-webkit.el --- Webkit/Blink backend for indium  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -20,8 +20,8 @@
 
 ;;; Commentary:
 
-;; Jade backend implementation for Webkit and Blink.  Connection is handled in
-;; jade-chrome.el.  This backend currently supports the REPL, code completion,
+;; Indium backend implementation for Webkit and Blink.  Connection is handled in
+;; indium-chrome.el.  This backend currently supports the REPL, code completion,
 ;; object inspection and the debugger.
 ;;
 ;; The protocol is documented at
@@ -35,41 +35,41 @@
 (require 'seq)
 (require 'cl-lib)
 
-(require 'jade-backend)
-(require 'jade-repl)
-(require 'jade-debugger)
-(require 'jade-workspace)
+(require 'indium-backend)
+(require 'indium-repl)
+(require 'indium-debugger)
+(require 'indium-workspace)
 
 
-(defvar jade-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
+(defvar indium-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
 
-(jade-register-backend 'webkit)
+(indium-register-backend 'webkit)
 
-(cl-defmethod jade-backend-active-connection-p ((backend (eql webkit)))
+(cl-defmethod indium-backend-active-connection-p ((backend (eql webkit)))
   "Return non-nil if the current connection is active."
-  (and jade-connection
-       (websocket-openp (map-elt jade-connection 'ws))))
+  (and indium-connection
+       (websocket-openp (map-elt indium-connection 'ws))))
 
-(cl-defmethod jade-backend-close-connection ((backend (eql webkit)))
+(cl-defmethod indium-backend-close-connection ((backend (eql webkit)))
   "Close the websocket associated with the current connection."
-  (websocket-close (map-elt jade-connection 'ws)))
+  (websocket-close (map-elt indium-connection 'ws)))
 
-(cl-defmethod jade-backend-reconnect ((backend (eql webkit)))
-  (let* ((url (map-elt jade-connection 'url))
-         (websocket-url (websocket-url (map-elt jade-connection 'ws))))
-    (jade-webkit--open-ws-connection url
+(cl-defmethod indium-backend-reconnect ((backend (eql webkit)))
+  (let* ((url (map-elt indium-connection 'url))
+         (websocket-url (websocket-url (map-elt indium-connection 'ws))))
+    (indium-webkit--open-ws-connection url
                                      websocket-url
                                      ;; close all buffers related to the closed
                                      ;; connection the first
-                                     #'jade-quit)))
+                                     #'indium-quit)))
 
-(cl-defmethod jade-backend-evaluate ((backend (eql webkit)) string &optional callback)
+(cl-defmethod indium-backend-evaluate ((backend (eql webkit)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
-  (let ((callFrameId (map-elt (map-elt jade-connection 'current-frame)
+  (let ((callFrameId (map-elt (map-elt indium-connection 'current-frame)
                               'callFrameId)))
-    (jade-webkit--send-request
+    (indium-webkit--send-request
      `((method . ,(if callFrameId
                       "Debugger.evaluateOnCallFrame"
                     "Runtime.evaluate"))
@@ -78,28 +78,28 @@ evaluation and non-nil if the evaluation threw an error."
                   (generatePreview . t))))
      (lambda (response)
        (when callback
-         (jade-webkit--handle-evaluation-response response callback))))))
+         (indium-webkit--handle-evaluation-response response callback))))))
 
-(cl-defmethod jade-backend-get-completions ((backend (eql webkit)) expression prefix callback)
+(cl-defmethod indium-backend-get-completions ((backend (eql webkit)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
 Evaluate CALLBACK on the filtered candidates."
-  (let ((expression (jade-webkit--completion-expression expression)))
-    (jade-webkit--send-request
+  (let ((expression (indium-webkit--completion-expression expression)))
+    (indium-webkit--send-request
      `((method . "Runtime.evaluate")
        (params . ((expression . ,expression)
                   (objectGroup . "completion"))))
      (lambda (response)
-       (jade-webkit--handle-completions-response response prefix callback)))))
+       (indium-webkit--handle-completions-response response prefix callback)))))
 
-(cl-defmethod jade-backend-add-breakpoint ((backend (eql webkit)) file line &optional callback condition)
+(cl-defmethod indium-backend-add-breakpoint ((backend (eql webkit)) file line &optional callback condition)
   "Request the addition of a breakpoint.
 
 The breakpoint is set at URL on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
-  (let ((url (jade-workspace-make-url buffer-file-name)))
+  (let ((url (indium-workspace-make-url buffer-file-name)))
     (unless url
-      (user-error "No URL for the current buffer.  Setup a Jade workspace first"))
-    (jade-webkit--send-request
+      (user-error "No URL for the current buffer.  Setup a Indium workspace first"))
+    (indium-webkit--send-request
      `((method . "Debugger.setBreakpointByUrl")
        (params . ((url . ,url)
                   (lineNumber . ,line)
@@ -110,121 +110,121 @@ non-nil, evaluate it with the breakpoint's location and id."
               (locations (map-elt breakpoint 'locations))
               (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
          (when line
-           (jade-webkit--register-breakpoint id line buffer-file-name))
+           (indium-webkit--register-breakpoint id line buffer-file-name))
          (when callback
            (unless line
              (message "Cannot get breakpoint location"))
            (funcall callback line id condition)))))))
 
-(cl-defgeneric jade-backend-remove-breakpoint ((backend (eql webkit)) id)
+(cl-defgeneric indium-backend-remove-breakpoint ((backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (response)
-     (jade-webkit--unregister-breakpoint id))))
+     (indium-webkit--unregister-breakpoint id))))
 
-(cl-defgeneric jade-backend-get-breakpoints ((backend (eql webkit)))
+(cl-defgeneric indium-backend-get-breakpoints ((backend (eql webkit)))
   "Return all breakpoints.
 A breakpoint is a map with the keys `id', `file', and `line'."
-  (let ((breakpoints (map-elt jade-connection 'breakpoints)))
+  (let ((breakpoints (map-elt indium-connection 'breakpoints)))
     (map-keys-apply (lambda (key)
                       `((id . ,key)
                         (file . ,(map-nested-elt breakpoints `(,key file)))
                         (line . ,(map-nested-elt breakpoints `(,key line)))))
                     breakpoints)))
 
-(defun jade-webkit--register-breakpoint (id line file)
+(defun indium-webkit--register-breakpoint (id line file)
   "Register the breakpoint with ID at LINE in FILE.
-If a buffer visits FILE with `jade-interaction-mode' turned on,
+If a buffer visits FILE with `indium-interaction-mode' turned on,
 the breakpoint can be added back to the buffer."
   (let ((breakpoint `((line . ,line)
                       (file . ,file))))
-    (map-put (map-elt jade-connection 'breakpoints) id breakpoint)))
+    (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
 
-(defun jade-webkit--unregister-breakpoint (id)
+(defun indium-webkit--unregister-breakpoint (id)
   "Remove the breakpoint with ID from the current connection."
-  (map-delete (map-elt jade-connection 'breakpoints) id))
+  (map-delete (map-elt indium-connection 'breakpoints) id))
 
-(cl-defmethod jade-backend-get-properties ((backend (eql webkit)) reference &optional callback all-properties)
+(cl-defmethod indium-backend-get-properties ((backend (eql webkit)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
 
 If ALL-PROPERTIES is non-nil, get all the properties from the
 prototype chain of the remote object."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Runtime.getProperties")
      (params . ((objectId . ,reference)
                 (generatePreview . t)
                 (ownProperties . ,(or all-properties :json-false)))))
    (lambda (response)
      (funcall callback
-              (jade-webkit--properties
+              (indium-webkit--properties
                (map-nested-elt response '(result result)))))))
 
-(cl-defmethod jade-backend-get-script-source ((backend (eql webkit)) frame callback)
+(cl-defmethod indium-backend-get-script-source ((backend (eql webkit)) frame callback)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-   (jade-webkit--send-request
+   (indium-webkit--send-request
     `((method . "Debugger.getScriptSource")
       (params . ((scriptId . ,script-id))))
     callback)))
 
-(cl-defmethod jade-backend-get-script-url ((backend (eql webkit)) frame)
+(cl-defmethod indium-backend-get-script-url ((backend (eql webkit)) frame)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-    (jade-webkit--get-script-url script-id)))
+    (indium-webkit--get-script-url script-id)))
 
-(cl-defmethod jade-backend-resume ((backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-resume ((backend (eql webkit)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Debugger.resume"))
    callback))
 
-(cl-defmethod jade-backend-step-into ((backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-step-into ((backend (eql webkit)) &optional callback)
   "Step into the current stack frame and evaluate CALLBACK if non-nil."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Debugger.stepInto"))
    callback))
 
-(cl-defmethod jade-backend-step-out ((backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-step-out ((backend (eql webkit)) &optional callback)
   "Step out the current stack frame and evaluate CALLBACK if non-nil."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Debugger.stepOut"))
    callback))
 
-(cl-defmethod jade-backend-step-over ((backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-step-over ((backend (eql webkit)) &optional callback)
   "Step over the current stack frame and evaluate CALLBACK if non-nil."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Debugger.stepOver"))
    callback))
 
-(cl-defmethod jade-backend-continue-to-location ((backend (eql webkit)) location &optional callback)
+(cl-defmethod indium-backend-continue-to-location ((backend (eql webkit)) location &optional callback)
   "Continue to LOCATION and evaluate CALLBACK if non-nil.
 
 Location should be an alist with a `limeNumber' and `scriptId' key."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Debugger.continueToLocation")
      (params . ((location . ,location))))
    callback))
 
-(defun jade-webkit-set-overlay-message (string)
+(defun indium-webkit-set-overlay-message (string)
   "Set the debugger page overlay to STRING."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Page.configureOverlay")
      (params . ((suspended . :json-false)
                 (message . ,string))))
    #'ignore))
 
-(defun jade-webkit-remove-overlay-message ()
+(defun indium-webkit-remove-overlay-message ()
   "Remove any overlay message displayed on the page."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Page.configureOverlay")
      (params . ((suspended . :json-false))))))
 
-(defun jade-webkit-set-pause-on-exceptions (state)
+(defun indium-webkit-set-pause-on-exceptions (state)
   "Defines on which STATE to pause.
 
 Can be set to stop on all exceptions, uncaught exceptions or no
-exceptions.  Initial pause on exceptions state is set by Jade to
+exceptions.  Initial pause on exceptions state is set by Indium to
 `\"uncaught\"'.
 
 Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
@@ -232,10 +232,10 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
                                       '("none" "uncaught" "all")
                                       nil
                                       t)))
-  (jade-webkit--send-request `((method . "Debugger.setPauseOnExceptions")
+  (indium-webkit--send-request `((method . "Debugger.setPauseOnExceptions")
                                (params . ((state . ,state))))))
 
-(defun jade-webkit--open-ws-connection (url websocket-url &optional on-open)
+(defun indium-webkit--open-ws-connection (url websocket-url &optional on-open)
   "Open a websocket connection to URL using WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
@@ -252,12 +252,12 @@ same url."
                   :on-open (lambda (ws)
                              (when on-open
                                (funcall on-open))
-                             (jade-webkit--handle-ws-open ws url))
-                  :on-message #'jade-webkit--handle-ws-message
-                  :on-close #'jade-webkit--handle-ws-closed
-                  :on-error #'jade-webkit--handle-ws-error))
+                             (indium-webkit--handle-ws-open ws url))
+                  :on-message #'indium-webkit--handle-ws-message
+                  :on-close #'indium-webkit--handle-ws-closed
+                  :on-error #'indium-webkit--handle-ws-error))
 
-(defun jade-webkit--make-connection (ws url)
+(defun indium-webkit--make-connection (ws url)
   "Return a new connection for WS and URL."
   (let ((connection (make-hash-table)))
     (map-put connection 'ws ws)
@@ -267,180 +267,180 @@ same url."
     (map-put connection 'breakpoints (make-hash-table))
     connection))
 
-(defun jade-webkit--callbacks ()
+(defun indium-webkit--callbacks ()
   "Return the callbacks associated with the current connection."
-  (map-elt jade-connection 'callbacks))
+  (map-elt indium-connection 'callbacks))
 
-(defun jade-webkit--handle-ws-open (ws url)
-  (setq jade-connection (jade-webkit--make-connection ws url))
-  (jade-webkit--enable-tools)
-  (switch-to-buffer (jade-repl-buffer-create))
-  (jade-breakpoint-restore-breakpoints))
+(defun indium-webkit--handle-ws-open (ws url)
+  (setq indium-connection (indium-webkit--make-connection ws url))
+  (indium-webkit--enable-tools)
+  (switch-to-buffer (indium-repl-buffer-create))
+  (indium-breakpoint-restore-breakpoints))
 
-(defun jade-webkit--handle-ws-message (ws frame)
-  (let* ((message (jade-webkit--read-ws-message frame))
+(defun indium-webkit--handle-ws-message (ws frame)
+  (let* ((message (indium-webkit--read-ws-message frame))
          (error (map-elt message 'error))
          (method (map-elt message 'method))
          (request-id (map-elt message 'id))
-         (callback (map-elt (jade-webkit--callbacks) request-id)))
+         (callback (map-elt (indium-webkit--callbacks) request-id)))
     (cond
      (error (message (map-elt error 'message)))
      (request-id (when callback
                    (funcall callback message)))
      (t (pcase method
-          ("Inspector.detached" (jade-webkit--handle-inspector-detached message))
-          ("Log.entryAdded" (jade-webkit--handle-log-entry message))
-          ("Runtime.consoleAPICalled" (jade-webkit--handle-console-message message))
-          ("Runtime.exceptionThrown" (jade-webkit--handle-exception-thrown message))
-          ("Debugger.paused" (jade-webkit--handle-debugger-paused message))
-          ("Debugger.scriptParsed" (jade-webkit--handle-script-parsed message))
-          ("Debugger.resumed" (jade-webkit--handle-debugger-resumed message)))))))
+          ("Inspector.detached" (indium-webkit--handle-inspector-detached message))
+          ("Log.entryAdded" (indium-webkit--handle-log-entry message))
+          ("Runtime.consoleAPICalled" (indium-webkit--handle-console-message message))
+          ("Runtime.exceptionThrown" (indium-webkit--handle-exception-thrown message))
+          ("Debugger.paused" (indium-webkit--handle-debugger-paused message))
+          ("Debugger.scriptParsed" (indium-webkit--handle-script-parsed message))
+          ("Debugger.resumed" (indium-webkit--handle-debugger-resumed message)))))))
 
-(defun jade-webkit--handle-inspector-detached (message)
+(defun indium-webkit--handle-inspector-detached (message)
   "Handle closed connection.
 MESSAGE explains why the connection has been closed."
   (let ((msg (map-nested-elt message '(params reason))))
-    (jade-backend-close-connection 'webkit)
-    (message "Jade connection closed: %s" msg)))
+    (indium-backend-close-connection 'webkit)
+    (message "Indium connection closed: %s" msg)))
 
-(defun jade-webkit--handle-log-entry (message)
+(defun indium-webkit--handle-log-entry (message)
   (let ((entry (map-nested-elt message '(params entry))))
     ;; unify console message and entry logs
     (map-put entry 'line (map-elt entry 'lineNumber))
-    (jade-repl-emit-console-message entry)))
+    (indium-repl-emit-console-message entry)))
 
-(defun jade-webkit--handle-console-message (message)
+(defun indium-webkit--handle-console-message (message)
   (let* ((msg (map-elt message 'params))
          (args (map-elt msg 'args)))
-    (setf (map-elt msg 'values) (seq-map #'jade-webkit--value args))
-    (jade-repl-emit-console-message msg)))
+    (setf (map-elt msg 'values) (seq-map #'indium-webkit--value args))
+    (indium-repl-emit-console-message msg)))
 
-(defun jade-webkit--handle-exception-thrown (message)
+(defun indium-webkit--handle-exception-thrown (message)
   (let ((exception (map-nested-elt message '(params exceptionDetails))))
-    (jade-repl-emit-console-message (jade-webkit--exception exception) t)))
+    (indium-repl-emit-console-message (indium-webkit--exception exception) t)))
 
-(defun jade-webkit--handle-debugger-paused (message)
+(defun indium-webkit--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
-    (jade-webkit-set-overlay-message "Paused in Emacs debugger")
-    (jade-debugger-paused (jade-webkit--frames frames))))
+    (indium-webkit-set-overlay-message "Paused in Emacs debugger")
+    (indium-debugger-paused (indium-webkit--frames frames))))
 
-(defun jade-webkit--handle-debugger-resumed (_message)
-  (jade-webkit-remove-overlay-message)
-  (jade-debugger-resumed))
+(defun indium-webkit--handle-debugger-resumed (_message)
+  (indium-webkit-remove-overlay-message)
+  (indium-debugger-resumed))
 
-(defun jade-webkit--handle-script-parsed (message)
+(defun indium-webkit--handle-script-parsed (message)
   (let* ((scriptId (map-nested-elt message '(params scriptId)))
          (url (map-nested-elt message '(params url))))
-    (jade-webkit--add-script-parsed scriptId url)))
+    (indium-webkit--add-script-parsed scriptId url)))
 
-(defun jade-webkit--handle-ws-closed (_ws)
-  (jade-repl--handle-connection-closed))
+(defun indium-webkit--handle-ws-closed (_ws)
+  (indium-repl--handle-connection-closed))
 
-(defun jade-webkit--handle-ws-error (ws action error)
+(defun indium-webkit--handle-ws-error (ws action error)
   (message "WS Error! %s %s" action error))
 
-(defun jade-webkit--send-request (request &optional callback)
+(defun indium-webkit--send-request (request &optional callback)
   "Send REQUEST to the current connection.
 Evaluate CALLBACK with the response.
 
 If the current connection is closed, display a message."
-  (if (jade-webkit--connected-p)
-      (let ((id (jade-webkit--next-request-id))
-            (callbacks (jade-webkit--callbacks)))
+  (if (indium-webkit--connected-p)
+      (let ((id (indium-webkit--next-request-id))
+            (callbacks (indium-webkit--callbacks)))
         (when callback
           (map-put callbacks id callback))
-        (websocket-send-text (map-elt jade-connection 'ws)
+        (websocket-send-text (map-elt indium-connection 'ws)
                              (json-encode (cons `(id . ,id) request))))
     (message "Socket connection closed")))
 
-(defun jade-webkit--read-ws-message (frame)
+(defun indium-webkit--read-ws-message (frame)
   (json-read-from-string (websocket-frame-payload frame)))
 
-(defun jade-webkit--enable-tools ()
+(defun indium-webkit--enable-tools ()
   "Enable developer tools for the current tab.
 
 There is currently no support for the DOM inspector and network
 inspectors."
-  (jade-webkit--enable-log)
-  (jade-webkit--enable-runtime)
-  (jade-webkit--enable-network)
-  (jade-webkit--enable-page)
-  (jade-webkit--enable-debugger))
+  (indium-webkit--enable-log)
+  (indium-webkit--enable-runtime)
+  (indium-webkit--enable-network)
+  (indium-webkit--enable-page)
+  (indium-webkit--enable-debugger))
 
-(defun jade-webkit--enable-log ()
+(defun indium-webkit--enable-log ()
   "Enable the log on the current tab."
-  (jade-webkit--send-request '((method . "Log.enable"))))
+  (indium-webkit--send-request '((method . "Log.enable"))))
 
-(defun jade-webkit--enable-page ()
+(defun indium-webkit--enable-page ()
   "Enable the page API on the current tab."
-  (jade-webkit--send-request '((method . "Page.enable"))))
+  (indium-webkit--send-request '((method . "Page.enable"))))
 
-(defun jade-webkit--enable-runtime ()
+(defun indium-webkit--enable-runtime ()
   "Enable the runtime on the current tab."
-  (jade-webkit--send-request '((method . "Runtime.enable"))))
+  (indium-webkit--send-request '((method . "Runtime.enable"))))
 
-(defun jade-webkit--enable-network ()
+(defun indium-webkit--enable-network ()
   "Enable the runtime on the current tab."
-  (jade-webkit--send-request '((method . "Network.enable"))))
+  (indium-webkit--send-request '((method . "Network.enable"))))
 
-(defun jade-webkit--enable-debugger ()
+(defun indium-webkit--enable-debugger ()
   "Enable the debugger on the current tab."
-  (jade-webkit--send-request '((method . "Debugger.enable"))
+  (indium-webkit--send-request '((method . "Debugger.enable"))
                              (lambda (&rest _)
-                               (jade-webkit-set-pause-on-exceptions "uncaught"))))
+                               (indium-webkit-set-pause-on-exceptions "uncaught"))))
 
-(defun jade-webkit--handle-evaluation-response (response callback)
+(defun indium-webkit--handle-evaluation-response (response callback)
   "Get the result of an evaluation in RESPONSE and evaluate CALLBACK with it."
   (let* ((result (map-nested-elt response '(result result)))
          (error (eq (map-nested-elt response '(result wasThrown)) t)))
-    (funcall callback (jade-webkit--value result) error)))
+    (funcall callback (indium-webkit--value result) error)))
 
-(defun jade-webkit--handle-completions-response (response prefix callback)
+(defun indium-webkit--handle-completions-response (response prefix callback)
   "Request a completion list for the object in RESPONSE.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it."
   (let ((objectid (map-nested-elt response '(result result objectId)))
         (type (map-nested-elt response '(result result type))))
     (if objectid
-        (jade-webkit--get-completion-list-by-reference objectid prefix callback)
-      (jade-webkit--get-completion-list-by-type type prefix callback))))
+        (indium-webkit--get-completion-list-by-reference objectid prefix callback)
+      (indium-webkit--get-completion-list-by-type type prefix callback))))
 
-(defun jade-webkit--get-completion-list-by-reference (objectid prefix callback)
+(defun indium-webkit--get-completion-list-by-reference (objectid prefix callback)
   "Request the completion list for a remote object referenced by OBJECTID.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it."
-  (jade-webkit--send-request
+  (indium-webkit--send-request
    `((method . "Runtime.callFunctionOn")
      (params . ((objectId . ,objectid)
-                (functionDeclaration . ,jade-webkit-completion-function)
+                (functionDeclaration . ,indium-webkit-completion-function)
                 (returnByValue . t))))
    (lambda (response)
-     (jade-webkit--handle-completion-list-response response prefix callback))))
+     (indium-webkit--handle-completion-list-response response prefix callback))))
 
-(defun jade-webkit--get-completion-list-by-type (type prefix callback)
+(defun indium-webkit--get-completion-list-by-type (type prefix callback)
   "Request the completion list for an object of type TYPE.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it.
 
 This method is used for strings, numbers and booleans.  See
-`jade-webkit--get-completion-list-by-reference' for getting
+`indium-webkit--get-completion-list-by-reference' for getting
 completions using references to remote objects (including
 arrays)."
-  (let ((expression (format "(%s)(\"%s\")" jade-webkit-completion-function type)))
-    (jade-webkit--send-request
+  (let ((expression (format "(%s)(\"%s\")" indium-webkit-completion-function type)))
+    (indium-webkit--send-request
      `((method . "Runtime.evaluate")
        (params . ((expression . ,expression)
                   (returnByValue . t))))
      (lambda (response)
-       (jade-webkit--handle-completion-list-response response prefix callback)))))
+       (indium-webkit--handle-completion-list-response response prefix callback)))))
 
-(defun jade-webkit--completion-expression (string)
+(defun indium-webkit--completion-expression (string)
   "Return the completion expression to be requested from STRING."
   (if (string-match-p "\\." string)
       (replace-regexp-in-string "\\.[^\\.]*$" "" string)
     "this"))
 
-(defun jade-webkit--handle-completion-list-response (response prefix callback)
+(defun indium-webkit--handle-completion-list-response (response prefix callback)
   "Evauate CALLBACK on the completion candidates from RESPONSE.
 Candidates are filtered using the PREFIX string."
   (let ((candidates (map-nested-elt response '(result result value))))
@@ -450,11 +450,11 @@ Candidates are filtered using the PREFIX string."
                                              (symbol-name (car candidate)))
                                            candidates)))))
 
-(cl-defmethod jade-webkit--connected-p ()
+(cl-defmethod indium-webkit--connected-p ()
   "Return non-nil if the current connection is open."
-  (jade-backend-active-connection-p 'webkit))
+  (indium-backend-active-connection-p 'webkit))
 
-(defun jade-webkit--value (result)
+(defun indium-webkit--value (result)
   "Return an alist representing the value of RESULT.
 
 The returned value can be a reference to a remote object, in
@@ -463,21 +463,21 @@ non-nil."
   (let* ((value (map-elt result 'value))
          (type (intern (map-elt result 'type)))
          (objectid (map-elt result 'objectId))
-         (preview (jade-webkit--preview result))
-         (description (jade-webkit--description result)))
+         (preview (indium-webkit--preview result))
+         (description (indium-webkit--description result)))
     `((objectid . ,objectid)
       (description . ,description)
       (type . ,type)
       (preview . ,preview)
       (value . ,value))))
 
-(defun jade-webkit--exception (result)
+(defun indium-webkit--exception (result)
   "Return an exception built from RESULT."
   (setf (map-elt result 'values)
-        (list (jade-webkit--value
+        (list (indium-webkit--value
                (map-elt result 'exception)))))
 
-(defun jade-webkit--description (result)
+(defun indium-webkit--description (result)
   "Return a description string built from RESULT.
 RESULT should be a reference to a remote object."
   (let ((value (map-elt result 'value))
@@ -495,52 +495,52 @@ RESULT should be a reference to a remote object."
                       (_ "false")))
           (_ (or value "null"))))))
 
-(defun jade-webkit--preview (result)
+(defun indium-webkit--preview (result)
   "Return a preview string built from RESULT.
 RESULT should be a reference to a remote object."
   (let* ((preview (map-elt result 'preview))
          (subtype (map-elt preview 'subtype)))
     (if (string= subtype "array")
-        (jade-webkit--preview-array preview)
-      (jade-webkit--preview-object preview))))
+        (indium-webkit--preview-array preview)
+      (indium-webkit--preview-object preview))))
 
-(defun jade-webkit--preview-object (preview)
+(defun indium-webkit--preview-object (preview)
   "Return a preview string from the properties of the object PREVIEW."
   (concat " { "
           (mapconcat (lambda (prop)
                        (format "%s: %s"
                                (map-elt prop 'name)
-                               (jade-webkit--description prop)))
+                               (indium-webkit--description prop)))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               ", … }"
             " }")))
 
-(defun jade-webkit--preview-array (preview)
+(defun indium-webkit--preview-array (preview)
   "Return a preview string from the elements of the array PREVIEW."
   (concat " [ "
           (mapconcat (lambda (prop)
-                       (format "%s" (jade-webkit--description prop)))
+                       (format "%s" (indium-webkit--description prop)))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               "… ]"
             " ]")))
 
-(defun jade-webkit--properties (result)
+(defun indium-webkit--properties (result)
   "Return a list of object properties built from RESULT."
   (seq-map (lambda (prop)
              `((name . ,(map-elt prop 'name))
-               (value . ,(jade-webkit--value (or (map-elt prop 'value)
+               (value . ,(indium-webkit--value (or (map-elt prop 'value)
                                                  (map-elt prop 'get))))))
            result))
 
-(defun jade-webkit--frames (list)
+(defun indium-webkit--frames (list)
   "Return a list of frames built from LIST."
   (seq-map (lambda (frame)
              `((scope-chain . ,(seq-map (lambda (scope)
-                                          `((object . ,(jade-webkit--value (map-elt scope 'object)))
+                                          `((object . ,(indium-webkit--value (map-elt scope 'object)))
                                             (name . ,(map-elt scope 'name))
                                             (type . ,(map-elt scope 'type))))
                                   (map-elt frame 'scopeChain)))
@@ -550,20 +550,20 @@ RESULT should be a reference to a remote object."
                (callFrameId . ,(map-elt frame 'callFrameId))))
            list))
 
-(defun jade-webkit--add-script-parsed (scriptId url)
-  (unless (map-elt jade-connection 'scripts)
-    (map-put jade-connection 'scripts '()))
-  (map-put (map-elt jade-connection 'scripts)
+(defun indium-webkit--add-script-parsed (scriptId url)
+  (unless (map-elt indium-connection 'scripts)
+    (map-put indium-connection 'scripts '()))
+  (map-put (map-elt indium-connection 'scripts)
            (intern scriptId)
            url))
 
-(defun jade-webkit--get-script-url (scriptId)
-  (map-nested-elt jade-connection (list 'scripts (intern scriptId))))
+(defun indium-webkit--get-script-url (scriptId)
+  (map-nested-elt indium-connection (list 'scripts (intern scriptId))))
 
 (let ((id 0))
-  (defun jade-webkit--next-request-id ()
+  (defun indium-webkit--next-request-id ()
     "Return the next unique identifier to be used in a request."
     (cl-incf id)))
 
-(provide 'jade-webkit)
-;;; jade-webkit.el ends here
+(provide 'indium-webkit)
+;;; indium-webkit.el ends here

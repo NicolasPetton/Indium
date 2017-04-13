@@ -8,7 +8,7 @@ Getting up and running
 NodeJS
 ------
 
-Nodejs >= ``7.0`` is required for Jade to work. 
+Nodejs >= ``7.0`` is required for Indium to work. 
 
 Start a node process with the ``--inspect`` flag: ::
 
@@ -22,10 +22,10 @@ Node will tell you to open an URL in Chrome: ::
 
     chrome-devtools://inspector.html?...&ws=127.0.0.1:PORT/PATH
     
-Evaluate ``M-x jade-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH``,
+Evaluate ``M-x indium-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH``,
 ``PORT`` and ``PATH`` are the ones from the `ws` parameter of the above URL.
 
-Connecting Jade to the node process will open a debugger on the first line of
+Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument ``--debug-brk``.
 
 
@@ -34,7 +34,7 @@ the application code if you passed the CLI argument ``--debug-brk``.
 Chrome/Chromium
 ---------------
 
-Chrome/Chromium >= ``54.0`` is required for Jade to properly work (debugging
+Chrome/Chromium >= ``54.0`` is required for Indium to properly work (debugging
 protocol ``v1.2``).
 
 Start Chrome/Chromium with the ``--remote-debugging-port`` flag like the following:
@@ -48,28 +48,28 @@ simply open a new tab on the existing Chrome instance, and the
   
 To connect to a tab, run from Emacs: ::
 
-  M-x jade-connect-to-chrome
+  M-x indium-connect-to-chrome
 
 .. _local-files:
   
 Using local files when debugging
 --------------------------------
 
-Jade can use local files when debugging, or to set breakpoints.
+Indium can use local files when debugging, or to set breakpoints.
 
 .. HINT:: When using ``NodeJS``, or when the connected tab uses the ``file://``
-          URL, Jade will by itself use local files from disk.  In this case
+          URL, Indium will by itself use local files from disk.  In this case
           there is nothing to setup.
 
    
 If the Chrome connection uses the ``http://`` or ``https://`` protocol, you will
-have to tell Jade where to find the corresponding JavaScript files on disk by
+have to tell Indium where to find the corresponding JavaScript files on disk by
 setting up a workspace.
 
-To do that, place an empty ``.jade`` marker file in the root folder where your
+To do that, place an empty ``.indium`` marker file in the root folder where your
 **web server serves static files**.
 
-The ``.jade`` file should not always be placed in the directory that contains
+The ``.indium`` file should not always be placed in the directory that contains
 your JavaScript files. It has to be in the root folder containing static
 files. Most of the time, it is at least one level above.
 
@@ -82,11 +82,11 @@ Given the following project structure: ::
             style.css
          js/
             app.js
-         .jade
+         .indium
 
-Jade will lookup the file ``www/js/app.js`` for the URL
+Indium will lookup the file ``www/js/app.js`` for the URL
 "http://localhost:3000/js/app.js".
 
 .. WARNING:: In order for this setup to work, make sure to call
-            ``jade-connect-to-chrome`` from somewhere within the workspace
+            ``indium-connect-to-chrome`` from somewhere within the workspace
             directory!

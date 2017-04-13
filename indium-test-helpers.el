@@ -1,4 +1,4 @@
-;;; jade-test-helpers.el --- Helpers for running Jade tests  -*- lexical-binding: t; -*-
+;;; indium-test-helpers.el --- Helpers for running Indium tests  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; This package provides helpers for running Jade tests.
+;; This package provides helpers for running Indium tests.
 
 ;;; Code:
 
@@ -37,5 +37,5 @@ buffer in `js2-mode' with CONTENTS."
      (js2-parse)
      ,@body))
 
-(provide 'jade-test-helpers)
-;;; jade-test-helpers.el ends here
+(provide 'indium-test-helpers)
+;;; indium-test-helpers.el ends here

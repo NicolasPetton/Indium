@@ -1,4 +1,4 @@
-;;; jade-breakpoint.el --- Add/remove breakpoints    -*- lexical-binding: t; -*-
+;;; indium-breakpoint.el --- Add/remove breakpoints    -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
@@ -21,71 +21,71 @@
 
 ;; Add and remove breakpoints to a buffer.
 ;;
-;; Breakpoints are added even if Jade is not connected.  In such case, Jade will
+;; Breakpoints are added even if Indium is not connected.  In such case, Indium will
 ;; attempt to put all breakpoints when a connection is made.
 
 ;; Add or remove breakpoints from buffers.
 
 ;;; Code:
 
-(require 'jade-backend)
-(require 'jade-faces)
+(require 'indium-backend)
+(require 'indium-faces)
 
-(defun jade-breakpoint-add (&optional condition)
+(defun indium-breakpoint-add (&optional condition)
   "Add a breakpoint at point.
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (let ((ov (jade-breakpoint--put-icon condition)))
-    (when jade-connection
-      (jade-backend-add-breakpoint (jade-backend)
+  (let ((ov (indium-breakpoint--put-icon condition)))
+    (when indium-connection
+      (indium-backend-add-breakpoint (indium-backend)
                                    buffer-file-name
                                    (1- (line-number-at-pos))
                                    (lambda (line id condition)
-                                     (jade-breakpoint-added id ov))
+                                     (indium-breakpoint-added id ov))
                                    condition))))
 
-(defun jade-breakpoint-remove ()
+(defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
-  (if-let ((id (jade-breakpoint-id-at-point)))
-      (when jade-connection
-        (jade-backend-remove-breakpoint (jade-backend) id)))
-  (jade-breakpoint--remove-icon))
+  (if-let ((id (indium-breakpoint-id-at-point)))
+      (when indium-connection
+        (indium-backend-remove-breakpoint (indium-backend) id)))
+  (indium-breakpoint--remove-icon))
 
-(defun jade-breakpoint-remove-all ()
+(defun indium-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
-  (jade-breakpoint-remove-breakpoints-from-buffer)
-  (jade-backend-remove-all-breakpoints-from-buffer (current-buffer)))
+  (indium-breakpoint-remove-breakpoints-from-buffer)
+  (indium-backend-remove-all-breakpoints-from-buffer (current-buffer)))
 
-(defun jade-breakpoint-add-breakpoints-to-buffer ()
+(defun indium-breakpoint-add-breakpoints-to-buffer ()
   "Add all breakpoints markers to the current buffer.
 This function does not add breakpoints."
   (seq-do (lambda (brk)
             (save-excursion
               (goto-line (1+ (map-elt brk 'line)))
-              (let ((ov (jade-breakpoint--put-icon)))
-                (jade-breakpoint-added (map-elt brk 'id) ov))))
-          (jade-backend-get-breakpoints-in-file buffer-file-name)))
+              (let ((ov (indium-breakpoint--put-icon)))
+                (indium-breakpoint-added (map-elt brk 'id) ov))))
+          (indium-backend-get-breakpoints-in-file buffer-file-name)))
 
-(defun jade-breakpoint-remove-breakpoints-from-buffer ()
+(defun indium-breakpoint-remove-breakpoints-from-buffer ()
   "Remove all breakpoint markers from the current buffer.
 This function does no unset breakpoints,"
   (remove-overlays (point-min)
                    (point-max)
-                   'jade-breakpoint
+                   'indium-breakpoint
                    t))
 
-(defun jade-breakpoint-added (id overlay)
+(defun indium-breakpoint-added (id overlay)
   "Add the breakpoint ID to OVERLAY."
-  (jade-breakpoint--put-id id overlay))
+  (indium-breakpoint--put-id id overlay))
 
-(defun jade-breakpoint-update-breakpoints ()
+(defun indium-breakpoint-update-breakpoints ()
   "Update all breakpoints for the current buffer in the backend."
-  (when jade-connection
-    (jade-backend-remove-all-breakpoints-from-buffer (current-buffer))
-    (jade-breakpoint-restore-breakpoints)))
+  (when indium-connection
+    (indium-backend-remove-all-breakpoints-from-buffer (current-buffer))
+    (indium-breakpoint-restore-breakpoints)))
 
-(defun jade-breakpoint-restore-breakpoints ()
+(defun indium-breakpoint-restore-breakpoints ()
   "Restore all breakpoints set to all buffers.
 This function is used when reconnecting to a new connection."
   (seq-doseq (buf (buffer-list))
@@ -93,13 +93,13 @@ This function is used when reconnecting to a new connection."
       (save-excursion
         (let ((overlays (overlays-in (point-min) (point-max))))
           (seq-doseq (ov overlays)
-            (when (overlay-get ov 'jade-breakpoint)
-              (let ((condition (overlay-get ov 'jade-breakpoint-condition))
+            (when (overlay-get ov 'indium-breakpoint)
+              (let ((condition (overlay-get ov 'indium-breakpoint-condition))
                     (start (overlay-start ov)))
                 (goto-char start)
-                (jade-breakpoint-add condition)))))))))
+                (indium-breakpoint-add condition)))))))))
 
-(defun jade-breakpoint--put-icon (&optional condition)
+(defun indium-breakpoint--put-icon (&optional condition)
   "Add a breakpoint icon on the current line.
 The icon is added to the left fringe.
 
@@ -108,50 +108,50 @@ Return the overlay."
   (let ((ov (make-overlay (point-at-bol) (point-at-eol))))
     (overlay-put ov
                  'before-string
-                 (jade-breakpoint--fringe-icon))
+                 (indium-breakpoint--fringe-icon))
     (overlay-put ov
-                 'jade-breakpoint
+                 'indium-breakpoint
                  t)
     (when condition
       (overlay-put ov
-                   'jade-breakpoint-condition
+                   'indium-breakpoint-condition
                    condition))
     ov))
 
-(defun jade-breakpoint--put-id (id overlay)
+(defun indium-breakpoint--put-id (id overlay)
   "Put the ID of the breakpoint to OVERLAY."
   (overlay-put overlay
-               'jade-breakpoint-id
+               'indium-breakpoint-id
                id))
 
-(defun jade-breakpoint--remove-icon ()
+(defun indium-breakpoint--remove-icon ()
   "Remove the breakpoint icon from the current line."
   (remove-overlays (point-at-bol)
                    (point-at-eol)
-                   'jade-breakpoint
+                   'indium-breakpoint
                    t))
 
-(defun jade-breakpoint--fringe-icon ()
+(defun indium-breakpoint--fringe-icon ()
   "Return the fringe icon used for breakpoints."
   (propertize "b" 'display
-              (list 'left-fringe 'jade-breakpoint 'jade-breakpoint-face)))
+              (list 'left-fringe 'indium-breakpoint 'indium-breakpoint-face)))
 
-(defun jade-breakpoint-id-at-point ()
+(defun indium-breakpoint-id-at-point ()
   "Return the id of the breakpoint on the current line.
 If there is no breakpoint set on the line, return nil."
   (seq-some (lambda (ov)
-              (overlay-get ov 'jade-breakpoint-id))
+              (overlay-get ov 'indium-breakpoint-id))
             (overlays-at (point))))
 
-(defun jade-breakpoint-on-current-line-p ()
+(defun indium-breakpoint-on-current-line-p ()
   "Return non-nil if there is a breakpoint on the current line."
   (seq-some (lambda (ov)
-              (overlay-get ov 'jade-breakpoint))
+              (overlay-get ov 'indium-breakpoint))
             (overlays-at (point))))
 
 (and (display-images-p)
-     (define-fringe-bitmap 'jade-breakpoint
+     (define-fringe-bitmap 'indium-breakpoint
        "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
-(provide 'jade-breakpoint)
-;;; jade-breakpoint.el ends here
+(provide 'indium-breakpoint)
+;;; indium-breakpoint.el ends here

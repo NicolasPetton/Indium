@@ -1,4 +1,4 @@
-;;; jade-render.el --- Helper functions to display JS objects in buffers  -*- lexical-binding: t; -*-
+;;; indium-render.el --- Helper functions to display JS objects in buffers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -20,90 +20,90 @@
 
 ;;; Commentary:
 
-;; Helper functions for inserting content in jade buffers.
+;; Helper functions for inserting content in indium buffers.
 
 ;;; Code:
 
-(require 'jade-faces)
+(require 'indium-faces)
 
-(declare 'jade-backend-object-reference-p)
+(declare 'indium-backend-object-reference-p)
 
-(defun jade-render-values (values &optional separator)
+(defun indium-render-values (values &optional separator)
   "Render VALUES separated by SEPARATOR.
 If no SEPARATOR is provided, separate VALUES by a space."
   (unless separator (setq separator " "))
   (let ((length (seq-length values)))
     (seq-map-indexed (lambda (value index)
-                       (jade-render-value value)
+                       (indium-render-value value)
                        (unless (<= (1- length) index)
                          (insert separator)))
                      values)))
 
-(defun jade-render-value (value)
+(defun indium-render-value (value)
   "Render VALUE, based on its object type.
 If VALUE represents a reference to a remote object, render it
 with a link to an inspector on that object."
-  (if (jade-backend-object-reference-p value)
-      (jade-render-object-link value)
-    (jade-render-description value)))
+  (if (indium-backend-object-reference-p value)
+      (indium-render-object-link value)
+    (indium-render-description value)))
 
-(defun jade-render-value-to-string (value)
+(defun indium-render-value-to-string (value)
   "Return a string representation of VALUE."
   (with-temp-buffer
-    (jade-render-value value)
+    (indium-render-value value)
     (buffer-string)))
 
-(defun jade-render-description (value)
-  (let ((description (jade-description-string value)))
+(defun indium-render-description (value)
+  (let ((description (indium-description-string value)))
     (insert
      (propertize description
-                 'font-lock-face 'jade-repl-stdout-face
+                 'font-lock-face 'indium-repl-stdout-face
                  'rear-nonsticky '(font-lock-face)))))
 
-(defun jade-render-keyword (string)
+(defun indium-render-keyword (string)
   (insert
    (propertize string
-               'font-lock-face 'jade-keyword-face
+               'font-lock-face 'indium-keyword-face
                'rear-nonsticky '(font-lock-face))))
 
 
-(defun jade-render-button (string action)
+(defun indium-render-button (string action)
   "Render a button with the label STRING.
 When clicked, evaluate ACTION.
 ACTION should be a function that takes no argument."
   (insert
    (propertize string
-               'font-lock-face 'jade-button-face
-               'jade-action action
-               'rear-nonsticky '(font-lock-face jade-action))))
+               'font-lock-face 'indium-button-face
+               'indium-action action
+               'rear-nonsticky '(font-lock-face indium-action))))
 
-(defun jade-render-header (string)
+(defun indium-render-header (string)
   "Render STRING as a header."
   (insert
    (propertize string
-               'font-lock-face 'jade-header-face
+               'font-lock-face 'indium-header-face
                'rear-nonsticky '(font-lock-face))))
 
-(declare 'jade-debugger-switch-to-frame)
-(declare 'jade-backend-get-script-url)
+(declare 'indium-debugger-switch-to-frame)
+(declare 'indium-backend-get-script-url)
 
-(defun jade-render-frame (frame url current)
+(defun indium-render-frame (frame url current)
   "Render the stack frame FRAME with the URL of its script.
 If CURRENT is non-nil, FRAME rendered as the current frame.  When
 clicked, jump in the debugger to the frame."
   (insert (if current "* " "  "))
-  (insert (propertize (jade-render--frame-label frame)
+  (insert (propertize (indium-render--frame-label frame)
                       'font-lock-face (if current
-                                          'jade-highlight-face
-                                        'jade-link-face)
-                      'rear-nonsticky '(font-lock-face jade-action)
-                      'jade-action (lambda (&rest _)
-                                     (jade-debugger-frames-select-frame frame))))
+                                          'indium-highlight-face
+                                        'indium-link-face)
+                      'rear-nonsticky '(font-lock-face indium-action)
+                      'indium-action (lambda (&rest _)
+                                     (indium-debugger-frames-select-frame frame))))
   (when url
     (insert (propertize (format " <%s>" url)
-                        'font-lock-face 'jade-frame-url-face))))
+                        'font-lock-face 'indium-frame-url-face))))
 
-(defun jade-description-string (value &optional full)
+(defun indium-description-string (value &optional full)
   "Return a short string describing VALUE.
 
 When FULL is non-nil, do not strip long descriptions and function
@@ -115,57 +115,57 @@ definitions."
         "function"
       description)))
 
-(defun jade-render-object-link (value)
+(defun indium-render-object-link (value)
   "Render VALUE as a link, with an optional preview."
-  (let* ((description (jade-description-string value))
+  (let* ((description (indium-description-string value))
          (preview (map-elt value 'preview))
          (beg (point))
          (end (progn
-                (insert (jade-render--truncate-string-to-newline description))
+                (insert (indium-render--truncate-string-to-newline description))
                 (point)))
-         (face 'jade-link-face))
+         (face 'indium-link-face))
     (set-text-properties beg end
                          `(font-lock-face ,face
                                           mouse-face highlight
-                                          jade-reference ,value))
+                                          indium-reference ,value))
     (when preview
       (insert preview))))
 
-(defun jade-render-properties (properties)
-  (seq-map #'jade-render-property
+(defun indium-render-properties (properties)
+  (seq-map #'indium-render-property
            (seq-sort (lambda (p1 p2)
                        (string< (map-elt p1 'name)
                                 (map-elt p2 'name)))
                      properties)))
 
-(defun jade-render-property (property &optional separator)
+(defun indium-render-property (property &optional separator)
   (insert "  " (map-elt property 'name) ": ")
-  (jade-render-value (map-elt property 'value))
+  (indium-render-value (map-elt property 'value))
   (insert (or separator "\n")))
 
-(defun jade-render-property-to-string (property)
+(defun indium-render-property-to-string (property)
   "Return PROPERTY rendered as a string."
   (with-temp-buffer
-    (jade-render-property property "")
+    (indium-render-property property "")
     (buffer-string)))
 
-(declare #'jade-inspector-inspect)
+(declare #'indium-inspector-inspect)
 
-(defun jade-follow-link ()
+(defun indium-follow-link ()
   "Follow the link at point."
   (interactive)
-  (let ((reference (get-text-property (point) 'jade-reference))
-        (action (get-text-property (point) 'jade-action)))
+  (let ((reference (get-text-property (point) 'indium-reference))
+        (action (get-text-property (point) 'indium-action)))
     (cond
-     (reference (jade-inspector-inspect reference))
+     (reference (indium-inspector-inspect reference))
      (action (funcall action)))))
 
-(defun jade-perform-action ()
+(defun indium-perform-action ()
   "Evaluate the button action at point."
-  (let ((function (get-text-property (point) 'jade-action)))
+  (let ((function (get-text-property (point) 'indium-action)))
     (funcall function)))
 
-(defun jade-message (&rest args)
+(defun indium-message (&rest args)
   "Like `message', with font-locking for JavaScript."
   (let ((string (with-temp-buffer
                   (js-mode)
@@ -174,7 +174,7 @@ definitions."
                   (buffer-string))))
     (message "%s" string)))
 
-(defun jade-render--truncate-string-to-newline (string)
+(defun indium-render--truncate-string-to-newline (string)
   "Return STRING truncated before the first newline.
 If STRING is truncated, append ellipsis."
   (let ((result (car (split-string string "\n"))))
@@ -182,12 +182,12 @@ If STRING is truncated, append ellipsis."
       (setq result (concat result "…")))
     result))
 
-(defun jade-render--frame-label (frame)
+(defun indium-render--frame-label (frame)
   "Return the label for FRAME to be used in the debugger stack frame list."
   (let ((label (map-elt frame 'functionName)))
     (if (seq-empty-p label)
         (or (map-elt frame 'type) "Closure")
       label)))
 
-(provide 'jade-render)
-;;; jade-render.el ends here
+(provide 'indium-render)
+;;; indium-render.el ends here

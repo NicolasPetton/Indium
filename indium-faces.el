@@ -1,4 +1,4 @@
-;;; jade-faces.el --- Faces for jade                 -*- lexical-binding: t; -*-
+;;; indium-faces.el --- Faces for indium                 -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -24,65 +24,65 @@
 
 ;;; Code:
 
-(defgroup jade-faces nil
-  "Faces used in jade."
-  :prefix "jade-"
-  :group 'jade)
+(defgroup indium-faces nil
+  "Faces used in indium."
+  :prefix "indium-"
+  :group 'indium)
 
-(defface jade-keyword-face
+(defface indium-keyword-face
   '((t (:inherit font-lock-keyword-face)))
   "Face for the keywords."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-button-face
+(defface indium-button-face
   '((t (:inherit custom-button)))
   "Face for buttons."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-header-face
+(defface indium-header-face
   '((t (:inherit header-line)))
   "Face use in headers."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-repl-prompt-face
-  '((t (:inherit jade-keyword-face)))
+(defface indium-repl-prompt-face
+  '((t (:inherit indium-keyword-face)))
   "Face for the prompt in the REPL buffer."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-repl-stdout-face
+(defface indium-repl-stdout-face
   '((t (:inherit font-lock-string-face)))
   "Face for the STDOUT output in the REPL buffer."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-repl-error-face
+(defface indium-repl-error-face
   '((t (:inherit font-lock-warning-face)))
   "Face for the error output in the REPL buffer."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-link-face
+(defface indium-link-face
   '((t (:inherit link)))
   "Face used when outputting objects to which we can navigate to."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-highlight-face
+(defface indium-highlight-face
   '((t (:inherit highlight)))
   "Face used when highlighting regions of a buffer."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-litable-face
+(defface indium-litable-face
   '((t (:inherit font-lock-comment-face :slant italic)))
   "Face used to display inline values in debuggers."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-frame-url-face
+(defface indium-frame-url-face
   '((t (:inherit font-lock-comment-face)))
   "Face used to display urls of stack frames."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(defface jade-breakpoint-face
+(defface indium-breakpoint-face
   '((t (:inherit fringe :foreground "#ff6c6b")))
   "Face used for breakpoints."
-  :group 'jade-faces)
+  :group 'indium-faces)
 
-(provide 'jade-faces)
-;;; jade-faces.el ends here
+(provide 'indium-faces)
+;;; indium-faces.el ends here

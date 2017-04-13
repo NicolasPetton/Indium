@@ -1,4 +1,4 @@
-;;; jade-debugger.el --- Jade debugger               -*- lexical-binding: t; -*-
+;;; indium-debugger.el --- Indium debugger               -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -26,121 +26,121 @@
 
 (require 'seq)
 (require 'map)
-(require 'jade-inspector)
-(require 'jade-repl)
-(require 'jade-interaction)
-(require 'jade-render)
-(require 'jade-workspace)
-(require 'jade-debugger-frames)
-(require 'jade-debugger-locals)
-(require 'jade-debugger-litable)
+(require 'indium-inspector)
+(require 'indium-repl)
+(require 'indium-interaction)
+(require 'indium-render)
+(require 'indium-workspace)
+(require 'indium-debugger-frames)
+(require 'indium-debugger-locals)
+(require 'indium-debugger-litable)
 
-(defgroup jade-debugger nil
+(defgroup indium-debugger nil
   "JavaScript debugger"
-  :prefix "jade-debugger-"
-  :group 'jade)
+  :prefix "indium-debugger-"
+  :group 'indium)
 
-(defcustom jade-debugger-major-mode
+(defcustom indium-debugger-major-mode
   #'js-mode
   "Major mode used in debugger buffers."
-  :group 'jade-debugger
+  :group 'indium-debugger
   :type 'function)
 
-(defvar jade-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
+(defvar indium-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
 
-(defconst jade-debugger-fringe-arrow-string
+(defconst indium-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
   "Used as an overlay's before-string prop to place a fringe arrow.")
 
-(declare 'jade-backend-debugger-get-script-source)
+(declare 'indium-backend-debugger-get-script-source)
 
-(defun jade-debugger-paused (frames)
-  (jade-debugger-setup-context frames (car frames))
-  (jade-debugger-select-frame (car frames))
-  (jade-debugger-show-help-message))
+(defun indium-debugger-paused (frames)
+  (indium-debugger-setup-context frames (car frames))
+  (indium-debugger-select-frame (car frames))
+  (indium-debugger-show-help-message))
 
-(defun jade-debugger-resumed (&rest _args)
+(defun indium-debugger-resumed (&rest _args)
   (seq-doseq (buf (seq-filter (lambda (buf)
                                 (with-current-buffer buf
-                                  jade-debugger-mode))
+                                  indium-debugger-mode))
                               (buffer-list)))
     (with-current-buffer buf
       (set-marker overlay-arrow-position nil (current-buffer))
-      (jade-debugger-remove-highlights)
-      (jade-debugger-litable-unset-buffer))))
+      (indium-debugger-remove-highlights)
+      (indium-debugger-litable-unset-buffer))))
 
-(defun jade-debugger-next-frame ()
+(defun indium-debugger-next-frame ()
   "Jump to the next frame in the frame stack."
   (interactive)
-  (jade-debugger--jump-to-frame 'forward))
+  (indium-debugger--jump-to-frame 'forward))
 
-(defun jade-debugger-previous-frame ()
+(defun indium-debugger-previous-frame ()
   "Jump to the previous frame in the frame stack."
   (interactive)
-  (jade-debugger--jump-to-frame 'backward))
+  (indium-debugger--jump-to-frame 'backward))
 
-(defun jade-debugger--jump-to-frame (direction)
+(defun indium-debugger--jump-to-frame (direction)
   "Jump to the next frame in DIRECTION.
 DIRECTION is `forward' or `backward' (in the frame list)."
-  (let* ((current-position (seq-position (jade-debugger-frames) (jade-debugger-current-frame)))
+  (let* ((current-position (seq-position (indium-debugger-frames) (indium-debugger-current-frame)))
          (step (pcase direction
                  (`forward -1)
                  (`backward 1)))
          (position (+ current-position step)))
-    (when (> position (seq-length (jade-debugger-frames)))
+    (when (> position (seq-length (indium-debugger-frames)))
       (user-error "End of frames"))
     (when (< position 0)
       (user-error "Beginning of frames"))
-    (jade-debugger-select-frame (seq-elt (jade-debugger-frames) position))))
+    (indium-debugger-select-frame (seq-elt (indium-debugger-frames) position))))
 
-(defun jade-debugger-select-frame (frame)
+(defun indium-debugger-select-frame (frame)
   "Make FRAME the current debugged stach frame.
 Switch to the buffer for FRAME.
 
-Try to find the file locally first using Jade worskspaces.  If a
+Try to find the file locally first using Indium worskspaces.  If a
 local file cannot be found, get the remote source and open a new
 buffer visiting it."
-  (jade-debugger-set-current-frame frame)
-  (jade-debugger-litable-setup-buffer)
-  (switch-to-buffer (jade-debugger-get-buffer-create))
+  (indium-debugger-set-current-frame frame)
+  (indium-debugger-litable-setup-buffer)
+  (switch-to-buffer (indium-debugger-get-buffer-create))
   (if buffer-file-name
-      (jade-debugger-setup-buffer-with-file)
-    (jade-backend-get-script-source
-       (jade-backend)
+      (indium-debugger-setup-buffer-with-file)
+    (indium-backend-get-script-source
+       (indium-backend)
        frame
        (lambda (source)
-         (jade-debugger-setup-buffer-no-file
+         (indium-debugger-setup-buffer-no-file
           (map-nested-elt source '(result scriptSource)))))))
 
-(defun jade-debugger-setup-buffer-with-file ()
+(defun indium-debugger-setup-buffer-with-file ()
   "Setup the current buffer for debugging."
   (when (buffer-modified-p)
     (revert-buffer nil nil t))
-  (jade-debugger-position-buffer))
+  (indium-debugger-position-buffer))
 
-(defun jade-debugger-setup-buffer-no-file (source)
+(defun indium-debugger-setup-buffer-no-file (source)
   "Setup the current buffer with the frame source SOURCE."
   (unless (string= (buffer-substring-no-properties (point-min) (point-max))
                    source)
     (let ((inhibit-read-only t))
       (erase-buffer)
       (insert source)))
-  (jade-debugger-position-buffer))
+  (indium-debugger-position-buffer))
 
-(defun jade-debugger-position-buffer ()
-  (let* ((frame (jade-debugger-current-frame))
+(defun indium-debugger-position-buffer ()
+  (let* ((frame (indium-debugger-current-frame))
          (location (map-elt frame 'location))
          (line (map-elt location 'lineNumber))
          (column (map-elt location 'columnNumber)))
     (goto-char (point-min))
     (forward-line line)
     (forward-char column))
-  (jade-debugger-setup-overlay-arrow)
-  (jade-debugger-highlight-node)
-  (jade-debugger-locals-maybe-refresh)
-  (jade-debugger-frames-maybe-refresh))
+  (indium-debugger-setup-overlay-arrow)
+  (indium-debugger-highlight-node)
+  (indium-debugger-locals-maybe-refresh)
+  (indium-debugger-frames-maybe-refresh))
 
-(defun jade-debugger-show-help-message ()
+(defun indium-debugger-show-help-message ()
   "Display a help message in the echo-area."
   (let ((message (concat "["
                          (propertize "SPC"
@@ -184,194 +184,194 @@ buffer visiting it."
                          "]revious")))
     (message "Debug: %s" message)))
 
-(defun jade-debugger-setup-overlay-arrow ()
+(defun indium-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
     (setq overlay-arrow-string "=>")
     (setq overlay-arrow-position (make-marker))
     (set-marker overlay-arrow-position pos (current-buffer))))
 
-(defun jade-debugger-highlight-node ()
+(defun indium-debugger-highlight-node ()
   (let ((beg (point))
         (end (line-end-position)))
-    (jade-debugger-remove-highlights)
+    (indium-debugger-remove-highlights)
     (overlay-put (make-overlay beg end)
-                 'face 'jade-highlight-face)))
+                 'face 'indium-highlight-face)))
 
-(defun jade-debugger-remove-highlights ()
-  (remove-overlays (point-min) (point-max) 'face 'jade-highlight-face))
+(defun indium-debugger-remove-highlights ()
+  (remove-overlays (point-min) (point-max) 'face 'indium-highlight-face))
 
-(defun jade-debugger-top-frame ()
+(defun indium-debugger-top-frame ()
   "Return the top frame of the current debugging context."
-  (car (jade-debugger-frames)))
+  (car (indium-debugger-frames)))
 
-(defun jade-debugger-step-into ()
+(defun indium-debugger-step-into ()
   "Request a step into."
   (interactive)
-  (jade-debugger-unset-current-buffer)
-  (jade-backend-step-into (jade-backend)))
+  (indium-debugger-unset-current-buffer)
+  (indium-backend-step-into (indium-backend)))
 
-(defun jade-debugger-step-over ()
+(defun indium-debugger-step-over ()
   "Request a step over."
   (interactive)
-  (jade-debugger-unset-current-buffer)
-  (jade-backend-step-over (jade-backend)))
+  (indium-debugger-unset-current-buffer)
+  (indium-backend-step-over (indium-backend)))
 
-(defun jade-debugger-step-out ()
+(defun indium-debugger-step-out ()
   "Request a step out."
   (interactive)
-  (jade-debugger-unset-current-buffer)
-  (jade-backend-step-out (jade-backend)))
+  (indium-debugger-unset-current-buffer)
+  (indium-backend-step-out (indium-backend)))
 
-(defun jade-debugger-resume ()
+(defun indium-debugger-resume ()
   (interactive)
-  (jade-backend-resume (jade-backend) #'jade-debugger-resumed)
-  (jade-debugger-unset-context)
-  (let ((locals-buffer (jade-debugger-locals-get-buffer))
-        (frames-buffer (jade-debugger-frames-get-buffer)))
+  (indium-backend-resume (indium-backend) #'indium-debugger-resumed)
+  (indium-debugger-unset-context)
+  (let ((locals-buffer (indium-debugger-locals-get-buffer))
+        (frames-buffer (indium-debugger-frames-get-buffer)))
     (when locals-buffer
       (kill-buffer locals-buffer))
     (when frames-buffer
       (kill-buffer frames-buffer))
     (if buffer-file-name
-        (jade-debugger-unset-current-buffer)
+        (indium-debugger-unset-current-buffer)
       (kill-buffer))))
 
-(defun jade-debugger-here ()
+(defun indium-debugger-here ()
   (interactive)
-  (jade-backend-continue-to-location (jade-backend)
-                                     `((scriptId . ,(map-nested-elt (jade-debugger-top-frame)
+  (indium-backend-continue-to-location (indium-backend)
+                                     `((scriptId . ,(map-nested-elt (indium-debugger-top-frame)
                                                                     '(location scriptId)))
                                        (lineNumber . ,(1- (line-number-at-pos))))))
 
-(defun jade-debugger-evaluate (expression)
+(defun indium-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
 Evaluation happens in the context of the current call frame."
   (interactive "sEvaluate on frame: ")
-  (jade-backend-evaluate (jade-backend)
+  (indium-backend-evaluate (indium-backend)
                          expression
                          (lambda (value _error)
-                           (message "%s" (jade-render-value-to-string value)))))
+                           (message "%s" (indium-render-value-to-string value)))))
 
 ;; Debugging context
 
-(defun jade-debugger-setup-context (frames current-frame)
+(defun indium-debugger-setup-context (frames current-frame)
   "Add required debugging information for the current connection.
 Put FRAMES and CURRENT-FRAME information as debugging context."
-  (map-put jade-connection 'frames frames)
-  (map-put jade-connection 'current-frame current-frame))
+  (map-put indium-connection 'frames frames)
+  (map-put indium-connection 'current-frame current-frame))
 
-(defun jade-debugger-set-current-frame (frame)
+(defun indium-debugger-set-current-frame (frame)
   "Set FRAME as the current frame."
   ;; when a buffer is already debugging a frame, be sure to clean it first.
-  (if-let (old-buf (jade-debugger-get-buffer-create))
+  (if-let (old-buf (indium-debugger-get-buffer-create))
       (with-current-buffer old-buf
-        (jade-debugger-unset-current-buffer)))
-  (map-put jade-connection 'current-frame frame))
+        (indium-debugger-unset-current-buffer)))
+  (map-put indium-connection 'current-frame frame))
 
-(defun jade-debugger-unset-context ()
+(defun indium-debugger-unset-context ()
   "Remove debugging information from the current connection."
-  (map-delete jade-connection 'frames)
-  (map-delete jade-connection 'current-frame))
+  (map-delete indium-connection 'frames)
+  (map-delete indium-connection 'current-frame))
 
-(defun jade-debugger-current-frame ()
+(defun indium-debugger-current-frame ()
   "Return the current debugged stack frame."
-  (map-elt jade-connection 'current-frame))
+  (map-elt indium-connection 'current-frame))
 
-(defun jade-debugger-frames ()
+(defun indium-debugger-frames ()
   "Return all frames in the current stack."
-  (map-elt jade-connection 'frames))
+  (map-elt indium-connection 'frames))
 
-(defun jade-debugger-lookup-file ()
+(defun indium-debugger-lookup-file ()
   "Lookup the local file associated with the current connection.
 Return nil if no local file can be found."
-  (let ((url (jade-backend-get-script-url (jade-backend)
-                                          (jade-debugger-current-frame))))
-    ;; Make sure we are in the correct directory so that jade can find a ".jade"
+  (let ((url (indium-backend-get-script-url (indium-backend)
+                                          (indium-debugger-current-frame))))
+    ;; Make sure we are in the correct directory so that indium can find a ".indium"
     ;; file.
-    (with-current-buffer (jade-repl-get-buffer)
-      (jade-workspace-lookup-file url))))
+    (with-current-buffer (indium-repl-get-buffer)
+      (indium-workspace-lookup-file url))))
 
-(defun jade-debugger-get-current-scopes ()
+(defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
-  (map-elt (jade-debugger-current-frame) 'scope-chain))
+  (map-elt (indium-debugger-current-frame) 'scope-chain))
 
 ;; TODO: move to backends?
-(defun jade-debugger-get-scopes-properties (scopes callback)
+(defun indium-debugger-get-scopes-properties (scopes callback)
   "Request a list of all properties in SCOPES.
 CALLBACK is evaluated with the result."
   (seq-do (lambda (scope)
-            (jade-debugger-get-scope-properties scope callback))
+            (indium-debugger-get-scope-properties scope callback))
           ;; ignore the objects attached to global/window
           (seq-remove (lambda (scope)
                         (string= (map-elt scope 'type) "global"))
                       scopes)))
 
-(defun jade-debugger-get-scope-properties (scope callback)
+(defun indium-debugger-get-scope-properties (scope callback)
   "Request the properties of SCOPE and evaluate CALLBACK.
 CALLBACK is evaluated with two arguments, the properties and SCOPE."
-  (jade-backend-get-properties
-   (jade-backend)
+  (indium-backend-get-properties
+   (indium-backend)
    (map-nested-elt scope '(object objectid))
    (lambda (properties)
      (funcall callback properties scope))))
 
-(defun jade-debugger-get-buffer-create ()
+(defun indium-debugger-get-buffer-create ()
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let ((buf (if-let ((file (jade-debugger-lookup-file)))
+  (let ((buf (if-let ((file (indium-debugger-lookup-file)))
                  (find-file file)
-               (get-buffer-create (jade-debugger--buffer-name-no-file)))))
-    (jade-debugger-setup-buffer buf)
+               (get-buffer-create (indium-debugger--buffer-name-no-file)))))
+    (indium-debugger-setup-buffer buf)
     buf))
 
-(defun jade-debugger--buffer-name-no-file ()
+(defun indium-debugger--buffer-name-no-file ()
   "Return the name of a debugger buffer.
 This name should used when no local file can be found for a stack
 frame."
   "*JS Debugger*")
 
-(defun jade-debugger-setup-buffer (buffer)
+(defun indium-debugger-setup-buffer (buffer)
   (with-current-buffer buffer
     (unless (or buffer-file-name
-                (eq major-mode jade-debugger-major-mode))
-      (funcall jade-debugger-major-mode))
-    (jade-debugger-mode 1)
+                (eq major-mode indium-debugger-major-mode))
+      (funcall indium-debugger-major-mode))
+    (indium-debugger-mode 1)
     (read-only-mode)))
 
-(defun jade-debugger-unset-current-buffer ()
-  "Unset `jade-debugger-mode from the current buffer'."
-  (jade-debugger-remove-highlights)
+(defun indium-debugger-unset-current-buffer ()
+  "Unset `indium-debugger-mode from the current buffer'."
+  (indium-debugger-remove-highlights)
   (when overlay-arrow-position
     (set-marker overlay-arrow-position nil (current-buffer)))
-  (jade-debugger-mode -1)
+  (indium-debugger-mode -1)
   (read-only-mode -1)
-  (jade-debugger-litable-unset-buffer))
+  (indium-debugger-litable-unset-buffer))
 
-(defvar jade-debugger-mode-map
+(defvar indium-debugger-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map " " #'jade-debugger-step-over)
-    (define-key map (kbd "i") #'jade-debugger-step-into)
-    (define-key map (kbd "o") #'jade-debugger-step-out)
-    (define-key map (kbd "c") #'jade-debugger-resume)
-    (define-key map (kbd "l") #'jade-debugger-locals)
-    (define-key map (kbd "s") #'jade-debugger-stack-frames)
-    (define-key map (kbd "q") #'jade-debugger-resume)
-    (define-key map (kbd "h") #'jade-debugger-here)
-    (define-key map (kbd "e") #'jade-debugger-evaluate)
-    (define-key map (kbd "n") #'jade-debugger-next-frame)
-    (define-key map (kbd "p") #'jade-debugger-previous-frame)
+    (define-key map " " #'indium-debugger-step-over)
+    (define-key map (kbd "i") #'indium-debugger-step-into)
+    (define-key map (kbd "o") #'indium-debugger-step-out)
+    (define-key map (kbd "c") #'indium-debugger-resume)
+    (define-key map (kbd "l") #'indium-debugger-locals)
+    (define-key map (kbd "s") #'indium-debugger-stack-frames)
+    (define-key map (kbd "q") #'indium-debugger-resume)
+    (define-key map (kbd "h") #'indium-debugger-here)
+    (define-key map (kbd "e") #'indium-debugger-evaluate)
+    (define-key map (kbd "n") #'indium-debugger-next-frame)
+    (define-key map (kbd "p") #'indium-debugger-previous-frame)
     map))
 
-(define-minor-mode jade-debugger-mode
+(define-minor-mode indium-debugger-mode
   "Minor mode for debugging JS scripts.
 
-\\{jade-debugger-mode-map}"
-  :group 'jade
+\\{indium-debugger-mode-map}"
+  :group 'indium
   :lighter " JS-debug"
-  :keymap jade-debugger-mode-map
-  (unless jade-interaction-mode
-    (jade-interaction-mode)))
+  :keymap indium-debugger-mode-map
+  (unless indium-interaction-mode
+    (indium-interaction-mode)))
 
-(provide 'jade-debugger)
-;;; jade-debugger.el ends here
+(provide 'indium-debugger)
+;;; indium-debugger.el ends here

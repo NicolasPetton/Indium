@@ -1,4 +1,4 @@
-;;; jade-workspace.el --- Use local files for debugging          -*- lexical-binding: t; -*-
+;;; indium-workspace.el --- Use local files for debugging          -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
@@ -24,7 +24,7 @@
 ;;
 ;; TODO: make it work with nodejs
 ;;
-;; Files are looked up using a special `.jade' file placed in the root directory
+;; Files are looked up using a special `.indium' file placed in the root directory
 ;; of the files served.
 ;;
 
@@ -39,10 +39,10 @@
 ;;          style.css
 ;;       js/
 ;;          app.js
-;;       .jade
+;;       .indium
 ;;
 ;; For the following URL "http://localhost:3000/js/app.js"
-;; `jade-workspace-lookup-file' will return "./www/js/app.js".
+;; `indium-workspace-lookup-file' will return "./www/js/app.js".
 
 ;;; Code:
 
@@ -51,27 +51,27 @@
 (require 'map)
 (require 'subr-x)
 
-(defun jade-workspace-lookup-file (url)
+(defun indium-workspace-lookup-file (url)
   "Return a local file matching URL for the current connection.
 If no file is found, return nil."
-  (or (jade-workspace--lookup-using-file-protocol url)
-      (jade-workspace--lookup-using-workspace url)))
+  (or (indium-workspace--lookup-using-file-protocol url)
+      (indium-workspace--lookup-using-workspace url)))
 
-(defun jade-workspace-lookup-file-safe (url)
+(defun indium-workspace-lookup-file-safe (url)
   "Find a local file for URL, or return URL is no file can be found."
-  (or (jade-workspace-lookup-file url) url))
+  (or (indium-workspace-lookup-file url) url))
 
-(defun jade-workspace--lookup-using-file-protocol (url)
+(defun indium-workspace--lookup-using-file-protocol (url)
   "Return a local file matching URL if URL uses the file:// protocol."
-  (when (jade-workspace--file-protocol-p)
+  (when (indium-workspace--file-protocol-p)
     (let* ((url (url-generic-parse-url url))
            (path (car (url-path-and-query url))))
       (when (file-regular-p path)
         path))))
 
-(defun jade-workspace--lookup-using-workspace (url)
-  "Return a local file matching URL using the current Jade workspace."
-  (if-let ((root (jade-workspace-root)))
+(defun indium-workspace--lookup-using-workspace (url)
+  "Return a local file matching URL using the current Indium workspace."
+  (if-let ((root (indium-workspace-root)))
           (let* ((path (seq-drop (car (url-path-and-query
                                        (url-generic-parse-url url)))
                                  1))
@@ -79,37 +79,37 @@ If no file is found, return nil."
             (when (file-regular-p file)
               file))))
 
-(defun jade-workspace-make-url (file)
+(defun indium-workspace-make-url (file)
   "Return the url associated with the local FILE."
-  (or (jade-workspace--make-url-using-file-protocol file)
-      (jade-workspace--make-url-using-workspace file)))
+  (or (indium-workspace--make-url-using-file-protocol file)
+      (indium-workspace--make-url-using-workspace file)))
 
-(defun jade-workspace--make-url-using-file-protocol (file)
+(defun indium-workspace--make-url-using-file-protocol (file)
   "If the current connection uses the file protocol, return FILE."
-  (when (jade-workspace--file-protocol-p)
+  (when (indium-workspace--file-protocol-p)
     (format "file://%s" file)))
 
-(defun jade-workspace--make-url-using-workspace (file)
+(defun indium-workspace--make-url-using-workspace (file)
   "Return the url associated with the local FILE.
-The url is built using `jade-workspace-root'."
-  (if-let ((root (jade-workspace-root)))
-      (let* ((url (jade-workspace--url-basepath (map-elt jade-connection 'url)))
+The url is built using `indium-workspace-root'."
+  (if-let ((root (indium-workspace-root)))
+      (let* ((url (indium-workspace--url-basepath (map-elt indium-connection 'url)))
              (path (file-relative-name file root)))
-        (setf (url-filename url) (jade-workspace--absolute-path path))
+        (setf (url-filename url) (indium-workspace--absolute-path path))
         (url-recreate-url url))))
 
-(defun jade-workspace--file-protocol-p ()
+(defun indium-workspace--file-protocol-p ()
   "Return non-nil if the current connection uses the file protocol."
-  (let ((url (url-generic-parse-url (map-elt jade-connection 'url))))
+  (let ((url (url-generic-parse-url (map-elt indium-connection 'url))))
     (string= (url-type url) "file")))
 
-(defun jade-workspace--absolute-path (path)
+(defun indium-workspace--absolute-path (path)
   "Return PATH as absolute.
 Prepend a \"/\" to PATH unless it already starts with one."
   (unless (string= (seq-take path 1) "/")
     (concat "/" path)))
 
-(defun jade-workspace--url-basepath (url)
+(defun indium-workspace--url-basepath (url)
   "Return an urlobj with the basepath of URL.
 The path and query string of URL are stripped."
   (let ((urlobj (url-generic-parse-url url)))
@@ -120,11 +120,11 @@ The path and query string of URL are stripped."
                            (url-port urlobj)
                            nil nil nil t)))
 
-(defun jade-workspace-root ()
+(defun indium-workspace-root ()
   "Lookup the root workspace directory from the current buffer."
-  (jade-workspace-locate-dominating-file default-directory ".jade"))
+  (indium-workspace-locate-dominating-file default-directory ".indium"))
 
-(defun jade-workspace-locate-dominating-file (file name)
+(defun indium-workspace-locate-dominating-file (file name)
   "Look up the directory hierarchy from FILE for a directory containing NAME.
 Stop at the first parent directory containing a file NAME,
 and return the directory.  Return nil if not found.
@@ -148,5 +148,5 @@ which we're looking."
              (setq file nil))))
     (and root (expand-file-name (file-name-as-directory root)))))
 
-(provide 'jade-workspace)
-;;; jade-workspace.el ends here
+(provide 'indium-workspace)
+;;; indium-workspace.el ends here

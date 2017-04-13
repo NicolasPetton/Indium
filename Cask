@@ -1,7 +1,7 @@
 (source gnu)
 (source melpa)
 
-(package-file "jade.el")
+(package-file "indium.el")
 
 (depends-on "websocket")
 

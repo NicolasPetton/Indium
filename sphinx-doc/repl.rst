@@ -6,7 +6,7 @@ The REPL
 Starting a REPL
 ---------------
 
-A REPL (Read Eval Print Loop) buffer is automatically open when a new Jade
+A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
 connection is made (see :ref:`up-and-running`).
 
 .. image:: screenshots/repl.png
@@ -59,7 +59,7 @@ REPL buffer, inspectors & debuggers).
 Code evaluation & context
 -------------------------
 
-When evaluating code in the REPL, Jade will always run the code on the current
+When evaluating code in the REPL, Indium will always run the code on the current
 execution context.
 
 This means that while debugging, code execution will happen in the context of

@@ -1,4 +1,4 @@
-;;; jade-interaction-test.el --- Test for jade-interaction.el  -*- lexical-binding: t; -*-
+;;; indium-interaction-test.el --- Test for indium-interaction.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -22,54 +22,54 @@
 ;;; Code:
 
 (require 'ert)
-(require 'jade-interaction)
-(require 'jade-test-helpers)
+(require 'indium-interaction)
+(require 'indium-test-helpers)
 
-(ert-deftest jade-node-before-point-test ()
+(ert-deftest indium-node-before-point-test ()
   (with-js2-buffer "var foo = 2;\nfoo"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "foo")))
   (with-js2-buffer "var foo = 2;\nfoo + 1;"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "foo + 1;")))
   (with-js2-buffer "var foo = 2;\nfoo + 1;"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "foo + 1;")))
   (with-js2-buffer "var foo = 2; var bar = 3;"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "var bar = 3;")))
   (with-js2-buffer "this.bar(3); this.baz(3);"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "this.baz(3);")))
   (with-js2-buffer "[1,2,\n3,\n4]"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "[1,2,\n3,\n4]")))
   (with-js2-buffer "foo(a,\nb,\nc);"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "foo(a,\nb,\nc);")))
   (with-js2-buffer "foo({\na: 1,\nb: 2,\nc: 3\n});"
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "foo({\na: 1,\nb: 2,\nc: 3\n});")))
   (with-js2-buffer "foo({\na: 1,\nb: 2,\nc: 3\n});"
     (goto-char 11)
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "1"))
     (goto-char 12)
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "1"))
     (goto-char 25)
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "{\na: 1,\nb: 2,\nc: 3\n}"))
     (goto-char 26)
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "foo({\na: 1,\nb: 2,\nc: 3\n})")))
   (with-js2-buffer "function() { return 1; }"
     (goto-char (point-max))
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "function() { return 1; }"))
     (goto-char (1- (point-max)))
-    (should (equal (js2-node-string (jade-interaction-node-before-point))
+    (should (equal (js2-node-string (indium-interaction-node-before-point))
                    "return 1;"))))
 
-(provide 'jade-interaction-test)
-;;; jade-interaction-test.el ends here
+(provide 'indium-interaction-test)
+;;; indium-interaction-test.el ends here

@@ -1,4 +1,4 @@
-;;; jade-nodejs.el --- NodeJS support for jade  -*- lexical-binding: t; -*-
+;;; indium-nodejs.el --- NodeJS support for indium  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Handle jade connections to a NodeJS process using the webkit backend.
+;; Handle indium connections to a NodeJS process using the webkit backend.
 ;; The nodejs process must be started with the `--inspect' flag:
 ;;
 ;;     node --inspect myfile.js
@@ -39,23 +39,23 @@
 (require 'map)
 (require 'seq)
 
-(require 'jade-v8-inspector)
+(require 'indium-v8-inspector)
 
-(defun jade-connect-to-nodejs ()
+(defun indium-connect-to-nodejs ()
   "Open a connection to a webkit tab on host:port/path."
   (interactive)
-  (when (or (null jade-connection) (yes-or-no-p "Close the current Jade connection? "))
-    (when jade-connection
-      (jade-quit))
+  (when (or (null indium-connection) (yes-or-no-p "Close the current Indium connection? "))
+    (when indium-connection
+      (indium-quit))
     (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
           (port (read-from-minibuffer "Port: " "9229"))
           (path (read-from-minibuffer "Path: ")))
-      (jade-nodejs--connect host port path))))
+      (indium-nodejs--connect host port path))))
 
-(defun jade-nodejs--connect (host port path)
+(defun indium-nodejs--connect (host port path)
   "Ask the user for a tab in the list TABS and connects to it."
   (let ((url (format "ws://%s:%s/%s" host port path)))
-    (jade-v8-inspector--open-ws-connection url)))
+    (indium-v8-inspector--open-ws-connection url)))
 
-(provide 'jade-nodejs)
-;;; jade-nodejs.el ends here
+(provide 'indium-nodejs)
+;;; indium-nodejs.el ends here

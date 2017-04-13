@@ -1,9 +1,9 @@
-;;; jade.el --- JavaScript Awesome Development Environment  -*- lexical-binding: t; -*-
+;;; indium.el --- JavaScript Awesome Development Environment  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
-;; URL: https://github.com/NicolasPetton/jade
+;; URL: https://github.com/NicolasPetton/indium
 ;; Keywords: tools, javascript
 ;; Version: 0.3.3
 ;; Package-Requires: ((emacs "25") (seq "2.16") (js2-mode "20140114") (company "0.9.0") (websocket "1.6"))
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Jade connects to a browser tab or nodejs process and provides many features
+;; Indium connects to a browser tab or nodejs process and provides many features
 ;; for JavaScript development, including a REPL (with auto completion) & object
 ;; inspection, an inspector, with history and navigation, and even a stepping
 ;; Debugger, similar to `edebug`, or `cider`.
@@ -31,16 +31,16 @@
 ;;; Code:
 
 ;; HACK: In Emacs 25.1, an older version of seq.el is provided, which can be
-;; loaded before jade or even package.el.  If this happens, the feature `seq'
+;; loaded before indium or even package.el.  If this happens, the feature `seq'
 ;; being already provided, the correct version of seq.el won't get loaded.
 (require 'seq)
 (unless (fboundp 'seq-map-indexed)
   (require 'seq-25))
 
-(require 'jade-backend)
-(require 'jade-chrome)
-(require 'jade-nodejs)
-(require 'jade-scratch)
+(require 'indium-backend)
+(require 'indium-chrome)
+(require 'indium-nodejs)
+(require 'indium-scratch)
 
-(provide 'jade)
-;;; jade.el ends here
+(provide 'indium)
+;;; indium.el ends here

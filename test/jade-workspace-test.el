@@ -1,4 +1,4 @@
-;;; jade-workspace-test.el --- Tests for jade-workspace.el  -*- lexical-binding: t; -*-
+;;; indium-workspace-test.el --- Tests for indium-workspace.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
@@ -24,77 +24,77 @@
 (require 'ert)
 (require 'el-mock)
 (require 'assess)
-(require 'jade-workspace)
+(require 'indium-workspace)
 
-(defvar jade-workspace--test-fs
-  '(".jade"
+(defvar indium-workspace--test-fs
+  '(".indium"
     ("js" ("app.js")))
   "Fake filesystem used in workspace tests.")
 
-(ert-deftest jade-workspace-lookup-file-with-no-workspace-test ()
-  (with-mock (mock (jade-workspace-root) => nil)
-             (should (null (jade-workspace-lookup-file "http://localhost:9229/foo/bar")))))
+(ert-deftest indium-workspace-lookup-file-with-no-workspace-test ()
+  (with-mock (mock (indium-workspace-root) => nil)
+             (should (null (indium-workspace-lookup-file "http://localhost:9229/foo/bar")))))
 
-(ert-deftest jade-workspace-lookup-file-that-exists-test ()
-  (assess-with-filesystem jade-workspace--test-fs
+(ert-deftest indium-workspace-lookup-file-that-exists-test ()
+  (assess-with-filesystem indium-workspace--test-fs
       (should (equal (expand-file-name "js/app.js")
-                     (jade-workspace-lookup-file "http://localhost:9229/js/app.js")))))
+                     (indium-workspace-lookup-file "http://localhost:9229/js/app.js")))))
 
-(ert-deftest jade-workspace-lookup-file-ignore-query-string-test ()
-  (assess-with-filesystem jade-workspace--test-fs
+(ert-deftest indium-workspace-lookup-file-ignore-query-string-test ()
+  (assess-with-filesystem indium-workspace--test-fs
       (should (equal (expand-file-name "js/app.js")
-                  (jade-workspace-lookup-file "http://localhost:9229/js/app.js?foo=bar")))))
+                  (indium-workspace-lookup-file "http://localhost:9229/js/app.js?foo=bar")))))
 
-(ert-deftest jade-workspace-lookup-file-that-does-not-exist-test ()
-  (assess-with-filesystem jade-workspace--test-fs
-    (should (null (jade-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
+(ert-deftest indium-workspace-lookup-file-that-does-not-exist-test ()
+  (assess-with-filesystem indium-workspace--test-fs
+    (should (null (indium-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
 
-(ert-deftest jade-workspace-lookup-file-safe-fallback-test ()
-  (assess-with-filesystem jade-workspace--test-fs
+(ert-deftest indium-workspace-lookup-file-safe-fallback-test ()
+  (assess-with-filesystem indium-workspace--test-fs
     (let ((url "http://localhost:9229/non-existant-file-name.js"))
-      (should (equal url (jade-workspace-lookup-file-safe url))))))
+      (should (equal url (indium-workspace-lookup-file-safe url))))))
 
-(ert-deftest jade-workspace-lookup-file-safe-test ()
-  (assess-with-filesystem jade-workspace--test-fs
+(ert-deftest indium-workspace-lookup-file-safe-test ()
+  (assess-with-filesystem indium-workspace--test-fs
     (let ((url "http://localhost:9229/js/app.js")
           (file (expand-file-name "js/app.js")))
-      (should (equal file (jade-workspace-lookup-file-safe url))))))
+      (should (equal file (indium-workspace-lookup-file-safe url))))))
 
-(ert-deftest jade-workspace-make-url-with-no-workspace-test ()
-  (let ((jade-connection '((url . "http://localhost:9229"))))
-    (should (null (jade-workspace-make-url "js/app.js")))))
+(ert-deftest indium-workspace-make-url-with-no-workspace-test ()
+  (let ((indium-connection '((url . "http://localhost:9229"))))
+    (should (null (indium-workspace-make-url "js/app.js")))))
 
-(ert-deftest jade-workspace-make-url-test ()
-  (let ((jade-connection '((url . "http://localhost:9229"))))
-    (assess-with-filesystem jade-workspace--test-fs
-      (should (equal (jade-workspace-make-url "js/app.js")
+(ert-deftest indium-workspace-make-url-test ()
+  (let ((indium-connection '((url . "http://localhost:9229"))))
+    (assess-with-filesystem indium-workspace--test-fs
+      (should (equal (indium-workspace-make-url "js/app.js")
                      "http://localhost:9229/js/app.js")))))
 
-(ert-deftest jade-workspace-make-url-strips-query-string-test ()
-  (let ((jade-connection '((url . "http://localhost:9229?foo=bar"))))
-    (assess-with-filesystem jade-workspace--test-fs
-      (should (equal (jade-workspace-make-url "js/app.js")
+(ert-deftest indium-workspace-make-url-strips-query-string-test ()
+  (let ((indium-connection '((url . "http://localhost:9229?foo=bar"))))
+    (assess-with-filesystem indium-workspace--test-fs
+      (should (equal (indium-workspace-make-url "js/app.js")
                     "http://localhost:9229/js/app.js")))))
 
-(ert-deftest jade-workspace-make-strips-connection-path-test ()
-  (let ((jade-connection '((url . "http://localhost:9229/foo/bar"))))
-    (assess-with-filesystem jade-workspace--test-fs
-     (should (equal (jade-workspace-make-url "js/app.js")
+(ert-deftest indium-workspace-make-strips-connection-path-test ()
+  (let ((indium-connection '((url . "http://localhost:9229/foo/bar"))))
+    (assess-with-filesystem indium-workspace--test-fs
+     (should (equal (indium-workspace-make-url "js/app.js")
                     "http://localhost:9229/js/app.js")))))
 
-(ert-deftest jade-workspace-lookup-file-protocol-test ()
-  (assess-with-filesystem jade-workspace--test-fs
-    (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
+(ert-deftest indium-workspace-lookup-file-protocol-test ()
+  (assess-with-filesystem indium-workspace--test-fs
+    (let* ((indium-connection '((url . "file:///foo/bar/index.html")))
           (file (expand-file-name "js/app.js"))
           (url (format "file://%s" file)))
-     (should (equal (jade-workspace-lookup-file url)
+     (should (equal (indium-workspace-lookup-file url)
                     file)))))
 
-(ert-deftest jade-workspace-make-url-file-protocol-test ()
-  (assess-with-filesystem jade-workspace--test-fs
-    (let* ((jade-connection '((url . "file:///foo/bar/index.html")))
+(ert-deftest indium-workspace-make-url-file-protocol-test ()
+  (assess-with-filesystem indium-workspace--test-fs
+    (let* ((indium-connection '((url . "file:///foo/bar/index.html")))
            (file (expand-file-name "js/app.js")))
-      (should (equal (jade-workspace-make-url file) (format "file://%s" file))))))
+      (should (equal (indium-workspace-make-url file) (format "file://%s" file))))))
 
-(provide 'jade-workspace-test)
-;;; jade-workspace-test.el ends here
+(provide 'indium-workspace-test)
+;;; indium-workspace-test.el ends here

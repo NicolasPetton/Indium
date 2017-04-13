@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Jade documentation build configuration file, created by
+# Indium documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr  4 11:48:03 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -51,7 +51,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Jade'
+project = 'Indium'
 copyright = '2017, Nicolas Petton'
 author = 'Nicolas Petton'
 
@@ -136,7 +136,7 @@ html_theme = 'alabaster'
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = 'Jade v0.3.1'
+# html_title = 'Indium v0.3.1'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
@@ -145,7 +145,7 @@ html_theme = 'alabaster'
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-# html_logo = None
+html_logo = 'img/indium.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -236,7 +236,7 @@ html_static_path = ['_static']
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Jadedoc'
+htmlhelp_basename = 'Indiumdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -262,7 +262,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Jade.tex', 'Jade Documentation',
+    (master_doc, 'Indium.tex', 'Indium Documentation',
      'Nicolas Petton', 'manual'),
 ]
 
@@ -304,7 +304,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'jade', 'Jade Documentation',
+    (master_doc, 'indium', 'Indium Documentation',
      [author], 1)
 ]
 
@@ -319,8 +319,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Jade', 'Jade Documentation',
-     author, 'Jade', 'JavaScript development environment for Emacs.',
+    (master_doc, 'Indium', 'Indium Documentation',
+     author, 'Indium', 'JavaScript development environment for Emacs.',
      'Emacs'),
 ]
 

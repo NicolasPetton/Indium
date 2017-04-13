@@ -1,4 +1,4 @@
-;;; jade-debugger-litable-test.el --- Test for jade-debugger-litable.el  -*- lexical-binding: t; -*-
+;;; indium-debugger-litable-test.el --- Test for indium-debugger-litable.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -24,9 +24,9 @@
 (require 'ert)
 (require 'el-mock)
 
-(require 'jade-debugger-litable)
+(require 'indium-debugger-litable)
 
-(ert-deftest jade-debugger-litable-truncate-string-test ()
+(ert-deftest indium-debugger-litable-truncate-string-test ()
   (let ((buffer-contents "let foo = 1;")
         (short-string "short")
         (long-string "very very very long string that overflows"))
@@ -34,10 +34,10 @@
       (mock (window-width) => 50)
       (with-temp-buffer
         (insert buffer-contents)
-        (should (equal (jade-debugger-litable--overlay-string short-string)
+        (should (equal (indium-debugger-litable--overlay-string short-string)
                        short-string))
-        (should (equal (jade-debugger-litable--overlay-string long-string)
+        (should (equal (indium-debugger-litable--overlay-string long-string)
                        "very very very long string that ov..."))))))
 
-(provide 'jade-debugger-litable-test)
-;;; jade-debugger-litable-test.el ends here
+(provide 'indium-debugger-litable-test)
+;;; indium-debugger-litable-test.el ends here

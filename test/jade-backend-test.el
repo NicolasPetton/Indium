@@ -1,4 +1,4 @@
-;;; jade-backend-test.el --- Test for jade-backend.el  -*- lexical-binding: t; -*-
+;;; indium-backend-test.el --- Test for indium-backend.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -22,19 +22,19 @@
 ;;; Code:
 
 (require 'ert)
-(require 'jade-backend)
-(require 'jade-webkit)
-(require 'jade-test-helpers)
+(require 'indium-backend)
+(require 'indium-webkit)
+(require 'indium-test-helpers)
 
-(ert-deftest jade-generic-connections-active ()
+(ert-deftest indium-generic-connections-active ()
   "Generic connections should always be active."
-  (let ((jade-connection '((backend . fake))))
-    (should (jade-backend-active-connection-p nil))))
+  (let ((indium-connection '((backend . fake))))
+    (should (indium-backend-active-connection-p nil))))
 
-(ert-deftest jade-webkit-connections-active ()
+(ert-deftest indium-webkit-connections-active ()
   "Only Webkit connections with open websocket are active."
-  (let ((jade-connection '((backend . webkit))))
-    (should (not (jade-backend-active-connection-p 'webkit)))))
+  (let ((indium-connection '((backend . webkit))))
+    (should (not (indium-backend-active-connection-p 'webkit)))))
 
-(provide 'jade-backend-test)
-;;; jade-backend-test.el ends here
+(provide 'indium-backend-test)
+;;; indium-backend-test.el ends here

@@ -1,4 +1,4 @@
-;;; jade-v8-inspector.el --- V8-Inspector backend for jade  -*- lexical-binding: t; -*-
+;;; indium-v8-inspector.el --- V8-Inspector backend for indium  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -20,8 +20,8 @@
 
 ;;; Commentary:
 
-;; Jade backend implementation for V8-Inspector to be used with nodejs
-;; processes.  Connection is handled in jade-nodejs.el.  This backend currently
+;; Indium backend implementation for V8-Inspector to be used with nodejs
+;; processes.  Connection is handled in indium-nodejs.el.  This backend currently
 ;; supports the REPL, code completion, object inspection and the debugger.
 ;;
 ;; The protocol is documented at
@@ -35,40 +35,40 @@
 (require 'seq)
 (require 'cl-lib)
 
-(require 'jade-backend)
-(require 'jade-repl)
-(require 'jade-debugger)
+(require 'indium-backend)
+(require 'indium-repl)
+(require 'indium-debugger)
 
 
-(defvar jade-v8-inspector-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
+(defvar indium-v8-inspector-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
 
-(jade-register-backend 'v8-inspector)
+(indium-register-backend 'v8-inspector)
 
-(cl-defmethod jade-backend-active-connection-p ((backend (eql v8-inspector)))
+(cl-defmethod indium-backend-active-connection-p ((backend (eql v8-inspector)))
   "Return non-nil if the current connection is active."
-  (and jade-connection
-       (websocket-openp (map-elt jade-connection 'ws))))
+  (and indium-connection
+       (websocket-openp (map-elt indium-connection 'ws))))
 
-(cl-defmethod jade-backend-close-connection ((backend (eql v8-inspector)))
+(cl-defmethod indium-backend-close-connection ((backend (eql v8-inspector)))
   "Close the websocket associated with the current connection."
-  (websocket-close (map-elt jade-connection 'ws)))
+  (websocket-close (map-elt indium-connection 'ws)))
 
-(cl-defmethod jade-backend-reconnect ((backend (eql v8-inspector)))
-  (let* ((url (map-elt jade-connection 'url))
-         (websocket-url (websocket-url (map-elt jade-connection 'ws))))
-    (jade-v8-inspector--open-ws-connection url
+(cl-defmethod indium-backend-reconnect ((backend (eql v8-inspector)))
+  (let* ((url (map-elt indium-connection 'url))
+         (websocket-url (websocket-url (map-elt indium-connection 'ws))))
+    (indium-v8-inspector--open-ws-connection url
                                      websocket-url
                                      ;; close all buffers related to the closed
                                      ;; connection the first
-                                     #'jade-quit)))
+                                     #'indium-quit)))
 
-(cl-defmethod jade-backend-evaluate ((backend (eql v8-inspector)) string &optional callback)
+(cl-defmethod indium-backend-evaluate ((backend (eql v8-inspector)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
-  (let ((callFrameId (map-elt (map-elt jade-connection 'current-frame)
+  (let ((callFrameId (map-elt (map-elt indium-connection 'current-frame)
                               'callFrameId)))
-    (jade-v8-inspector--send-request
+    (indium-v8-inspector--send-request
      `((method . ,(if callFrameId
                       "Debugger.evaluateOnCallFrame"
                     "Runtime.evaluate"))
@@ -77,25 +77,25 @@ evaluation and non-nil if the evaluation threw an error."
                   (generatePreview . t))))
      (lambda (response)
        (when callback
-         (jade-webkit--handle-evaluation-response response callback))))))
+         (indium-webkit--handle-evaluation-response response callback))))))
 
-(cl-defmethod jade-backend-get-completions ((backend (eql v8-inspector)) expression prefix callback)
+(cl-defmethod indium-backend-get-completions ((backend (eql v8-inspector)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
 Evaluate CALLBACK on the filtered candidates."
-  (let ((expression (jade-v8-inspector--completion-expression expression)))
-    (jade-v8-inspector--send-request
+  (let ((expression (indium-v8-inspector--completion-expression expression)))
+    (indium-v8-inspector--send-request
      `((method . "Runtime.evaluate")
        (params . ((expression . ,expression)
                   (objectGroup . "completion"))))
      (lambda (response)
-       (jade-v8-inspector--handle-completions-response response prefix callback)))))
+       (indium-v8-inspector--handle-completions-response response prefix callback)))))
 
-(cl-defmethod jade-backend-add-breakpoint ((backend (eql v8-inspector)) file line &optional callback condition)
+(cl-defmethod indium-backend-add-breakpoint ((backend (eql v8-inspector)) file line &optional callback condition)
     "Request the addition of a breakpoint.
 
 The breakpoint is set at URL on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.setBreakpointByUrl")
      (params . ((url . ,file)
                 (lineNumber . ,line)
@@ -106,122 +106,122 @@ non-nil, evaluate it with the breakpoint's location and id."
             (locations (map-elt breakpoint 'locations))
             (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
        (when line
-         (jade-v8-inspector--register-breakpoint id line buffer-file-name))
+         (indium-v8-inspector--register-breakpoint id line buffer-file-name))
        (when callback
          (unless line
            (message "Cannot get breakpoint location"))
          (funcall callback line id condition))))))
 
-(cl-defgeneric jade-backend-remove-breakpoint ((backend (eql v8-inspector)) id)
+(cl-defgeneric indium-backend-remove-breakpoint ((backend (eql v8-inspector)) id)
   "Request the removal of the breakpoint with id ID."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (response)
-     (jade-v8-inspector--unregister-breakpoint id))))
+     (indium-v8-inspector--unregister-breakpoint id))))
 
-(cl-defgeneric jade-backend-get-breakpoints ((backend (eql v8-inspector)))
+(cl-defgeneric indium-backend-get-breakpoints ((backend (eql v8-inspector)))
   "Return all breakpoints.
 A breakpoint is a map with the keys `id', `file', and `line'."
-  (let ((breakpoints (map-elt jade-connection 'breakpoints)))
+  (let ((breakpoints (map-elt indium-connection 'breakpoints)))
     (map-keys-apply (lambda (key)
                       `((id . ,key)
                         (file . ,(map-nested-elt breakpoints `(,key file)))
                         (line . ,(map-nested-elt breakpoints `(,key line)))))
                     breakpoints)))
 
-(defun jade-v8-inspector--register-breakpoint (id line file)
+(defun indium-v8-inspector--register-breakpoint (id line file)
   "Register the breakpoint with ID at LINE in FILE.
-If a buffer visits FILE with `jade-interaction-mode' turned on,
+If a buffer visits FILE with `indium-interaction-mode' turned on,
 the breakpoint can be added back to the buffer."
   (let ((breakpoint `((line . ,line)
                       (file . ,file))))
-    (map-put (map-elt jade-connection 'breakpoints) id breakpoint)))
+    (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
 
-(defun jade-v8-inspector--unregister-breakpoint (id)
+(defun indium-v8-inspector--unregister-breakpoint (id)
   "Remove the breakpoint with ID from the current connection."
-  (map-delete (map-elt jade-connection 'breakpoints) id))
+  (map-delete (map-elt indium-connection 'breakpoints) id))
 
-(cl-defmethod jade-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
+(cl-defmethod indium-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
 
 If ALL-PROPERTIES is non-nil, get all the properties from the
 prototype chain of the remote object."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Runtime.getProperties")
      (params . ((objectId . ,reference)
                 (generatePreview . t)
                 (ownProperties . ,(or all-properties :json-false)))))
    (lambda (response)
      (funcall callback
-              (jade-v8-inspector--properties
+              (indium-v8-inspector--properties
                (map-nested-elt response '(result result)))))))
 
-(cl-defmethod jade-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
+(cl-defmethod indium-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
 
 If ALL-PROPERTIES is non-nil, get all the properties from the
 prototype chain of the remote object."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Runtime.getProperties")
      (params . ((objectId . ,reference)
                 (ownProperties . ,(not all-properties)))))
    (lambda (response)
      (funcall callback
-              (jade-v8-inspector--properties
+              (indium-v8-inspector--properties
                (map-nested-elt response '(result result)))))))
 
-(cl-defmethod jade-backend-get-script-source ((backend (eql v8-inspector)) frame callback)
+(cl-defmethod indium-backend-get-script-source ((backend (eql v8-inspector)) frame callback)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-   (jade-v8-inspector--send-request
+   (indium-v8-inspector--send-request
     `((method . "Debugger.getScriptSource")
       (params . ((scriptId . ,script-id))))
     callback)))
 
-(cl-defmethod jade-backend-get-script-url ((backend (eql v8-inspector)) frame)
+(cl-defmethod indium-backend-get-script-url ((backend (eql v8-inspector)) frame)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-    (jade-v8-inspector--get-script-url script-id)))
+    (indium-v8-inspector--get-script-url script-id)))
 
-(cl-defmethod jade-backend-resume ((backend (eql v8-inspector)) &optional callback)
+(cl-defmethod indium-backend-resume ((backend (eql v8-inspector)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.resume"))
    callback))
 
-(cl-defmethod jade-backend-step-into ((backend (eql v8-inspector)) &optional callback)
+(cl-defmethod indium-backend-step-into ((backend (eql v8-inspector)) &optional callback)
   "Step into the current stack frame and evaluate CALLBACK if non-nil."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.stepInto"))
    callback))
 
-(cl-defmethod jade-backend-step-out ((backend (eql v8-inspector)) &optional callback)
+(cl-defmethod indium-backend-step-out ((backend (eql v8-inspector)) &optional callback)
   "Step out the current stack frame and evaluate CALLBACK if non-nil."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.stepOut"))
    callback))
 
-(cl-defmethod jade-backend-step-over ((backend (eql v8-inspector)) &optional callback)
+(cl-defmethod indium-backend-step-over ((backend (eql v8-inspector)) &optional callback)
   "Step over the current stack frame and evaluate CALLBACK if non-nil."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.stepOver"))
    callback))
 
-(cl-defmethod jade-backend-continue-to-location ((backend (eql v8-inspector)) location &optional callback)
+(cl-defmethod indium-backend-continue-to-location ((backend (eql v8-inspector)) location &optional callback)
   "Continue to LOCATION and evaluate CALLBACK if non-nil.
 
 Location should be an alist with a `limeNumber' and `scriptId' key."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Debugger.continueToLocation")
      (params . ((location . ,location))))
    callback))
 
-(defun jade-v8-inspector-set-pause-on-exceptions (state)
+(defun indium-v8-inspector-set-pause-on-exceptions (state)
   "Defines on which STATE to pause.
 
 Can be set to stop on all exceptions, uncaught exceptions or no
-exceptions. Initial pause on exceptions state is set by Jade to
+exceptions. Initial pause on exceptions state is set by Indium to
 `\"uncaught\"'.
 
 Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
@@ -229,10 +229,10 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
                                       '("none" "uncaught" "all")
                                       nil
                                       t)))
-  (jade-v8-inspector--send-request `((method . "Debugger.setPauseOnExceptions")
+  (indium-v8-inspector--send-request `((method . "Debugger.setPauseOnExceptions")
                                (params . ((state . ,state))))))
 
-(defun jade-v8-inspector--open-ws-connection (websocket-url &optional on-open)
+(defun indium-v8-inspector--open-ws-connection (websocket-url &optional on-open)
   "Open a websocket connection to WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
@@ -243,12 +243,12 @@ the connection and buffers."
                   :on-open (lambda (ws)
                              (when on-open
                                (funcall on-open))
-                             (jade-v8-inspector--handle-ws-open ws))
-                  :on-message #'jade-v8-inspector--handle-ws-message
-                  :on-close #'jade-v8-inspector--handle-ws-closed
-                  :on-error #'jade-v8-inspector--handle-ws-error))
+                             (indium-v8-inspector--handle-ws-open ws))
+                  :on-message #'indium-v8-inspector--handle-ws-message
+                  :on-close #'indium-v8-inspector--handle-ws-closed
+                  :on-error #'indium-v8-inspector--handle-ws-error))
 
-(defun jade-v8-inspector--make-connection (ws)
+(defun indium-v8-inspector--make-connection (ws)
   "Return a new connection for WS."
   (let ((connection (make-hash-table)))
     (map-put connection 'ws ws)
@@ -257,158 +257,158 @@ the connection and buffers."
     (map-put connection 'callbacks (make-hash-table))
     connection))
 
-(defun jade-v8-inspector--callbacks ()
+(defun indium-v8-inspector--callbacks ()
   "Return the callbacks associated with the current connection."
-  (map-elt jade-connection 'callbacks))
+  (map-elt indium-connection 'callbacks))
 
-(defun jade-v8-inspector--handle-ws-open (ws)
-  (setq jade-connection (jade-v8-inspector--make-connection ws))
-  (jade-v8-inspector--enable-tools)
-  (switch-to-buffer (jade-repl-buffer-create))
-  (jade-breakpoint-restore-breakpoints))
+(defun indium-v8-inspector--handle-ws-open (ws)
+  (setq indium-connection (indium-v8-inspector--make-connection ws))
+  (indium-v8-inspector--enable-tools)
+  (switch-to-buffer (indium-repl-buffer-create))
+  (indium-breakpoint-restore-breakpoints))
 
-(defun jade-v8-inspector--handle-ws-message (ws frame)
-  (let* ((message (jade-v8-inspector--read-ws-message frame))
+(defun indium-v8-inspector--handle-ws-message (ws frame)
+  (let* ((message (indium-v8-inspector--read-ws-message frame))
          (error (map-elt message 'error))
          (method (map-elt message 'method))
          (request-id (map-elt message 'id))
-         (callback (map-elt (jade-v8-inspector--callbacks) request-id)))
+         (callback (map-elt (indium-v8-inspector--callbacks) request-id)))
     (cond
      (error (message (map-elt error 'message)))
      (request-id (when callback
                    (funcall callback message)))
      (t (pcase method
-          ("Inspector.detached" (jade-v8-inspector--handle-inspector-detached message))
-          ("Console.messageAdded" (jade-v8-inspector--handle-console-message message))
-          ("Debugger.paused" (jade-v8-inspector--handle-debugger-paused message))
-          ("Debugger.scriptParsed" (jade-v8-inspector--handle-script-parsed message))
-          ("Debugger.resumed" (jade-v8-inspector--handle-debugger-resumed message)))))))
+          ("Inspector.detached" (indium-v8-inspector--handle-inspector-detached message))
+          ("Console.messageAdded" (indium-v8-inspector--handle-console-message message))
+          ("Debugger.paused" (indium-v8-inspector--handle-debugger-paused message))
+          ("Debugger.scriptParsed" (indium-v8-inspector--handle-script-parsed message))
+          ("Debugger.resumed" (indium-v8-inspector--handle-debugger-resumed message)))))))
 
-(defun jade-v8-inspector--handle-inspector-detached (message)
+(defun indium-v8-inspector--handle-inspector-detached (message)
   "Handle connection closed because it was detached."
   (let ((msg (map-nested-elt message '(params reason))))
-    (jade-backend-close-connection 'v8-inspector)
-    (message "Jade connection closed: %s" msg)))
+    (indium-backend-close-connection 'v8-inspector)
+    (message "Indium connection closed: %s" msg)))
 
-(defun jade-v8-inspector--handle-console-message (message)
+(defun indium-v8-inspector--handle-console-message (message)
   (let* ((msg (map-nested-elt message '(params message)))
          (parameters (map-elt msg 'parameters)))
-    (setf (map-elt msg 'parameters) (seq-map #'jade-v8-inspector--value parameters))
-    (jade-repl-emit-console-message msg)))
+    (setf (map-elt msg 'parameters) (seq-map #'indium-v8-inspector--value parameters))
+    (indium-repl-emit-console-message msg)))
 
-(defun jade-v8-inspector--handle-debugger-paused (message)
+(defun indium-v8-inspector--handle-debugger-paused (message)
   (let ((frames (map-nested-elt message '(params callFrames))))
-    (jade-debugger-paused (jade-v8-inspector--frames frames))))
+    (indium-debugger-paused (indium-v8-inspector--frames frames))))
 
-(defun jade-v8-inspector--handle-debugger-resumed (_message)
-  (jade-debugger-resumed))
+(defun indium-v8-inspector--handle-debugger-resumed (_message)
+  (indium-debugger-resumed))
 
-(defun jade-v8-inspector--handle-script-parsed (message)
+(defun indium-v8-inspector--handle-script-parsed (message)
   (let* ((scriptId (map-nested-elt message '(params scriptId)))
          (url (map-nested-elt message '(params url))))
-    (jade-v8-inspector--add-script-parsed scriptId url)))
+    (indium-v8-inspector--add-script-parsed scriptId url)))
 
-(defun jade-v8-inspector--handle-ws-closed (_ws)
-  (jade-repl--handle-connection-closed))
+(defun indium-v8-inspector--handle-ws-closed (_ws)
+  (indium-repl--handle-connection-closed))
 
-(defun jade-v8-inspector--handle-ws-error (ws action error)
+(defun indium-v8-inspector--handle-ws-error (ws action error)
   (message "WS Error! %s %s" action error))
 
-(defun jade-v8-inspector--send-request (request &optional callback)
+(defun indium-v8-inspector--send-request (request &optional callback)
   "Send REQUEST to the current connection.
 Evaluate CALLBACK with the response.
 
 If the current connection is closed, display an error message in
 the REPL buffer."
-  (if (jade-v8-inspector--connected-p)
-      (let ((id (jade-v8-inspector--next-request-id))
-            (callbacks (jade-v8-inspector--callbacks)))
+  (if (indium-v8-inspector--connected-p)
+      (let ((id (indium-v8-inspector--next-request-id))
+            (callbacks (indium-v8-inspector--callbacks)))
         (when callback
           (map-put callbacks id callback))
-        (websocket-send-text (map-elt jade-connection 'ws)
+        (websocket-send-text (map-elt indium-connection 'ws)
                              (json-encode (cons `(id . ,id) request))))
-    (jade-repl-emit-console-message '((level . "error") (text . "Socket connection closed")))))
+    (indium-repl-emit-console-message '((level . "error") (text . "Socket connection closed")))))
 
-(defun jade-v8-inspector--read-ws-message (frame)
+(defun indium-v8-inspector--read-ws-message (frame)
   (json-read-from-string (websocket-frame-payload frame)))
 
-(defun jade-v8-inspector--enable-tools ()
+(defun indium-v8-inspector--enable-tools ()
   "Enable developer tools for the current tab.
 
 There is currently no support for the DOM inspector and network
 inspectors."
-  (jade-v8-inspector--enable-console)
-  (jade-v8-inspector--enable-runtime)
-  (jade-v8-inspector--enable-debugger)
+  (indium-v8-inspector--enable-console)
+  (indium-v8-inspector--enable-runtime)
+  (indium-v8-inspector--enable-debugger)
   )
 
-(defun jade-v8-inspector--enable-console ()
+(defun indium-v8-inspector--enable-console ()
   "Enable the console on the current tab."
-  (jade-v8-inspector--send-request '((method . "Console.enable"))))
+  (indium-v8-inspector--send-request '((method . "Console.enable"))))
 
-(defun jade-v8-inspector--enable-runtime ()
+(defun indium-v8-inspector--enable-runtime ()
   "Enable the runtime on the current tab."
-  (jade-v8-inspector--send-request '((method . "Runtime.enable")))
-  (jade-v8-inspector--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
+  (indium-v8-inspector--send-request '((method . "Runtime.enable")))
+  (indium-v8-inspector--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
 
-(defun jade-v8-inspector--enable-debugger ()
+(defun indium-v8-inspector--enable-debugger ()
   "Enable the debugger on the current tab."
-  (jade-v8-inspector--send-request '((method . "Debugger.enable"))
+  (indium-v8-inspector--send-request '((method . "Debugger.enable"))
                              (lambda (&rest _)
-                               (jade-v8-inspector-set-pause-on-exceptions "uncaught"))))
+                               (indium-v8-inspector-set-pause-on-exceptions "uncaught"))))
 
-(defun jade-v8-inspector--handle-evaluation-response (response callback)
+(defun indium-v8-inspector--handle-evaluation-response (response callback)
   "Get the result of an evaluation in RESPONSE and evaluate CALLBACK with it."
   (let* ((result (map-nested-elt response '(result result)))
          (error (eq (map-nested-elt response '(result wasThrown)) t)))
-    (funcall callback (jade-v8-inspector--value result) error)))
+    (funcall callback (indium-v8-inspector--value result) error)))
 
-(defun jade-v8-inspector--handle-completions-response (response prefix callback)
+(defun indium-v8-inspector--handle-completions-response (response prefix callback)
   "Request a completion list for the object in RESPONSE.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it."
   (let ((objectid (map-nested-elt response '(result result objectId)))
         (type (map-nested-elt response '(result result type))))
     (if objectid
-        (jade-v8-inspector--get-completion-list-by-reference objectid prefix callback)
-      (jade-v8-inspector--get-completion-list-by-type type prefix callback))))
+        (indium-v8-inspector--get-completion-list-by-reference objectid prefix callback)
+      (indium-v8-inspector--get-completion-list-by-type type prefix callback))))
 
-(defun jade-v8-inspector--get-completion-list-by-reference (objectid prefix callback)
+(defun indium-v8-inspector--get-completion-list-by-reference (objectid prefix callback)
   "Request the completion list for a remote object referenced by OBJECTID.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it."
-  (jade-v8-inspector--send-request
+  (indium-v8-inspector--send-request
    `((method . "Runtime.callFunctionOn")
      (params . ((objectId . ,objectid)
-                (functionDeclaration . ,jade-v8-inspector-completion-function)
+                (functionDeclaration . ,indium-v8-inspector-completion-function)
                 (returnByValue . t))))
    (lambda (response)
-     (jade-v8-inspector--handle-completion-list-response response prefix callback))))
+     (indium-v8-inspector--handle-completion-list-response response prefix callback))))
 
-(defun jade-v8-inspector--get-completion-list-by-type (type prefix callback)
+(defun indium-v8-inspector--get-completion-list-by-type (type prefix callback)
   "Request the completion list for an object of type TYPE.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it.
 
 This method is used for strings, numbers and booleans.  See
-`jade-v8-inspector--get-completion-list-by-reference' for getting
+`indium-v8-inspector--get-completion-list-by-reference' for getting
 completions using references to remote objects (including
 arrays)."
-  (let ((expression (format "(%s)(\"%s\")" jade-v8-inspector-completion-function type)))
-    (jade-v8-inspector--send-request
+  (let ((expression (format "(%s)(\"%s\")" indium-v8-inspector-completion-function type)))
+    (indium-v8-inspector--send-request
      `((method . "Runtime.evaluate")
        (params . ((expression . ,expression)
                   (returnByValue . t))))
      (lambda (response)
-       (jade-v8-inspector--handle-completion-list-response response prefix callback)))))
+       (indium-v8-inspector--handle-completion-list-response response prefix callback)))))
 
-(defun jade-v8-inspector--completion-expression (string)
+(defun indium-v8-inspector--completion-expression (string)
   "Return the completion expression to be requested from STRING."
   (if (string-match-p "\\." string)
       (replace-regexp-in-string "\\.[^\\.]*$" "" string)
     "this"))
 
-(defun jade-v8-inspector--handle-completion-list-response (response prefix callback)
+(defun indium-v8-inspector--handle-completion-list-response (response prefix callback)
   "Evauate CALLBACK on the completion candidates from RESPONSE.
 Candidates are filtered using the PREFIX string."
   (let ((candidates (map-nested-elt response '(result result value))))
@@ -418,11 +418,11 @@ Candidates are filtered using the PREFIX string."
                                              (symbol-name (car candidate)))
                                            candidates)))))
 
-(cl-defmethod jade-v8-inspector--connected-p ()
+(cl-defmethod indium-v8-inspector--connected-p ()
   "Return non-nil if the current connection is open."
-  (jade-backend-active-connection-p 'v8-inspector))
+  (indium-backend-active-connection-p 'v8-inspector))
 
-(defun jade-v8-inspector--value (result)
+(defun indium-v8-inspector--value (result)
   "Return an alist representing the value of RESULT.
 
 The returned value can be a reference to a remote object, in
@@ -431,15 +431,15 @@ non-nil."
   (let* ((value (map-elt result 'value))
          (type (intern (map-elt result 'type)))
          (objectid (map-elt result 'objectId))
-         (preview (jade-v8-inspector--preview result))
-         (description (jade-v8-inspector--description result)))
+         (preview (indium-v8-inspector--preview result))
+         (description (indium-v8-inspector--description result)))
     `((objectid . ,objectid)
       (description . ,description)
       (type . ,type)
       (preview . ,preview)
       (value . ,value))))
 
-(defun jade-v8-inspector--description (result)
+(defun indium-v8-inspector--description (result)
   "Return a description string built from RESULT.
 RESULT should be a reference to a remote object."
   (let ((value (map-elt result 'value))
@@ -457,52 +457,52 @@ RESULT should be a reference to a remote object."
                       (_ "false")))
           (_ (or value "null"))))))
 
-(defun jade-v8-inspector--preview (result)
+(defun indium-v8-inspector--preview (result)
   "Return a preview string built from RESULT.
 RESULT should be a reference to a remote object."
   (let* ((preview (map-elt result 'preview))
          (subtype (map-elt preview 'subtype)))
     (if (string= subtype "array")
-        (jade-v8-inspector--preview-array preview)
-      (jade-v8-inspector--preview-object preview))))
+        (indium-v8-inspector--preview-array preview)
+      (indium-v8-inspector--preview-object preview))))
 
-(defun jade-v8-inspector--preview-object (preview)
+(defun indium-v8-inspector--preview-object (preview)
   "Return a preview string from the properties of the object PREVIEW."
   (concat " { "
           (mapconcat (lambda (prop)
                        (format "%s: %s"
                                (map-elt prop 'name)
-                               (jade-v8-inspector--description prop)))
+                               (indium-v8-inspector--description prop)))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               ", … }"
             " }")))
 
-(defun jade-v8-inspector--preview-array (preview)
+(defun indium-v8-inspector--preview-array (preview)
   "Return a preview string from the elements of the array PREVIEW."
   (concat " [ "
           (mapconcat (lambda (prop)
-                       (format "%s" (jade-v8-inspector--description prop)))
+                       (format "%s" (indium-v8-inspector--description prop)))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               "… ]"
             " ]")))
 
-(defun jade-v8-inspector--properties (result)
+(defun indium-v8-inspector--properties (result)
   "Return a list of object properties built from RESULT."
   (seq-map (lambda (prop)
              `((name . ,(map-elt prop 'name))
-               (value . ,(jade-v8-inspector--value (or (map-elt prop 'value)
+               (value . ,(indium-v8-inspector--value (or (map-elt prop 'value)
                                                  (map-elt prop 'get))))))
            result))
 
-(defun jade-v8-inspector--frames (list)
+(defun indium-v8-inspector--frames (list)
   "Return a list of frames built from LIST."
   (seq-map (lambda (frame)
              `((scope-chain . ,(seq-map (lambda (scope)
-                                          `((object . ,(jade-v8-inspector--value (map-elt scope 'object)))
+                                          `((object . ,(indium-v8-inspector--value (map-elt scope 'object)))
                                             (name . ,(map-elt scope 'name))
                                             (type . ,(map-elt scope 'type))))
                                   (map-elt frame 'scopeChain)))
@@ -512,20 +512,20 @@ RESULT should be a reference to a remote object."
                (callFrameId . ,(map-elt frame 'callFrameId))))
            list))
 
-(defun jade-v8-inspector--add-script-parsed (scriptId url)
-  (unless (map-elt jade-connection 'scripts)
-    (map-put jade-connection 'scripts '()))
-  (map-put (map-elt jade-connection 'scripts)
+(defun indium-v8-inspector--add-script-parsed (scriptId url)
+  (unless (map-elt indium-connection 'scripts)
+    (map-put indium-connection 'scripts '()))
+  (map-put (map-elt indium-connection 'scripts)
            (intern scriptId)
            url))
 
-(defun jade-v8-inspector--get-script-url (scriptId)
-  (map-nested-elt jade-connection (list 'scripts (intern scriptId))))
+(defun indium-v8-inspector--get-script-url (scriptId)
+  (map-nested-elt indium-connection (list 'scripts (intern scriptId))))
 
 (let ((id 0))
-  (defun jade-v8-inspector--next-request-id ()
+  (defun indium-v8-inspector--next-request-id ()
     "Return the next unique identifier to be used in a request."
     (cl-incf id)))
 
-(provide 'jade-v8-inspector)
-;;; jade-v8-inspector.el ends here
+(provide 'indium-v8-inspector)
+;;; indium-v8-inspector.el ends here
