@@ -1,4 +1,4 @@
-# Indium [![MELPA](https://melpa.org/packages/indium-badge.svg)](https://melpa.org/#/indium) [![Build Status](https://travis-ci.org/NicolasPetton/indium.svg?branch=master)](https://travis-ci.org/NicolasPetton/indium) [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](http://indium.readthedocs.io/en/latest/?badge=latest) <img align="right" src="img/indium.png" alt="logo">
+# Indium [![MELPA](https://melpa.org/packages/indium-badge.svg)](https://melpa.org/#/indium) [![Build Status](https://travis-ci.org/NicolasPetton/Indium.svg?branch=master)](https://travis-ci.org/NicolasPetton/Indium) [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](http://indium.readthedocs.io/en/latest/?badge=latest) <img align="right" src="img/indium.png" alt="logo">
 
 A JavaScript development environment for Emacs.
 
