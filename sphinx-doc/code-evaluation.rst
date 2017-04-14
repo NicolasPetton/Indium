@@ -18,7 +18,7 @@ To evaluate the JavaScript expression preceding the point, press ``C-x C-e``.
 
 To inspect the result of an expression, press ``C-c M-i`` (see :ref:`inspector`).
 
-The entire buffer can be evaluating with ``M-x indium-eval-buffer``.
+The entire buffer can be evaluated with ``M-x indium-eval-buffer``.
 
 Switching to the REPL buffer
 ----------------------------
@@ -37,7 +37,7 @@ You need to first make sure that Indium is set up correctly to use local files
 - ``C-c b K``: Remove all breakpoints from the current buffer
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
-Indium debugger pop up (see :ref:`debugger`).
+Indium debugger pops up (see :ref:`debugger`).
   
 .. Note:: Breakpoints are persistent: if the connection is closed, when a new
           connection is made Indium will attempt to add back all breakpoints.

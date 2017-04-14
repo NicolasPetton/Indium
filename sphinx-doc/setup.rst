@@ -70,7 +70,7 @@ To do that, place an empty ``.indium`` marker file in the root folder where your
 **web server serves static files**.
 
 The root folder where the ``.indium`` file should be put is not always the
-directory that contains your JavaScript files. It should to be the root folder
+directory that contains your JavaScript files. It should be the root folder
 containing static files. Most of the time, it is at least one level above.
 
 Given the following project structure: ::

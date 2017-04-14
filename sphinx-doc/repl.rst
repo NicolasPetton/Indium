@@ -16,7 +16,7 @@ The REPL offers the following features:
 * Auto completion with ``company-mode``
 * JS syntax highlighting
 * Pretty printing and preview of printed values
-* Access to the object inspector
+* Access to the object inspector (see :ref:`inspector`)
 
 .. image:: screenshots/repl2.png
   

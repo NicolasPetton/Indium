@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.3.3, Apr 12, 2017
+Indium 0.3.3, Apr 14, 2017
 
 Nicolas Petton
 
@@ -130,7 +130,7 @@ Interaction in JS buffers
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -212,7 +212,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup up-and-running}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup doc}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -301,7 +301,7 @@ To do that, place an empty @code{.indium} marker file in the root folder where y
 @strong{web server serves static files}.
 
 The root folder where the @code{.indium} file should be put is not always the
-directory that contains your JavaScript files. It should to be the root folder
+directory that contains your JavaScript files. It should be the root folder
 containing static files. Most of the time, it is at least one level above.
 
 Given the following project structure:
@@ -329,7 +329,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{10}@anchor{repl doc}@anchor{11}@anchor{repl repl}@anchor{12}
+@anchor{repl doc}@anchor{10}@anchor{repl the-repl}@anchor{11}@anchor{repl repl}@anchor{12}
 @section The REPL
 
 
@@ -346,7 +346,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{7,,Getting up and running}).
+connection is made (see @ref{9,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -365,13 +365,13 @@ JS syntax highlighting
 Pretty printing and preview of printed values
 
 @item 
-Access to the object inspector
+Access to the object inspector (see @ref{14,,The inspector})
 @end itemize
 
 @image{repl2,,,,png}
 
 @node Using the REPL,Code evaluation & context,Starting a REPL,The REPL
-@anchor{repl using-the-repl}@anchor{14}
+@anchor{repl using-the-repl}@anchor{15}
 @subsection Using the REPL
 
 
@@ -382,7 +382,7 @@ Access to the object inspector
 @end menu
 
 @node Keybindings,Reconnecting from the REPL buffer,,Using the REPL
-@anchor{repl keybindings}@anchor{15}
+@anchor{repl keybindings}@anchor{16}
 @subsubsection Keybindings
 
 
@@ -458,7 +458,7 @@ Instert the next input in the history.
 
 
 @node Reconnecting from the REPL buffer,,Keybindings,Using the REPL
-@anchor{repl reconnecting-from-the-repl-buffer}@anchor{16}
+@anchor{repl reconnecting-from-the-repl-buffer}@anchor{17}
 @subsubsection Reconnecting from the REPL buffer
 
 
@@ -468,7 +468,7 @@ connection, and another one to kill Emacs buffers using this connection (the
 REPL buffer, inspectors & debuggers).
 
 @node Code evaluation & context,,Using the REPL,The REPL
-@anchor{repl code-evaluation-context}@anchor{17}
+@anchor{repl code-evaluation-context}@anchor{18}
 @subsection Code evaluation & context
 
 
@@ -480,7 +480,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{18}@anchor{code-evaluation doc}@anchor{19}
+@anchor{code-evaluation doc}@anchor{19}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1a}
 @section Interaction in JS buffers
 
 
@@ -504,15 +504,15 @@ add or remove breakpoints from your buffers.
 @end menu
 
 @node Evaluating and inspecting,Switching to the REPL buffer,,Interaction in JS buffers
-@anchor{code-evaluation evaluating-and-inspecting}@anchor{1a}
+@anchor{code-evaluation evaluating-and-inspecting}@anchor{1b}
 @subsection Evaluating and inspecting
 
 
 To evaluate the JavaScript expression preceding the point, press @code{C-x C-e}.
 
-To inspect the result of an expression, press @code{C-c M-i} (see @ref{1b,,The inspector}).
+To inspect the result of an expression, press @code{C-c M-i} (see @ref{14,,The inspector}).
 
-The entire buffer can be evaluating with @code{M-x indium-eval-buffer}.
+The entire buffer can be evaluated with @code{M-x indium-eval-buffer}.
 
 @node Switching to the REPL buffer,Adding and removing breakpoints,Evaluating and inspecting,Interaction in JS buffers
 @anchor{code-evaluation switching-to-the-repl-buffer}@anchor{1c}
@@ -544,7 +544,7 @@ You need to first make sure that Indium is set up correctly to use local files
 @end itemize
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
-Indium debugger pop up (see @ref{1e,,The stepping debugger}).
+Indium debugger pops up (see @ref{1e,,The stepping debugger}).
 
 @cartouche
 @quotation Note 
@@ -564,12 +564,12 @@ updated automatically.  You can either refresh the page or evaluate
 @end cartouche
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger debugger}@anchor{1e}@anchor{debugger doc}@anchor{1f}@anchor{debugger the-stepping-debugger}@anchor{20}
+@anchor{debugger the-stepping-debugger}@anchor{1f}@anchor{debugger doc}@anchor{20}@anchor{debugger debugger}@anchor{1e}
 @section The stepping debugger
 
 
 @node The inspector,,The stepping debugger,Table of contents
-@anchor{inspector inspector}@anchor{1b}@anchor{inspector the-inspector}@anchor{21}@anchor{inspector doc}@anchor{22}
+@anchor{inspector doc}@anchor{21}@anchor{inspector inspector}@anchor{14}@anchor{inspector the-inspector}@anchor{22}
 @section The inspector
 
 
