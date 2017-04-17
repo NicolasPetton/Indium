@@ -1,6 +1,8 @@
-# Indium [![MELPA](https://melpa.org/packages/indium-badge.svg)](https://melpa.org/#/indium) [![Build Status](https://travis-ci.org/NicolasPetton/Indium.svg?branch=master)](https://travis-ci.org/NicolasPetton/Indium) [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](http://indium.readthedocs.io/en/latest/?badge=latest) <img align="right" src="img/indium.png" alt="logo">
+# Indium [![MELPA](https://melpa.org/packages/indium-badge.svg)](https://melpa.org/#/indium) [![Build Status](https://travis-ci.org/NicolasPetton/Indium.svg?branch=master)](https://travis-ci.org/NicolasPetton/Indium) [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](http://indium.readthedocs.io/en/latest/?badge=latest) [![Gratipay Team](https://img.shields.io/gratipay/team/jade.svg?maxAge=2592000)](https://gratipay.com/jade/) <img align="right" src="img/indium.png" alt="logo">
 
 A JavaScript development environment for Emacs.
+
+[![Support via Gratipay](https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.png)](https://gratipay.com/NicolasPetton/)
 
 Indium connects to a browser tab or nodejs process and provides many features for
 JavaScript development, including:
