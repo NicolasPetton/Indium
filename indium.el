@@ -35,7 +35,16 @@
 ;; being already provided, the correct version of seq.el won't get loaded.
 (require 'seq)
 (unless (fboundp 'seq-map-indexed)
-  (require 'seq-25))
+  (defun seq-map-indexed (function sequence)
+    "Return the result of applying FUNCTION to each element of SEQUENCE.
+Unlike `seq-map', FUNCTION takes two arguments: the element of
+the sequence, and its index within the sequence."
+    (let ((index 0))
+      (seq-map (lambda (elt)
+                 (prog1
+                     (funcall function elt index)
+                   (setq index (1+ index))))
+               sequence))))
 
 (require 'indium-backend)
 (require 'indium-chrome)
