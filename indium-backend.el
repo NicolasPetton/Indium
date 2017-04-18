@@ -171,6 +171,9 @@ A breakpoint is an alist with the keys `id', `file', and `line'."
                   (string= (map-elt brk 'file) file))
                 breakpoints)))
 
+(cl-defgeneric indium-backend-set-script-source (backend url source)
+  "Update the contents of the script at URL to SOURCE.")
+
 (cl-defgeneric indium-backend-get-properties (backend reference &optional callback all-properties)
   "Request the properties of the remote object represented by REFERENCE.
 REFERENCE must be the id of a remote object.
