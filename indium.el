@@ -46,6 +46,10 @@ the sequence, and its index within the sequence."
                    (setq index (1+ index))))
                sequence))))
 
+(defgroup indium nil
+  "JavaScript Awesome Development Environment."
+  :group 'tools)
+
 (require 'indium-backend)
 (require 'indium-chrome)
 (require 'indium-nodejs)
