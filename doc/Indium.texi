@@ -55,6 +55,9 @@ Copyright @copyright{} 2017, Nicolas Petton
 
 Indium is a JavaScript development environment for Emacs@footnote{http://gnu.org/software/emacs}.
 
+Indium is Free Software, licensed under the GPL v3.0.  You can follow its
+development on GitHub@footnote{https://github.com/NicolasPetton/indium}.
+
 Indium connects to a browser tab or nodejs process and provides several features
 for JavaScript development, including:
 
