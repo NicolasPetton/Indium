@@ -1,3 +1,5 @@
+.. _interaction:
+
 Interaction in JS buffers
 =========================
 
@@ -16,7 +18,8 @@ Evaluating and inspecting
 
 To evaluate the JavaScript expression preceding the point, press ``C-x C-e``.
 
-To inspect the result of an expression, press ``C-c M-i`` (see :ref:`inspector`).
+To inspect the result of the evaluation of an expression, press ``C-c M-i`` (see
+:ref:`inspector`).
 
 The entire buffer can be evaluated with ``M-x indium-eval-buffer``.
 
