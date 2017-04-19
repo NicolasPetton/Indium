@@ -269,15 +269,15 @@ the application code if you passed the CLI argument @code{--debug-brk}.
 Chrome/Chromium >= @code{54.0} is required for Indium to properly work (debugging
 protocol @code{v1.2}).
 
-Start Chrome/Chromium with the @code{--remote-debugging-port} flag like the following:
+Start Chrome/Chromium with the @code{--remote-debugging-port} flag.
+If a Chrome window is available, Chrome will open the URL in a new tab
+in that window. If it does, the @code{--remote-debugging-port} flag
+will not be set. You can avoid this by forcing chrome to open a new
+window, using @code{--new-window}.
 
 @example
-chromium --remote-debugging-port=9222 https://localhost:3000
+chromium --remote-debugging-port=9222 --new-window https://localhost:3000
 @end example
-
-Make sure that no instance of Chrome is already running, otherwise Chrome will
-simply open a new tab on the existing Chrome instance, and the
-@code{remote-debugging-port} will not be set.
 
 To connect to a tab, run from Emacs:
 
