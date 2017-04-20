@@ -297,8 +297,11 @@ the connection and buffers."
     (indium-repl-emit-console-message msg)))
 
 (defun indium-v8-inspector--handle-debugger-paused (message)
-  (let ((frames (map-nested-elt message '(params callFrames))))
-    (indium-debugger-paused (indium-v8-inspector--frames frames))))
+  (let ((frames (map-nested-elt message '(params callFrames)))
+        (exception (equal (map-nested-elt message '(params reason)) "exception")))
+    (if (and exception (not (y-or-n-p "Uncaught exception!  Open a debugger? ")))
+        (indium-backend-resume 'v8-inspector)
+      (indium-debugger-paused (indium-webkit--frames frames)))))
 
 (defun indium-v8-inspector--handle-debugger-resumed (_message)
   (indium-debugger-resumed))

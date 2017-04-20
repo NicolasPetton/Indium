@@ -320,9 +320,12 @@ MESSAGE explains why the connection has been closed."
     (indium-repl-emit-console-message (indium-webkit--exception exception) t)))
 
 (defun indium-webkit--handle-debugger-paused (message)
-  (let ((frames (map-nested-elt message '(params callFrames))))
+  (let ((frames (map-nested-elt message '(params callFrames)))
+        (exception (equal (map-nested-elt message '(params reason)) "exception")))
     (indium-webkit-set-overlay-message "Paused in Emacs debugger")
-    (indium-debugger-paused (indium-webkit--frames frames))))
+    (if (and exception (not (y-or-n-p "Uncaught exception!  Open a debugger? ")))
+        (indium-backend-resume 'webkit)
+      (indium-debugger-paused (indium-webkit--frames frames)))))
 
 (defun indium-webkit--handle-debugger-resumed (_message)
   (indium-webkit-remove-overlay-message)
