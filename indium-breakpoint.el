@@ -105,13 +105,10 @@ The icon is added to the left fringe.
 
 When CONDITION is non-nil, add it to the breakpoint overlay.
 Return the overlay."
-  (let ((ov (make-overlay (point-at-bol) (point-at-eol))))
+  (let ((ov (indium-breakpoint-ensure-overlay)))
     (overlay-put ov
                  'before-string
                  (indium-breakpoint--fringe-icon))
-    (overlay-put ov
-                 'indium-breakpoint
-                 t)
     (when condition
       (overlay-put ov
                    'indium-breakpoint-condition
@@ -136,18 +133,30 @@ Return the overlay."
   (propertize "b" 'display
               (list 'left-fringe 'indium-breakpoint 'indium-breakpoint-face)))
 
+(defun indium-breakpoint-overlay-on-current-line ()
+  "Return the breakpoint overlay on the current-line.
+If no overlay is present, return nil."
+  (seq-find (lambda (ov)
+              (overlay-get ov 'indium-breakpoint))
+            (overlays-in (point-at-bol) (point-at-eol))))
+
+(defun indium-breakpoint-ensure-overlay ()
+  "Return the breakpoint overlay on the current line.
+If there is no overlay, make one."
+  (or (indium-breakpoint-overlay-on-current-line)
+      (let ((ov (make-overlay (point-at-bol) (point-at-eol))))
+        (overlay-put ov 'indium-breakpoint t)
+        ov)))
+
 (defun indium-breakpoint-id-at-point ()
   "Return the id of the breakpoint on the current line.
 If there is no breakpoint set on the line, return nil."
-  (seq-some (lambda (ov)
-              (overlay-get ov 'indium-breakpoint-id))
-            (overlays-at (point))))
+  (when-let ((ov (indium-breakpoint-overlay-on-current-line)))
+    (overlay-get ov 'indium-breakpoint-id)))
 
 (defun indium-breakpoint-on-current-line-p ()
   "Return non-nil if there is a breakpoint on the current line."
-  (seq-some (lambda (ov)
-              (overlay-get ov 'indium-breakpoint))
-            (overlays-at (point))))
+  (not (null (indium-breakpoint-overlay-on-current-line))))
 
 (and (display-images-p)
      (define-fringe-bitmap 'indium-breakpoint
