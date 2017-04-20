@@ -51,3 +51,26 @@ Indium debugger pops up (see :ref:`debugger`).
              updated automatically.  You can either refresh the page or evaluate
              ``indium-reload``.
              
+
+Live code update (hot-swapping JavaScript sources)
+--------------------------------------------------
+
+Indium supports live code updates without the need to reload the browser tab or
+restart the nodejs process.
+
+This feature works with by hot-swapping the script source, and works even with
+lexical closures.
+
+.. Note:: This feature currently in only available for Chrome & Chromium.
+
+.. Warning:: Stability issues have been reported when using this feature with
+             Chrome 57 and earlier.  We strongly encourage you to use Chrome >=
+             58 when using live code updates.
+
+To enable live updates, make sure Indium is set up to use local files (see
+:ref:`local-files`).
+
+- ``C-c u``: Updates the runtime JavaScript source with the contents of the
+  current buffer.
+- ``(setq indium-update-script-on-save t)``: Automatically update the runtime
+  script JavaScript source after each buffer save.
