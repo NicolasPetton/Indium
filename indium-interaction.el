@@ -30,6 +30,11 @@
 (require 'indium-repl)
 (require 'indium-render)
 
+(defcustom indium-update-script-on-save nil
+  "When non-nil, update (hotswap) the script source with the contents of the buffer."
+  :type 'boolean
+  :group 'indium)
+
 (defun indium-eval (string &optional callback)
   "Evaluate STRING on the current backend.
 When CALLBACK is non-nil, evaluate CALLBACK with the result.
@@ -139,6 +144,7 @@ current buffer."
     (define-key map (kbd "C-x C-e") #'indium-eval-last-node)
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
+    (define-key map (kbd "C-c u") #'indium-update-script-source)
     (define-key map (kbd "C-c b b") #'indium-toggle-breakpoint)
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
     map))
@@ -167,10 +173,12 @@ current buffer."
   "Update breakpoints and script source of the current buffer."
   (when (and indium-interaction-mode indium-connection)
     (indium-breakpoint-update-breakpoints)
-    (indium-update-script-source)))
+    (when indium-update-script-on-save
+      (indium-update-script-source))))
 
 (defun indium-update-script-source ()
   "Update the script source of the backend based on the current buffer."
+  (interactive)
   (when-let ((url (indium-workspace-make-url buffer-file-name)))
     (indium-backend-set-script-source (indium-backend)
                                       url
