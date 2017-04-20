@@ -144,7 +144,7 @@ current buffer."
     (define-key map (kbd "C-x C-e") #'indium-eval-last-node)
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
-    (define-key map (kbd "C-c u") #'indium-update-script-source)
+    (define-key map (kbd "C-c C-k") #'indium-update-script-source)
     (define-key map (kbd "C-c b b") #'indium-toggle-breakpoint)
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
     map))

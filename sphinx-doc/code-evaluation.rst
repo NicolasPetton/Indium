@@ -70,7 +70,7 @@ lexical closures.
 To enable live updates, make sure Indium is set up to use local files (see
 :ref:`local-files`).
 
-- ``C-c u``: Updates the runtime JavaScript source with the contents of the
+- ``C-c C-k``: Updates the runtime JavaScript source with the contents of the
   current buffer.
 - ``(setq indium-update-script-on-save t)``: Automatically update the runtime
   script JavaScript source after each buffer save.
