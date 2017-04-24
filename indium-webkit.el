@@ -110,7 +110,7 @@ non-nil, evaluate it with the breakpoint's location and id."
               (locations (map-elt breakpoint 'locations))
               (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
          (when line
-           (indium-webkit--register-breakpoint id line buffer-file-name))
+           (indium-backend-register-breakpoint id line buffer-file-name))
          (when callback
            (unless line
              (message "Cannot get breakpoint location"))
@@ -121,30 +121,8 @@ non-nil, evaluate it with the breakpoint's location and id."
   (indium-webkit--send-request
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
-   (lambda (response)
-     (indium-webkit--unregister-breakpoint id))))
-
-(cl-defgeneric indium-backend-get-breakpoints ((backend (eql webkit)))
-  "Return all breakpoints.
-A breakpoint is a map with the keys `id', `file', and `line'."
-  (let ((breakpoints (map-elt indium-connection 'breakpoints)))
-    (map-keys-apply (lambda (key)
-                      `((id . ,key)
-                        (file . ,(map-nested-elt breakpoints `(,key file)))
-                        (line . ,(map-nested-elt breakpoints `(,key line)))))
-                    breakpoints)))
-
-(defun indium-webkit--register-breakpoint (id line file)
-  "Register the breakpoint with ID at LINE in FILE.
-If a buffer visits FILE with `indium-interaction-mode' turned on,
-the breakpoint can be added back to the buffer."
-  (let ((breakpoint `((line . ,line)
-                      (file . ,file))))
-    (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
-
-(defun indium-webkit--unregister-breakpoint (id)
-  "Remove the breakpoint with ID from the current connection."
-  (map-delete (map-elt indium-connection 'breakpoints) id))
+   (lambda (_response)
+     (indium-backend-unregister-breakpoint id))))
 
 (cl-defmethod indium-backend-get-properties ((backend (eql webkit)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
@@ -264,7 +242,6 @@ same url."
     (map-put connection 'url url)
     (map-put connection 'backend 'webkit)
     (map-put connection 'callbacks (make-hash-table))
-    (map-put connection 'breakpoints (make-hash-table))
     connection))
 
 (defun indium-webkit--callbacks ()

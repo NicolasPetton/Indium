@@ -106,7 +106,7 @@ non-nil, evaluate it with the breakpoint's location and id."
             (locations (map-elt breakpoint 'locations))
             (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
        (when line
-         (indium-v8-inspector--register-breakpoint id line buffer-file-name))
+         (indium-backend-register-breakpoint id line buffer-file-name))
        (when callback
          (unless line
            (message "Cannot get breakpoint location"))
@@ -118,29 +118,7 @@ non-nil, evaluate it with the breakpoint's location and id."
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (response)
-     (indium-v8-inspector--unregister-breakpoint id))))
-
-(cl-defmethod indium-backend-get-breakpoints ((backend (eql v8-inspector)))
-  "Return all breakpoints.
-A breakpoint is a map with the keys `id', `file', and `line'."
-  (let ((breakpoints (map-elt indium-connection 'breakpoints)))
-    (map-keys-apply (lambda (key)
-                      `((id . ,key)
-                        (file . ,(map-nested-elt breakpoints `(,key file)))
-                        (line . ,(map-nested-elt breakpoints `(,key line)))))
-                    breakpoints)))
-
-(defun indium-v8-inspector--register-breakpoint (id line file)
-  "Register the breakpoint with ID at LINE in FILE.
-If a buffer visits FILE with `indium-interaction-mode' turned on,
-the breakpoint can be added back to the buffer."
-  (let ((breakpoint `((line . ,line)
-                      (file . ,file))))
-    (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
-
-(defun indium-v8-inspector--unregister-breakpoint (id)
-  "Remove the breakpoint with ID from the current connection."
-  (map-delete (map-elt indium-connection 'breakpoints) id))
+     (indium-backend-unregister-breakpoint id))))
 
 (cl-defmethod indium-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.

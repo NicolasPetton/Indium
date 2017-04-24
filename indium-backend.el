@@ -116,26 +116,57 @@ EXPRESSION should be a valid JavaScript expression string.")
   "Request the addition of a breakpoint.
 
 The breakpoint is addet to FILE on line LINE.  When CALLBACK is
-non-nil, evaluate it with the breakpoint's location and id.")
+non-nil, evaluate it with the breakpoint's location and id.
+
+Concrete implementations should call
+`indium-backend-register-breakpoint' once the addition has been
+performed.")
 
 (cl-defgeneric indium-backend-remove-breakpoint (backend id)
-  "Request the removal of the breakpoint with id ID.")
+  "Request the removal of the breakpoint with id ID.
 
-(cl-defgeneric indium-backend-get-breakpoints (backend)
-  "Return all breakpoints.
-A breakpoint is a map with the keys `id', `file', and `line'.")
+Concrete implementations should call
+`indium-backend-unregister-breakpoint' once the removal has been
+performed.")
 
 (defun indium-backend-remove-all-breakpoints-from-buffer (buffer)
   "Remove all breakpoints from BUFFER."
   (with-current-buffer buffer
     (seq-do (lambda (brk)
               (indium-backend-remove-breakpoint (indium-backend)
-                                              (map-elt brk 'id)))
+                                                (map-elt brk 'id)))
             (indium-backend-get-breakpoints-in-file buffer-file-name))))
+
+(defun indium-backend-register-breakpoint (id line file)
+  "Register the breakpoint with ID at LINE in FILE.
+
+Breakpoints are registered locally in the current connection so
+that if a buffer later visits FILE with `indium-interaction-mode'
+turned on, the breakpoint can be added back to the buffer."
+  (when (and indium-connection
+             (null (map-elt indium-connection 'breakpoints)))
+    (map-put indium-connection 'breakpoints (make-hash-table)))
+  (let ((breakpoint `((line . ,line)
+                      (file . ,file))))
+    (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
+
+(defun indium-backend-unregister-breakpoint (id)
+  "Remove the breakpoint with ID from the current connection."
+  (map-delete (map-elt indium-connection 'breakpoints) id))
+
+(defun indium-backend-get-breakpoints ()
+  "Return all breakpoints in the current connection.
+A breakpoint is an alist with the keys `id', `file', and `line'."
+  (let ((breakpoints (map-elt indium-connection 'breakpoints)))
+    (map-keys-apply (lambda (key)
+                      `((id . ,key)
+                        (file . ,(map-nested-elt breakpoints `(,key file)))
+                        (line . ,(map-nested-elt breakpoints `(,key line)))))
+                    breakpoints)))
 
 (defun indium-backend-get-breakpoints-in-file (file)
   "Return all breakpoints in FILE."
-  (let ((breakpoints (indium-backend-get-breakpoints (indium-backend))))
+  (let ((breakpoints (indium-backend-get-breakpoints)))
     (seq-filter (lambda (brk)
                   (string= (map-elt brk 'file) file))
                 breakpoints)))
