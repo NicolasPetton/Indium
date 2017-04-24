@@ -112,7 +112,7 @@ non-nil, evaluate it with the breakpoint's location and id."
            (message "Cannot get breakpoint location"))
          (funcall callback line id condition))))))
 
-(cl-defgeneric indium-backend-remove-breakpoint ((backend (eql v8-inspector)) id)
+(cl-defmethod indium-backend-remove-breakpoint ((backend (eql v8-inspector)) id)
   "Request the removal of the breakpoint with id ID."
   (indium-v8-inspector--send-request
    `((method . "Debugger.removeBreakpoint")
@@ -120,7 +120,7 @@ non-nil, evaluate it with the breakpoint's location and id."
    (lambda (response)
      (indium-v8-inspector--unregister-breakpoint id))))
 
-(cl-defgeneric indium-backend-get-breakpoints ((backend (eql v8-inspector)))
+(cl-defmethod indium-backend-get-breakpoints ((backend (eql v8-inspector)))
   "Return all breakpoints.
 A breakpoint is a map with the keys `id', `file', and `line'."
   (let ((breakpoints (map-elt indium-connection 'breakpoints)))
