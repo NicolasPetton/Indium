@@ -53,13 +53,15 @@ Interactively, with a prefix argument ARG, print output into
 current buffer."
   (interactive "P")
   (indium-interaction--ensure-connection)
-  (indium-eval (js2-node-string (indium-interaction-node-before-point))
-             (lambda (value _error)
-               (let ((description (indium-render-value-to-string value)))
-                 (if arg
-                     (save-excursion
-                       (insert description))
-                   (indium-message "%s" description))))))
+  (js2-mode-wait-for-parse
+   (lambda ()
+     (indium-eval (js2-node-string (indium-interaction-node-before-point))
+                  (lambda (value _error)
+                    (let ((description (indium-render-value-to-string value)))
+                      (if arg
+                          (save-excursion
+                            (insert description))
+                        (indium-message "%s" description))))))))
 
 (defun indium-reload ()
   "Reload the page."
@@ -71,9 +73,11 @@ current buffer."
   "Evaluate and inspect the node before point."
   (interactive)
   (indium-interaction--ensure-connection)
-  (indium-eval (js2-node-string (indium-interaction-node-before-point))
-             (lambda (result _error)
-               (indium-inspector-inspect result))))
+  (js2-mode-wait-for-parse
+   (lambda ()
+     (indium-eval (js2-node-string (indium-interaction-node-before-point))
+                  (lambda (result _error)
+                    (indium-inspector-inspect result))))))
 
 (defun indium-switch-to-repl-buffer ()
   "Switch to the repl buffer if any."
