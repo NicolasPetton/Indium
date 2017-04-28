@@ -41,12 +41,15 @@
   :group 'indium)
 
 (defcustom indium-debugger-major-mode
-  #'js-mode
+  #'js2-mode
   "Major mode used in debugger buffers."
   :group 'indium-debugger
   :type 'function)
 
 (defvar indium-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
+
+(defvar indium-debugger-message nil "Message to be displayed in the echo area.")
+(make-local-variable 'indium-debugger-message)
 
 (defconst indium-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
@@ -54,12 +57,13 @@
 
 (declare 'indium-backend-debugger-get-script-source)
 
-(defun indium-debugger-paused (frames)
+(defun indium-debugger-paused (frames reason)
   (indium-debugger-setup-context frames (car frames))
   (indium-debugger-select-frame (car frames))
-  (indium-debugger-show-help-message))
+  (indium-debugger-show-help-message reason))
 
 (defun indium-debugger-resumed (&rest _args)
+  (message "Execution resumed")
   (seq-doseq (buf (seq-filter (lambda (buf)
                                 (with-current-buffer buf
                                   indium-debugger-mode))
@@ -337,6 +341,9 @@ frame."
                 (eq major-mode indium-debugger-major-mode))
       (funcall indium-debugger-major-mode))
     (indium-debugger-mode 1)
+    (when (and (eq major-mode 'js2-mode)
+               js2-mode-buffer-dirty-p)
+      (js2-parse))
     (read-only-mode)))
 
 (defun indium-debugger-unset-current-buffer ()
