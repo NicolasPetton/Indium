@@ -91,7 +91,7 @@ DIRECTION is `forward' or `backward' (in the frame list)."
                  (`forward -1)
                  (`backward 1)))
          (position (+ current-position step)))
-    (when (> position (seq-length (indium-debugger-frames)))
+    (when (>= position (seq-length (indium-debugger-frames)))
       (user-error "End of frames"))
     (when (< position 0)
       (user-error "Beginning of frames"))
