@@ -54,8 +54,9 @@
 (defun indium-workspace-lookup-file (url)
   "Return a local file matching URL for the current connection.
 If no file is found, return nil."
-  (or (indium-workspace--lookup-using-file-protocol url)
-      (indium-workspace--lookup-using-workspace url)))
+  (when url
+    (or (indium-workspace--lookup-using-file-protocol url)
+        (indium-workspace--lookup-using-workspace url))))
 
 (defun indium-workspace-lookup-file-safe (url)
   "Find a local file for URL, or return URL is no file can be found."
