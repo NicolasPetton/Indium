@@ -190,12 +190,13 @@ buffer visiting it."
 
 (defun indium-debugger-schedule-refresh-echo-area-timer ()
   "Schedule a time to be run to update the echo area."
-  (run-with-idle-timer 2
-                       t
-                       (lambda ()
-                         (unless (eq (current-message)
-                                     indium-refresh-echo-area-timer)
-                           (indium-debugger-refresh-echo-area)))))
+  (setq indium-refresh-echo-area-timer
+        (run-with-idle-timer 1
+                             t
+                             (lambda ()
+                               (unless (eq (current-message)
+                                           indium-debugger-message)
+                                 (indium-debugger-refresh-echo-area))))))
 
 (defun indium-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
