@@ -149,7 +149,7 @@ prototype chain of the remote object."
 
 (cl-defmethod indium-backend-get-script-url ((backend (eql webkit)) frame)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-    (indium-webkit--get-script-url script-id)))
+    (when script-id (indium-webkit--get-script-url script-id))))
 
 (cl-defmethod indium-backend-resume ((backend (eql webkit)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."

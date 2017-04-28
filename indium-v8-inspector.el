@@ -160,7 +160,7 @@ prototype chain of the remote object."
 
 (cl-defmethod indium-backend-get-script-url ((backend (eql v8-inspector)) frame)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-    (indium-v8-inspector--get-script-url script-id)))
+    (when script-id (indium-v8-inspector--get-script-url script-id))))
 
 (cl-defmethod indium-backend-resume ((backend (eql v8-inspector)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
