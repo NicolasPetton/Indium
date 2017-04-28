@@ -51,13 +51,15 @@
 (defvar indium-debugger-message nil "Message to be displayed in the echo area.")
 (make-local-variable 'indium-debugger-message)
 
+(defvar indium-refresh-echo-area-timer nil "Time to be run to update the echo area.")
+
 (defconst indium-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
   "Used as an overlay's before-string prop to place a fringe arrow.")
 
 (declare 'indium-backend-debugger-get-script-source)
 
-(defun indium-debugger-paused (frames reason)
+(defun indium-debugger-paused (frames &optional reason)
   (indium-debugger-setup-context frames (car frames))
   (indium-debugger-select-frame (car frames))
   (indium-debugger-show-help-message reason))
@@ -144,49 +146,56 @@ buffer visiting it."
   (indium-debugger-locals-maybe-refresh)
   (indium-debugger-frames-maybe-refresh))
 
-(defun indium-debugger-show-help-message ()
-  "Display a help message in the echo-area."
-  (let ((message (concat "["
-                         (propertize "SPC"
-                                     'face 'font-lock-keyword-face)
-                         "]over "
-                         "["
-                         (propertize "i"
-                                     'face 'font-lock-keyword-face)
-                         "]nto "
-                         "["
-                         (propertize "o"
-                                     'face 'font-lock-keyword-face)
-                         "]ut "
-                         "["
-                         (propertize "c"
-                                     'face 'font-lock-keyword-face)
-                         "]ontinue "
-                         "["
-                         (propertize "h"
-                                     'face 'font-lock-keyword-face)
-                         "]ere "
-                         "["
-                         (propertize "l"
-                                     'face 'font-lock-keyword-face)
-                         "]ocals "
-                         "["
-                         (propertize "e"
-                                     'face 'font-lock-keyword-face)
-                         "]val... "
-                         "["
-                         (propertize "s"
-                                     'face 'font-lock-keyword-face)
-                         "]tack "
-                         "["
-                         (propertize "n"
-                                     'face 'font-lock-keyword-face)
-                         "]ext "
-                         "["
-                         (propertize "p"
-                                     'face 'font-lock-keyword-face)
-                         "]revious")))
-    (message "Debug: %s" message)))
+(defun indium-debugger-show-help-message (&optional reason)
+  "Display a help message with REASON in the echo-area."
+  (setq indium-debugger-message
+        (concat (propertize (or reason "")
+                            'face 'font-lock-warning-face)
+                " "
+                (propertize "SPC"
+                            'face 'font-lock-keyword-face)
+                " over "
+                (propertize "i"
+                            'face 'font-lock-keyword-face)
+                "nto "
+                (propertize "o"
+                            'face 'font-lock-keyword-face)
+                "ut "
+                (propertize "c"
+                            'face 'font-lock-keyword-face)
+                "ontinue "
+                (propertize "h"
+                            'face 'font-lock-keyword-face)
+                "ere "
+                (propertize "l"
+                            'face 'font-lock-keyword-face)
+                "ocals "
+                (propertize "e"
+                            'face 'font-lock-keyword-face)
+                "val "
+                (propertize "s"
+                            'face 'font-lock-keyword-face)
+                "tack "
+                (propertize "n"
+                            'face 'font-lock-keyword-face)
+                "ext "
+                (propertize "p"
+                            'face 'font-lock-keyword-face)
+                "rev"))
+  (indium-debugger-refresh-echo-area))
+
+(defun indium-debugger-refresh-echo-area ()
+  "Refresh the echo area as motion commands clear the echo area."
+  (message indium-debugger-message))
+
+(defun indium-debugger-schedule-refresh-echo-area-timer ()
+  "Schedule a time to be run to update the echo area."
+  (run-with-idle-timer 2
+                       t
+                       (lambda ()
+                         (unless (eq (current-message)
+                                     indium-refresh-echo-area-timer)
+                           (indium-debugger-refresh-echo-area)))))
 
 (defun indium-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
@@ -377,8 +386,17 @@ frame."
   :group 'indium
   :lighter " JS-debug"
   :keymap indium-debugger-mode-map
-  (unless indium-interaction-mode
-    (indium-interaction-mode)))
+  (if indium-debugger-mode
+      (progn
+        (unless indium-interaction-mode
+          (indium-interaction-mode))
+        (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t)
+        (indium-debugger-schedule-refresh-echo-area-timer))
+    (progn
+      (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)
+      (when indium-refresh-echo-area-timer
+        (cancel-timer indium-refresh-echo-area-timer)
+        (setq indium-refresh-echo-area-timer nil)))))
 
 (provide 'indium-debugger)
 ;;; indium-debugger.el ends here
