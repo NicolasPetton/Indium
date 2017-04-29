@@ -16,12 +16,13 @@ add or remove breakpoints from your buffers.
 Evaluating and inspecting
 -------------------------
 
-To evaluate the JavaScript expression preceding the point, press ``C-x C-e``.
+Here's a list of available keybindings:
 
-To inspect the result of the evaluation of an expression, press ``C-c M-i`` (see
-:ref:`inspector`).
-
-The entire buffer can be evaluated with ``M-x indium-eval-buffer``.
+- ``C-x C-e``: Evaluate the JavaScript expression preceding the point.
+- ``C-M-x``: Evaluate the innermost function enclosing the point.
+- ``C-c M-i``: Inspect the result of the evaluation of an expression (see
+  :ref:`inspector`).
+- ``M-x indium-eval-buffer``: Evaluate the entire buffer.
 
 Switching to the REPL buffer
 ----------------------------

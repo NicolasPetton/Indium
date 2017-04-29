@@ -49,19 +49,32 @@ evaluated."
   "Evaluate the node before point; print in the echo area.
 This is similar to `eval-last-sexp', but for JavaScript buffers.
 
-Interactively, with a prefix argument ARG, print output into
-current buffer."
+Interactively, with a prefix argument ARG, print the output into
+the current buffer."
   (interactive "P")
+  (indium-interaction--eval-node (indium-interaction-node-before-point) arg))
+
+(defun indium-eval-defun ()
+  "Evaluate the innermost function enclosing the current point."
+  (interactive)
+  (if-let ((node (js2-mode-function-at-point)))
+      (indium-interaction--eval-node node)
+    (user-error "No function at point")))
+
+(defun indium-interaction--eval-node (node &optional print)
+  "Evaluate the AST node NODE.
+If PRINT is non-nil, print the output into the current buffer."
   (indium-interaction--ensure-connection)
   (js2-mode-wait-for-parse
    (lambda ()
-     (indium-eval (js2-node-string (indium-interaction-node-before-point))
+     (indium-eval (js2-node-string node)
                   (lambda (value _error)
                     (let ((description (indium-render-value-to-string value)))
-                      (if arg
+                      (if print
                           (save-excursion
                             (insert description))
                         (indium-message "%s" description))))))))
+
 
 (defun indium-reload ()
   "Reload the page."
@@ -137,6 +150,7 @@ current buffer."
 (defvar indium-interaction-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'indium-eval-last-node)
+    (define-key map (kbd "C-M-x") #'indium-eval-defun)
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
     (define-key map (kbd "C-c b b") #'indium-toggle-breakpoint)
