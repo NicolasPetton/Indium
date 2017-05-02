@@ -194,8 +194,9 @@ buffer visiting it."
         (run-with-idle-timer 1
                              t
                              (lambda ()
-                               (unless (eq (current-message)
-                                           indium-debugger-message)
+                               (when (and indium-debugger-mode
+                                          (not (eq (current-message)
+                                                   indium-debugger-message)))
                                  (indium-debugger-refresh-echo-area))))))
 
 (defun indium-debugger-setup-overlay-arrow ()
