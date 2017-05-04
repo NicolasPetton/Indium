@@ -51,8 +51,6 @@
 (defvar indium-debugger-message nil "Message to be displayed in the echo area.")
 (make-local-variable 'indium-debugger-message)
 
-(defvar indium-refresh-echo-area-timer nil "Time to be run to update the echo area.")
-
 (defconst indium-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
   "Used as an overlay's before-string prop to place a fringe arrow.")
@@ -187,17 +185,6 @@ buffer visiting it."
 (defun indium-debugger-refresh-echo-area ()
   "Refresh the echo area as motion commands clear the echo area."
   (message indium-debugger-message))
-
-(defun indium-debugger-schedule-refresh-echo-area-timer ()
-  "Schedule a time to be run to update the echo area."
-  (setq indium-refresh-echo-area-timer
-        (run-with-idle-timer 1
-                             t
-                             (lambda ()
-                               (when (and indium-debugger-mode
-                                          (not (eq (current-message)
-                                                   indium-debugger-message)))
-                                 (indium-debugger-refresh-echo-area))))))
 
 (defun indium-debugger-setup-overlay-arrow ()
   (let ((pos (line-beginning-position)))
@@ -392,13 +379,8 @@ frame."
       (progn
         (unless indium-interaction-mode
           (indium-interaction-mode))
-        (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t)
-        (indium-debugger-schedule-refresh-echo-area-timer))
-    (progn
-      (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)
-      (when indium-refresh-echo-area-timer
-        (cancel-timer indium-refresh-echo-area-timer)
-        (setq indium-refresh-echo-area-timer nil)))))
+        (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t))
+    (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)))
 
 (provide 'indium-debugger)
 ;;; indium-debugger.el ends here
