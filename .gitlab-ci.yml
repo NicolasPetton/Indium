@@ -1,0 +1,10 @@
+before_script:
+ - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > travis.sh && source ./travis.sh
+ - evm install emacs-25.1-travis
+ - cask install
+
+test:
+  script:
+  - emacs --version
+  - cask exec ert-runner -L .
+  
