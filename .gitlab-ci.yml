@@ -1,0 +1,10 @@
+image: nicolaspetton/emacs:armhf
+
+before_script:
+ - cask install
+
+test:
+  script:
+  - emacs --version
+  - cask exec ert-runner -L .
+  
