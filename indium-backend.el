@@ -164,6 +164,16 @@ A breakpoint is an alist with the keys `id', `file', and `line'."
                         (line . ,(map-nested-elt breakpoints `(,key line)))))
                     breakpoints)))
 
+(cl-defgeneric indium-backend-deactivate-breakpoints (backend)
+  "Deactivate all breakpoints.
+The runtime will not pause on any breakpoint."
+  )
+
+(cl-defgeneric indium-backend-activate-breakpoints (backend)
+  "Deactivate all breakpoints.
+The runtime will not pause on any breakpoint."
+  )
+
 (defun indium-backend-get-breakpoints-in-file (file)
   "Return all breakpoints in FILE."
   (let ((breakpoints (indium-backend-get-breakpoints)))

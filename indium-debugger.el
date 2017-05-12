@@ -64,6 +64,7 @@
 
 (defun indium-debugger-resumed (&rest _args)
   (message "Execution resumed")
+  (indium-debugger-unset-context)
   (seq-doseq (buf (seq-filter (lambda (buf)
                                 (with-current-buffer buf
                                   indium-debugger-mode))
@@ -227,7 +228,6 @@ buffer visiting it."
 (defun indium-debugger-resume ()
   (interactive)
   (indium-backend-resume (indium-backend) #'indium-debugger-resumed)
-  (indium-debugger-unset-context)
   (let ((locals-buffer (indium-debugger-locals-get-buffer))
         (frames-buffer (indium-debugger-frames-get-buffer)))
     (when locals-buffer

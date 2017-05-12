@@ -120,6 +120,20 @@ non-nil, evaluate it with the breakpoint's location and id."
    (lambda (response)
      (indium-backend-unregister-breakpoint id))))
 
+(cl-defgeneric indium-backend-deactivate-breakpoints ((backend (eql v8-inspector)))
+  "Deactivate all breakpoints.
+The runtime will not pause on any breakpoint."
+  (indium-v8-inspector--send-request
+   `((method . "Debugger.setBreakpointsActive")
+     (params . ((active . :json-false))))))
+
+(cl-defgeneric indium-backend-activate-breakpoints ((backend (eql v8-inspector)))
+  "Deactivate all breakpoints.
+The runtime will not pause on any breakpoint."
+  (indium-v8-inspector--send-request
+   `((method . "Debugger.setBreakpointsActive")
+     (params . ((active . t))))))
+
 (cl-defmethod indium-backend-get-properties ((backend (eql v8-inspector)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
