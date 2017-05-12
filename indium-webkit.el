@@ -140,6 +140,19 @@ prototype chain of the remote object."
               (indium-webkit--properties
                (map-nested-elt response '(result result)))))))
 
+(cl-defmethod indium-backend-set-script-source ((backend (eql webkit)) url source)
+  (when-let ((script-id (indium-webkit--get-script-id url)))
+    (indium-webkit--send-request
+     `((method . "Runtime.compileScript")
+       (params . ((expression . ,source)
+                  (sourceURL . ,url)
+                  (persistScript . :json-false))))
+     (lambda (response)
+       (indium-webkit--send-request
+        `((method . "Debugger.setScriptSource")
+          (params . ((scriptId . ,script-id)
+                     (scriptSource . ,source)))))))))
+
 (cl-defmethod indium-backend-get-script-source ((backend (eql webkit)) frame callback)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
    (indium-webkit--send-request
@@ -538,6 +551,13 @@ RESULT should be a reference to a remote object."
 
 (defun indium-webkit--get-script-url (scriptId)
   (map-nested-elt indium-connection (list 'scripts (intern scriptId))))
+
+(defun indium-webkit--get-script-id (url)
+  (seq-find #'identity
+            (map-apply (lambda (key val)
+                         (when (string= url val)
+                           (symbol-name key)))
+                       (map-elt indium-connection 'scripts))))
 
 (let ((id 0))
   (defun indium-webkit--next-request-id ()

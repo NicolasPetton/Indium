@@ -30,6 +30,11 @@
 (require 'indium-repl)
 (require 'indium-render)
 
+(defcustom indium-update-script-on-save nil
+  "When non-nil, update (hotswap) the script source with the contents of the buffer."
+  :type 'boolean
+  :group 'indium)
+
 (defun indium-eval (string &optional callback)
   "Evaluate STRING on the current backend.
 When CALLBACK is non-nil, evaluate CALLBACK with the result.
@@ -153,6 +158,7 @@ If PRINT is non-nil, print the output into the current buffer."
     (define-key map (kbd "C-M-x") #'indium-eval-defun)
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
+    (define-key map (kbd "C-c C-k") #'indium-update-script-source)
     (define-key map (kbd "C-c b b") #'indium-toggle-breakpoint)
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
     map))
@@ -177,12 +183,22 @@ If PRINT is non-nil, print the output into the current buffer."
   "Function to be evaluated when `indium-interaction-mode' is turned off."
   (indium-breakpoint-remove-breakpoints-from-buffer))
 
-(defun indium-interaction-update-breakpoints ()
-  "Update breakpoints in the current buffer."
+(defun indium-interaction-update ()
+  "Update breakpoints and script source of the current buffer."
   (when (and indium-interaction-mode indium-connection)
-    (indium-breakpoint-update-breakpoints)))
+    (indium-breakpoint-update-breakpoints)
+    (when indium-update-script-on-save
+      (indium-update-script-source))))
 
-(add-hook 'after-save-hook #'indium-interaction-update-breakpoints)
+(defun indium-update-script-source ()
+  "Update the script source of the backend based on the current buffer."
+  (interactive)
+  (when-let ((url (indium-workspace-make-url buffer-file-name)))
+    (indium-backend-set-script-source (indium-backend)
+                                      url
+                                      (buffer-string))))
+
+(add-hook 'after-save-hook #'indium-interaction-update)
 
 (provide 'indium-interaction)
 ;;; indium-interaction.el ends here
