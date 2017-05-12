@@ -83,7 +83,6 @@ If PRINT is non-nil, print the output into the current buffer."
                             (insert description))
                         (indium-message "%s" description))))))))
 
-
 (defun indium-reload ()
   "Reload the page."
   (interactive)
@@ -119,6 +118,18 @@ If PRINT is non-nil, print the output into the current buffer."
   "Remove all breakpoints from the current buffer."
   (interactive)
   (indium-breakpoint-remove-all))
+
+(defun indium-deactivate-breakpoints ()
+  "Deactivate all breakpoints in all buffers.
+Breakpoints are not removed, but the runtime won't pause when
+hitting a breakpoint."
+  (interactive)
+  (indium-backend-deactivate-breakpoints (indium-backend)))
+
+(defun indium-activate-breakpoints ()
+  "Activate all breakpoints in all buffers."
+  (interactive)
+  (indium-backend-activate-breakpoints (indium-backend)))
 
 (defun indium-interaction-node-before-point ()
   "Return the node before point to be evaluated."
@@ -164,6 +175,8 @@ If PRINT is non-nil, print the output into the current buffer."
     (define-key map (kbd "C-c C-k") #'indium-update-script-source)
     (define-key map (kbd "C-c b b") #'indium-toggle-breakpoint)
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
+    (define-key map (kbd "C-c b a") #'indium-activate-breakpoints)
+    (define-key map (kbd "C-c b d") #'indium-deactivate-breakpoints)
     map))
 
 ;;;###autoload
