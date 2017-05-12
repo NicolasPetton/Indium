@@ -285,7 +285,7 @@ Put FRAMES and CURRENT-FRAME information as debugging context."
   "Lookup the local file associated with the current connection.
 Return nil if no local file can be found."
   (let ((url (indium-backend-get-script-url (indium-backend)
-                                          (indium-debugger-current-frame))))
+                                            (indium-debugger-current-frame))))
     ;; Make sure we are in the correct directory so that indium can find a ".indium"
     ;; file.
     (with-current-buffer (indium-repl-get-buffer)
