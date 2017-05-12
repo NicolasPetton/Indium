@@ -20,7 +20,8 @@ Table of contents
    code-evaluation
    debugger
    inspector
-   
+   network
+
 Indices and tables
 ------------------
 
