@@ -237,13 +237,13 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
                                  (params . ((cacheDisabled . ,(if disabled t :json-false)))))))
 
 (defun indium-webkit-enable-cache ()
-  "Enabled network cache for each request.  And save it for future sessions."
+  "Enabled network cache for each request."
   (interactive)
   (setq indium-webkit-cache-disabled nil)
   (indium-webkit--set-cache-disabled nil))
 
 (defun indium-webkit-disable-cache ()
-  "Disable network cache for each request.  And save it for future sessions."
+  "Disable network cache for each request."
   (interactive)
   (setq indium-webkit-cache-disabled t)
   (indium-webkit--set-cache-disabled t))
