@@ -100,6 +100,7 @@ Table of contents
 * Interaction in JS buffers:: 
 * The stepping debugger:: 
 * The inspector:: 
+* Network:: 
 
 Installation
 
@@ -149,6 +150,7 @@ The inspector
 * Interaction in JS buffers:: 
 * The stepping debugger:: 
 * The inspector:: 
+* Network:: 
 
 @end menu
 
@@ -220,7 +222,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup doc}@anchor{7}@anchor{setup up-and-running}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -232,7 +234,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup nodejs}@anchor{a}@anchor{setup id1}@anchor{b}
+@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
 @subsection NodeJS
 
 
@@ -263,7 +265,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome}@anchor{c}@anchor{setup chrome-chromium}@anchor{d}
+@anchor{setup chrome-chromium}@anchor{c}@anchor{setup chrome}@anchor{d}
 @subsection Chrome/Chromium
 
 
@@ -337,7 +339,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{10}@anchor{repl doc}@anchor{11}@anchor{repl repl}@anchor{12}
+@anchor{repl repl}@anchor{10}@anchor{repl doc}@anchor{11}@anchor{repl the-repl}@anchor{12}
 @section The REPL
 
 
@@ -354,7 +356,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{8,,Getting up and running}).
+connection is made (see @ref{9,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -488,7 +490,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation doc}@anchor{19}@anchor{code-evaluation interaction}@anchor{1a}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1b}
+@anchor{code-evaluation interaction-in-js-buffers}@anchor{19}@anchor{code-evaluation interaction}@anchor{1a}@anchor{code-evaluation doc}@anchor{1b}
 @section Interaction in JS buffers
 
 
@@ -542,7 +544,7 @@ Here's a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{12,,The REPL}).
+switch back to the REPL buffer (see @ref{10,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{1e}
@@ -634,17 +636,17 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger the-stepping-debugger}@anchor{21}@anchor{debugger doc}@anchor{22}@anchor{debugger debugger}@anchor{1f}
+@anchor{debugger debugger}@anchor{1f}@anchor{debugger the-stepping-debugger}@anchor{21}@anchor{debugger doc}@anchor{22}
 @section The stepping debugger
 
 
-@node The inspector,,The stepping debugger,Table of contents
+@node The inspector,Network,The stepping debugger,Table of contents
 @anchor{inspector inspector}@anchor{14}@anchor{inspector doc}@anchor{23}@anchor{inspector the-inspector}@anchor{24}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{12,,The REPL}), the debugger (see @ref{1f,,The stepping debugger}), or
+from a REPL buffer (see @ref{10,,The REPL}), the debugger (see @ref{1f,,The stepping debugger}), or
 the result of any evaluation of JavaScript code (see @ref{1a,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
@@ -718,8 +720,32 @@ Jump to the previous object in the inspector
 @end multitable
 
 
+@node Network,,The inspector,Table of contents
+@anchor{network network}@anchor{26}@anchor{network id1}@anchor{27}@anchor{network doc}@anchor{28}
+@section Network
+
+
+
+@table @asis
+
+@item You can disable or enable network cache using the following commands ::
+
+M-x indium-webkit-disable-cache
+M-x indium-webkit-enable-cache
+@end table
+
+Both commands save your choice which will be used for future Indium connections for the current Emacs session.
+
+
+@table @asis
+
+@item You can make it permament by setting ::
+
+(setq indium-webkit-cache-disabled t)
+@end table
+
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{26}
+@anchor{index indices-and-tables}@anchor{29}
 @chapter Indices and tables
 
 
