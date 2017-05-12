@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.4.1, May 12, 2017
+Indium 0.5.0, May 12, 2017
 
 Nicolas Petton
 
@@ -138,7 +138,7 @@ The inspector
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
+@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
 @chapter Table of contents
 
 
@@ -153,7 +153,7 @@ The inspector
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation doc}@anchor{3}@anchor{installation installation}@anchor{4}
+@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
 @section Installation
 
 
@@ -220,7 +220,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup doc}@anchor{7}@anchor{setup up-and-running}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -232,7 +232,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup nodejs}@anchor{a}@anchor{setup id1}@anchor{b}
+@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
 @subsection NodeJS
 
 
@@ -263,7 +263,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{c}@anchor{setup chrome}@anchor{d}
+@anchor{setup chrome}@anchor{c}@anchor{setup chrome-chromium}@anchor{d}
 @subsection Chrome/Chromium
 
 
@@ -337,7 +337,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl repl}@anchor{10}@anchor{repl doc}@anchor{11}@anchor{repl the-repl}@anchor{12}
+@anchor{repl the-repl}@anchor{10}@anchor{repl repl}@anchor{11}@anchor{repl doc}@anchor{12}
 @section The REPL
 
 
@@ -354,7 +354,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{8,,Getting up and running}).
+connection is made (see @ref{9,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -488,7 +488,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{19}@anchor{code-evaluation doc}@anchor{1a}@anchor{code-evaluation interaction}@anchor{1b}
+@anchor{code-evaluation interaction}@anchor{19}@anchor{code-evaluation doc}@anchor{1a}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1b}
 @section Interaction in JS buffers
 
 
@@ -542,7 +542,7 @@ Here's a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{10,,The REPL}).
+switch back to the REPL buffer (see @ref{11,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{1e}
@@ -572,16 +572,6 @@ Indium debugger pops up (see @ref{1f,,The stepping debugger}).
 @quotation Note 
 Breakpoints are persistent: if the connection is closed, when a new
 connection is made Indium will attempt to add back all breakpoints.
-@end quotation
-@end cartouche
-
-@cartouche
-@quotation Warning 
-When modifying JavaScript buffers, it is up to the user to update
-the browser tab.  Indium will attempt to update breakpoint locations
-when saving a buffer, but the runtime script contents won't be
-updated automatically.  You can either refresh the page or evaluate
-@code{indium-reload}.
 @end quotation
 @end cartouche
 
@@ -626,7 +616,7 @@ script JavaScript source after each buffer save.
 @end itemize
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger the-stepping-debugger}@anchor{21}@anchor{debugger debugger}@anchor{1f}@anchor{debugger doc}@anchor{22}
+@anchor{debugger doc}@anchor{21}@anchor{debugger debugger}@anchor{1f}@anchor{debugger the-stepping-debugger}@anchor{22}
 @section The stepping debugger
 
 
@@ -636,8 +626,8 @@ script JavaScript source after each buffer save.
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{10,,The REPL}), the debugger (see @ref{1f,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1b,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{11,,The REPL}), the debugger (see @ref{1f,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{19,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on

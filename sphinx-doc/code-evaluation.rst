@@ -46,13 +46,6 @@ Indium debugger pops up (see :ref:`debugger`).
 .. Note:: Breakpoints are persistent: if the connection is closed, when a new
           connection is made Indium will attempt to add back all breakpoints.
 
-.. Warning:: When modifying JavaScript buffers, it is up to the user to update
-             the browser tab.  Indium will attempt to update breakpoint locations
-             when saving a buffer, but the runtime script contents won't be
-             updated automatically.  You can either refresh the page or evaluate
-             ``indium-reload``.
-             
-
 Live code update (hot-swapping JavaScript sources)
 --------------------------------------------------
 
