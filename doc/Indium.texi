@@ -100,6 +100,7 @@ Table of contents
 * Interaction in JS buffers:: 
 * The stepping debugger:: 
 * The inspector:: 
+* Network:: 
 
 Installation
 
@@ -138,7 +139,7 @@ The inspector
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -149,11 +150,12 @@ The inspector
 * Interaction in JS buffers:: 
 * The stepping debugger:: 
 * The inspector:: 
+* Network:: 
 
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
+@anchor{installation doc}@anchor{3}@anchor{installation installation}@anchor{4}
 @section Installation
 
 
@@ -232,7 +234,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
+@anchor{setup nodejs}@anchor{a}@anchor{setup id1}@anchor{b}
 @subsection NodeJS
 
 
@@ -287,7 +289,7 @@ M-x indium-connect-to-chrome
 @end example
 
 @node Using local files when debugging,,Chrome/Chromium,Getting up and running
-@anchor{setup local-files}@anchor{e}@anchor{setup using-local-files-when-debugging}@anchor{f}
+@anchor{setup using-local-files-when-debugging}@anchor{e}@anchor{setup local-files}@anchor{f}
 @subsection Using local files when debugging
 
 
@@ -337,7 +339,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{10}@anchor{repl repl}@anchor{11}@anchor{repl doc}@anchor{12}
+@anchor{repl doc}@anchor{10}@anchor{repl repl}@anchor{11}@anchor{repl the-repl}@anchor{12}
 @section The REPL
 
 
@@ -488,7 +490,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction}@anchor{19}@anchor{code-evaluation doc}@anchor{1a}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1b}
+@anchor{code-evaluation doc}@anchor{19}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1a}@anchor{code-evaluation interaction}@anchor{1b}
 @section Interaction in JS buffers
 
 
@@ -550,7 +552,7 @@ switch back to the REPL buffer (see @ref{11,,The REPL}).
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{e,,Using local files when debugging}).
+(see @ref{f,,Using local files when debugging}).
 
 
 @itemize -
@@ -601,7 +603,7 @@ Chrome 57 and earlier.  We strongly encourage you to use Chrome >=
 @end cartouche
 
 To enable live updates, make sure Indium is set up to use local files (see
-@ref{e,,Using local files when debugging}).
+@ref{f,,Using local files when debugging}).
 
 
 @itemize -
@@ -620,14 +622,14 @@ script JavaScript source after each buffer save.
 @section The stepping debugger
 
 
-@node The inspector,,The stepping debugger,Table of contents
-@anchor{inspector the-inspector}@anchor{23}@anchor{inspector inspector}@anchor{14}@anchor{inspector doc}@anchor{24}
+@node The inspector,Network,The stepping debugger,Table of contents
+@anchor{inspector doc}@anchor{23}@anchor{inspector the-inspector}@anchor{24}@anchor{inspector inspector}@anchor{14}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
 from a REPL buffer (see @ref{11,,The REPL}), the debugger (see @ref{1f,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{19,,Interaction in JS buffers}).
+the result of any evaluation of JavaScript code (see @ref{1b,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -700,8 +702,32 @@ Jump to the previous object in the inspector
 @end multitable
 
 
+@node Network,,The inspector,Table of contents
+@anchor{network doc}@anchor{26}@anchor{network network}@anchor{27}@anchor{network id1}@anchor{28}
+@section Network
+
+
+
+@table @asis
+
+@item You can disable or enable network cache using the following commands ::
+
+M-x indium-webkit-disable-cache
+M-x indium-webkit-enable-cache
+@end table
+
+Both commands save your choice which will be applied on next indium launch for a current session.
+
+
+@table @asis
+
+@item You can make it permament by setting ::
+
+(setq indium-webkit-cache-disabled t)
+@end table
+
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{26}
+@anchor{index indices-and-tables}@anchor{29}
 @chapter Indices and tables
 
 

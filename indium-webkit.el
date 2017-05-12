@@ -40,7 +40,8 @@
 (require 'indium-debugger)
 (require 'indium-workspace)
 
-(defvar indium-webkit-cache-disabled nil)
+(defvar indium-webkit-cache-disabled nil
+  "Network cache disabled state.  If t disable cache when Indium starts.")
 
 (defvar indium-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
 
@@ -235,11 +236,17 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
   (indium-webkit--send-request `((method . "Network.setCacheDisabled")
                                  (params . ((cacheDisabled . ,(if disabled t :json-false)))))))
 
-(defun indium-webkit-set-cache-disabled (arg)
-  "Disable network cache for each request.  If prefix ARG is used enable it."
-  (interactive "p")
-  (setq indium-webkit-cache-disabled (= arg 1))
-  (indium-webkit--set-cache-disabled indium-webkit-cache-disabled))
+(defun indium-webkit-enable-cache ()
+  "Enabled network cache for each request.  And save it for future sessions."
+  (interactive)
+  (setq indium-webkit-cache-disabled nil)
+  (indium-webkit--set-cache-disabled nil))
+
+(defun indium-webkit-disable-cache ()
+  "Disable network cache for each request.  And save it for future sessions."
+  (interactive)
+  (setq indium-webkit-cache-disabled t)
+  (indium-webkit--set-cache-disabled t))
 
 (defun indium-webkit--open-ws-connection (url websocket-url &optional on-open)
   "Open a websocket connection to URL using WEBSOCKET-URL.
