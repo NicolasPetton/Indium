@@ -42,7 +42,7 @@ You need to first make sure that Indium is set up correctly to use local files
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
 Indium debugger pops up (see :ref:`debugger`).
-  
+
 .. Note:: Breakpoints are persistent: if the connection is closed, when a new
           connection is made Indium will attempt to add back all breakpoints.
 
@@ -68,3 +68,17 @@ To enable live updates, make sure Indium is set up to use local files (see
   current buffer.
 - ``(setq indium-update-script-on-save t)``: Automatically update the runtime
   script JavaScript source after each buffer save.
+
+You can setup a hook for the script update. For example ::
+
+  (add-hook 'indium-update-script-source-hook
+	  (lambda (url)
+	    (indium-eval (format "window.dispatchEvent(new CustomEvent('patch', {detail: {url: '%s'}}))"
+				 url))))
+
+Then you can use it in your app for developmenm purposes ::
+
+  window.addEventListener("patch", (event) => {
+    console.log("Patched @ " + new Date().toTimeString().substring(0, 8), event.detail.url);
+    // rerender, etc
+  });
