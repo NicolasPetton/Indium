@@ -138,7 +138,7 @@ The inspector
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
+@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
 @chapter Table of contents
 
 
@@ -153,7 +153,7 @@ The inspector
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
+@anchor{installation doc}@anchor{3}@anchor{installation installation}@anchor{4}
 @section Installation
 
 
@@ -220,7 +220,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup up-and-running}@anchor{7}@anchor{setup doc}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup up-and-running}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -232,7 +232,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
+@anchor{setup nodejs}@anchor{a}@anchor{setup id1}@anchor{b}
 @subsection NodeJS
 
 
@@ -263,7 +263,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{c}@anchor{setup chrome}@anchor{d}
+@anchor{setup chrome}@anchor{c}@anchor{setup chrome-chromium}@anchor{d}
 @subsection Chrome/Chromium
 
 
@@ -354,7 +354,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{7,,Getting up and running}).
+connection is made (see @ref{8,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -488,7 +488,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{19}@anchor{code-evaluation doc}@anchor{1a}@anchor{code-evaluation interaction}@anchor{1b}
+@anchor{code-evaluation doc}@anchor{19}@anchor{code-evaluation interaction}@anchor{1a}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1b}
 @section Interaction in JS buffers
 
 
@@ -615,7 +615,7 @@ current buffer.
 script JavaScript source after each buffer save.
 @end itemize
 
-You can setup a hook for the script update. For example
+You can setup a hook to be run after each script update. For example
 
 @example
 (add-hook 'indium-update-script-source-hook
@@ -624,7 +624,7 @@ You can setup a hook for the script update. For example
                                url))))
 @end example
 
-Then you can use it in your app for developmenm purposes
+Then you can use it in your app for development purposes
 
 @example
 window.addEventListener("patch", (event) => @{
@@ -634,18 +634,18 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger debugger}@anchor{1f}@anchor{debugger doc}@anchor{21}@anchor{debugger the-stepping-debugger}@anchor{22}
+@anchor{debugger the-stepping-debugger}@anchor{21}@anchor{debugger doc}@anchor{22}@anchor{debugger debugger}@anchor{1f}
 @section The stepping debugger
 
 
 @node The inspector,,The stepping debugger,Table of contents
-@anchor{inspector inspector}@anchor{14}@anchor{inspector the-inspector}@anchor{23}@anchor{inspector doc}@anchor{24}
+@anchor{inspector inspector}@anchor{14}@anchor{inspector doc}@anchor{23}@anchor{inspector the-inspector}@anchor{24}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
 from a REPL buffer (see @ref{12,,The REPL}), the debugger (see @ref{1f,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1b,,Interaction in JS buffers}).
+the result of any evaluation of JavaScript code (see @ref{1a,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on

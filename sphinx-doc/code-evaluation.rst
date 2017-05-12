@@ -69,14 +69,14 @@ To enable live updates, make sure Indium is set up to use local files (see
 - ``(setq indium-update-script-on-save t)``: Automatically update the runtime
   script JavaScript source after each buffer save.
 
-You can setup a hook for the script update. For example ::
+You can setup a hook to be run after each script update. For example ::
 
   (add-hook 'indium-update-script-source-hook
 	  (lambda (url)
 	    (indium-eval (format "window.dispatchEvent(new CustomEvent('patch', {detail: {url: '%s'}}))"
 				 url))))
 
-Then you can use it in your app for developmenm purposes ::
+Then you can use it in your app for development purposes ::
 
   window.addEventListener("patch", (event) => {
     console.log("Patched @ " + new Date().toTimeString().substring(0, 8), event.detail.url);
