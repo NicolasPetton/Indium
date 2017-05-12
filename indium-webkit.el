@@ -40,6 +40,7 @@
 (require 'indium-debugger)
 (require 'indium-workspace)
 
+(defvar indium-webkit-cache-disabled nil)
 
 (defvar indium-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
 
@@ -227,7 +228,18 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
                                       nil
                                       t)))
   (indium-webkit--send-request `((method . "Debugger.setPauseOnExceptions")
-                               (params . ((state . ,state))))))
+                                 (params . ((state . ,state))))))
+
+(defun indium-webkit--set-cache-disabled (disabled)
+  "Toggle ignoring cache for each request.  If DISABLED, cache will not be used."
+  (indium-webkit--send-request `((method . "Network.setCacheDisabled")
+                                 (params . ((cacheDisabled . ,(if disabled t :json-false)))))))
+
+(defun indium-webkit-set-cache-disabled (arg)
+  "Disable network cache for each request.  If prefix ARG is used enable it."
+  (interactive "p")
+  (setq indium-webkit-cache-disabled (= arg 1))
+  (indium-webkit--set-cache-disabled indium-webkit-cache-disabled))
 
 (defun indium-webkit--open-ws-connection (url websocket-url &optional on-open)
   "Open a websocket connection to URL using WEBSOCKET-URL.
@@ -376,7 +388,10 @@ inspectors."
 
 (defun indium-webkit--enable-network ()
   "Enable the runtime on the current tab."
-  (indium-webkit--send-request '((method . "Network.enable"))))
+  (indium-webkit--send-request '((method . "Network.enable"))
+                               (lambda (res)
+                                 (when indium-webkit-cache-disabled
+                                   (indium-webkit--set-cache-disabled t)))))
 
 (defun indium-webkit--enable-debugger ()
   "Enable the debugger on the current tab."
