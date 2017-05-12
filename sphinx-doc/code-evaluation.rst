@@ -40,7 +40,7 @@ You need to first make sure that Indium is set up correctly to use local files
 - ``C-u C-c b b``: Toggle a breakpoint with condition
 - ``C-c b K``: Remove all breakpoints from the current buffer
 - ``C-c b d``: Deactivate all breakpoints (the runtime won't pause when hitting a breakpoint)
-- ``C-c b d``: Activate all breakpoints (it has no effect if breakpoints have not been deactivated)
+- ``C-c b a``: Activate all breakpoints (it has no effect if breakpoints have not been deactivated)
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
 Indium debugger pops up (see :ref:`debugger`).
