@@ -35,6 +35,9 @@
   :type 'boolean
   :group 'indium)
 
+(defvar indium-update-script-source-hook nil
+  "Hook run when script source is updated.")
+
 (defun indium-eval (string &optional callback)
   "Evaluate STRING on the current backend.
 When CALLBACK is non-nil, evaluate CALLBACK with the result.
@@ -196,7 +199,9 @@ If PRINT is non-nil, print the output into the current buffer."
   (when-let ((url (indium-workspace-make-url buffer-file-name)))
     (indium-backend-set-script-source (indium-backend)
                                       url
-                                      (buffer-string))))
+                                      (buffer-string)
+                                      (lambda ()
+                                        (run-hook-with-args 'indium-update-script-source-hook url)))))
 
 (add-hook 'after-save-hook #'indium-interaction-update)
 
