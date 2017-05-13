@@ -351,9 +351,10 @@ MESSAGE explains why the connection has been closed."
          (params (map-nested-elt message '(params)))
          (reason (if exception "Exception occured" "Breakpoint hit")))
 
-    (indium-repl-emit-console-message (setf (map-elt params 'values)
-                                            (list (indium-webkit--value (map-elt params 'data))))
-                                      t)
+    (when exception
+      (indium-repl-emit-console-message (setf (map-elt params 'values)
+                                              (list (indium-webkit--value (map-elt params 'data))))
+                                        t))
     (indium-webkit-set-overlay-message "Paused in Emacs debugger")
     (indium-debugger-paused (indium-webkit--frames frames) reason)))
 
