@@ -37,5 +37,17 @@ buffer in `js2-mode' with CONTENTS."
      (js2-parse)
      ,@body))
 
+(defmacro with-indium-connection (connection &rest body)
+  "Evaluate BODY with CONNECTION as the indium-connection."
+  (declare (indent 1))
+  `(let ((indium-connection ,connection))
+     ,@body))
+
+(defmacro with-fake-indium-connection (&rest body)
+  "Evaluate BODY with an indium connection with a fake backend."
+  (declare (indent 0))
+  `(with-indium-connection '((backend . fake))
+     ,@body))
+
 (provide 'indium-test-helpers)
 ;;; indium-test-helpers.el ends here

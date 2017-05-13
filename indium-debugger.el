@@ -58,13 +58,13 @@
 (declare 'indium-backend-debugger-get-script-source)
 
 (defun indium-debugger-paused (frames &optional reason)
-  (indium-debugger-setup-context frames (car frames))
+  (indium-debugger-set-frames frames (car frames))
   (indium-debugger-select-frame (car frames))
   (indium-debugger-show-help-message reason))
 
 (defun indium-debugger-resumed (&rest _args)
   (message "Execution resumed")
-  (indium-debugger-unset-context)
+  (indium-debugger-unset-frames)
   (seq-doseq (buf (seq-filter (lambda (buf)
                                 (with-current-buffer buf
                                   indium-debugger-mode))
@@ -256,9 +256,8 @@ Evaluation happens in the context of the current call frame."
 
 ;; Debugging context
 
-(defun indium-debugger-setup-context (frames current-frame)
-  "Add required debugging information for the current connection.
-Put FRAMES and CURRENT-FRAME information as debugging context."
+(defun indium-debugger-set-frames (frames current-frame)
+  "Set the debugger FRAMES and the CURRENT-FRAME."
   (map-put indium-connection 'frames frames)
   (map-put indium-connection 'current-frame current-frame))
 
@@ -270,10 +269,10 @@ Put FRAMES and CURRENT-FRAME information as debugging context."
         (indium-debugger-unset-current-buffer)))
   (map-put indium-connection 'current-frame frame))
 
-(defun indium-debugger-unset-context ()
+(defun indium-debugger-unset-frames ()
   "Remove debugging information from the current connection."
-  (map-delete indium-connection 'frames)
-  (map-delete indium-connection 'current-frame))
+  (setq indium-connection (map-delete indium-connection 'frames))
+  (setq indium-connection (map-delete indium-connection 'current-frame)))
 
 (defun indium-debugger-current-frame ()
   "Return the current debugged stack frame."
