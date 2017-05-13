@@ -124,12 +124,14 @@ If PRINT is non-nil, print the output into the current buffer."
 Breakpoints are not removed, but the runtime won't pause when
 hitting a breakpoint."
   (interactive)
-  (indium-backend-deactivate-breakpoints (indium-backend)))
+  (indium-backend-deactivate-breakpoints (indium-backend))
+  (message "Breakpoints deactivated"))
 
 (defun indium-activate-breakpoints ()
   "Activate all breakpoints in all buffers."
   (interactive)
-  (indium-backend-activate-breakpoints (indium-backend)))
+  (indium-backend-activate-breakpoints (indium-backend))
+  (message "Breakpoints activated"))
 
 (defun indium-interaction-node-before-point ()
   "Return the node before point to be evaluated."

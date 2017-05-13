@@ -28,12 +28,12 @@
 
 (ert-deftest indium-generic-connections-active ()
   "Generic connections should always be active."
-  (let ((indium-connection '((backend . fake))))
+  (with-indium-connection '((backend . fake))
     (should (indium-backend-active-connection-p nil))))
 
 (ert-deftest indium-webkit-connections-active ()
   "Only Webkit connections with open websocket are active."
-  (let ((indium-connection '((backend . webkit))))
+  (with-indium-connection '((backend . webkit))
     (should (not (indium-backend-active-connection-p 'webkit)))))
 
 ;;
@@ -41,15 +41,15 @@
 ;;
 
 (ert-deftest indium-backend-register-breakpoint-test ()
-  (let ((indium-connection '((backend . fake))))
+  (with-indium-connection '((backend . fake))
     (indium-backend-register-breakpoint 'a 12 "foo.js")
     (should (equal (indium-backend-get-breakpoints)
-                    '(((id . a)
-                       (file . "foo.js")
-                       (line . 12)))))))
+                   '(((id . a)
+                      (file . "foo.js")
+                      (line . 12)))))))
 
 (ert-deftest indium-backend-get-breakpoints-in-file-test ()
-  (let ((indium-connection '((backend . fake))))
+  (with-indium-connection '((backend . fake))
     (indium-backend-register-breakpoint 'a 12 "foo.js")
     (indium-backend-register-breakpoint 'b 25 "foo.js")
     (indium-backend-register-breakpoint 'c 3 "bar.js")
@@ -62,7 +62,7 @@
                       (line . 25)))))))
 
 (ert-deftest indium-backend-unregister-breakpoint-test ()
-  (let ((indium-connection '((backend . fake))))
+  (with-indium-connection '((backend . fake))
     (indium-backend-register-breakpoint 'a 12 "foo.js")
     (indium-backend-unregister-breakpoint 'a)
     (should (null (indium-backend-get-breakpoints)))))
