@@ -99,7 +99,7 @@ DIRECTION is `forward' or `backward' (in the frame list)."
     (indium-debugger-select-frame (seq-elt (indium-debugger-frames) position))))
 
 (defun indium-debugger-select-frame (frame)
-  "Make FRAME the current debugged stach frame.
+  "Make FRAME the current debugged stack frame.
 Switch to the buffer for FRAME.
 
 Try to find the file locally first using Indium worskspaces.  If a
