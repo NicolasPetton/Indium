@@ -1,4 +1,4 @@
-;;; indium-test-helpers.el --- Helpers for running Indium tests  -*- lexical-binding: t; -*-
+;;; test-helper.el --- Helpers for running Indium tests  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -49,5 +49,5 @@ buffer in `js2-mode' with CONTENTS."
   `(with-indium-connection '((backend . fake))
      ,@body))
 
-(provide 'indium-test-helpers)
-;;; indium-test-helpers.el ends here
+(provide 'test-helper)
+;;; test-helper.el ends here

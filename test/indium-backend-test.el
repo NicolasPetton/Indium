@@ -24,7 +24,6 @@
 (require 'ert)
 (require 'indium-backend)
 (require 'indium-webkit)
-(require 'indium-test-helpers)
 
 (ert-deftest indium-generic-connections-active ()
   "Generic connections should always be active."

@@ -23,7 +23,6 @@
 
 (require 'ert)
 (require 'indium-interaction)
-(require 'indium-test-helpers)
 
 (ert-deftest indium-node-before-point-test ()
   (with-js2-buffer "var foo = 2;\nfoo"

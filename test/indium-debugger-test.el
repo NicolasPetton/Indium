@@ -23,7 +23,6 @@
 
 (require 'ert)
 (require 'indium-debugger)
-(require 'indium-test-helpers)
 
 (ert-deftest indium-debugger-setting-frames ()
   "Debugging frames are correctly set."

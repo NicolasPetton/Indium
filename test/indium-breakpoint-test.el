@@ -22,7 +22,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'indium-test-helpers)
 (require 'indium-breakpoint)
 
 (ert-deftest indium-breakpoint-overlay-on-current-line-test ()
