@@ -6,10 +6,7 @@
 (depends-on "websocket")
 
 (development
- (depends-on "ert")
- (depends-on "ert-runner")
- (depends-on "ert-expectations")
- (depends-on "el-mock")
+ (depends-on "buttercup")
  (depends-on "seq")
  (depends-on "map")
  (depends-on "js2-mode")

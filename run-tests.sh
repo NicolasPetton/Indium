@@ -1,2 +1,2 @@
 #!/bin/sh -e
-cask exec ert-runner -L . "$@"
+cask exec buttercup -l test/test-helper.el  -L . "$@"

@@ -21,23 +21,24 @@
 
 ;;; Code:
 
-(require 'ert)
-(require 'el-mock)
+(require 'buttercup)
 
 (require 'indium-debugger-litable)
 
-(ert-deftest indium-debugger-litable-truncate-string-test ()
-  (let ((buffer-contents "let foo = 1;")
-        (short-string "short")
-        (long-string "very very very long string that overflows"))
-    (with-mock
-      (mock (window-width) => 50)
+(describe "Debugger litable (inline values)"
+  (before-each
+    (spy-on 'window-width :and-return-value 50))
+
+  (it "should trucate long strings"
+    (let ((buffer-contents "let foo = 1;")
+          (short-string "short")
+          (long-string "very very very long string that overflows"))
       (with-temp-buffer
         (insert buffer-contents)
-        (should (equal (indium-debugger-litable--overlay-string short-string)
-                       short-string))
-        (should (equal (indium-debugger-litable--overlay-string long-string)
-                       "very very very long string that ov..."))))))
+        (expect (indium-debugger-litable--overlay-string short-string)
+          :to-equal short-string)
+        (expect (indium-debugger-litable--overlay-string long-string)
+          :to-equal "very very very long string that ov...")))))
 
 (provide 'indium-debugger-litable-test)
 ;;; indium-debugger-litable-test.el ends here
