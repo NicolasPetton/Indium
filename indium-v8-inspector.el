@@ -295,7 +295,7 @@ the connection and buffers."
          (reason (if exception "Exception occured" "Breakpoint hit")))
     (when exception
       (indium-repl-emit-console-message (setf (map-elt params 'values)
-                                              (list (indium-webkit--value (map-elt params 'data))))
+                                              (list (indium-v8-inspector--value (map-elt params 'data))))
                                         t))
     (indium-debugger-paused (indium-webkit--frames frames) reason)))
 
