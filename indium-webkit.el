@@ -522,7 +522,7 @@ RESULT should be a reference to a remote object."
                      value))
           (`string (format "\"%s\"" value))
           (`boolean (pcase value
-                      (`t "true")
+                      ((or t "true") "true")
                       (_ "false")))
           (_ (or value "null"))))))
 
