@@ -6,5 +6,5 @@ before_script:
 test:
   script:
   - emacs --version
-  - cask exec ert-runner -L .
+  - ./run-tests.sh
   
