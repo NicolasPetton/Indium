@@ -24,13 +24,15 @@
 
 ;;; Code:
 
-(require 'undercover)
-(setq undercover-force-coverage t)
-
 (when (require 'undercover nil t)
+  (setq undercover-force-coverage t)
   (undercover "*.el"))
 
-(add-hook 'kill-emacs-hook #'print-coverage-report)
+(add-hook 'kill-emacs-hook #'print-coverage-report-safe)
+
+(defun print-coverage-report-safe ()
+  (ignore-errors
+    (print-coverage-report)))
 
 (defun print-coverage-report ()
   (let* ((coverage (apply #'concatenate 'list

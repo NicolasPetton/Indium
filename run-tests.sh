@@ -1,2 +1,2 @@
 #!/bin/sh -e
-cask exec buttercup -l test/test-helper.el  -L . "$@"
+TRAVIS=true cask exec buttercup -l test/test-helper.el  -L . "$@"
