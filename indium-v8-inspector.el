@@ -290,8 +290,13 @@ the connection and buffers."
 
 (defun indium-v8-inspector--handle-debugger-paused (message)
   (let* ((frames (map-nested-elt message '(params callFrames)))
-        (exception (equal (map-nested-elt message '(params reason)) "exception"))
-        (reason (if exception "Exception occured" "Breakpoint hit")))
+         (exception (equal (map-nested-elt message '(params reason)) "exception"))
+         (params (map-nested-elt message '(params)))
+         (reason (if exception "Exception occured" "Breakpoint hit")))
+    (when exception
+      (indium-repl-emit-console-message (setf (map-elt params 'values)
+                                              (list (indium-webkit--value (map-elt params 'data))))
+                                        t))
     (indium-debugger-paused (indium-webkit--frames frames) reason)))
 
 (defun indium-v8-inspector--handle-debugger-resumed (_message)

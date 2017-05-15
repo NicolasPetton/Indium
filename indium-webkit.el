@@ -350,7 +350,6 @@ MESSAGE explains why the connection has been closed."
          (exception (equal (map-nested-elt message '(params reason)) "exception"))
          (params (map-nested-elt message '(params)))
          (reason (if exception "Exception occured" "Breakpoint hit")))
-
     (when exception
       (indium-repl-emit-console-message (setf (map-elt params 'values)
                                               (list (indium-webkit--value (map-elt params 'data))))
