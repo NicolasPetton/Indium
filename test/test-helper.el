@@ -28,9 +28,9 @@
   (setq undercover-force-coverage t)
   (undercover "*.el"))
 
-(add-hook 'kill-emacs-hook #'print-coverage-report-safe)
+(advice-add 'undercover-report :after #'print-coverage-report-safe)
 
-(defun print-coverage-report-safe ()
+(defun print-coverage-report-safe (&rest _)
   (ignore-errors
     (print-coverage-report)))
 
