@@ -21,51 +21,47 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'buttercup)
+
 (require 'indium-backend)
 (require 'indium-webkit)
-(require 'indium-test-helpers)
 
-(ert-deftest indium-generic-connections-active ()
-  "Generic connections should always be active."
-  (with-indium-connection '((backend . fake))
-    (should (indium-backend-active-connection-p nil))))
+(describe "Open/Closed connections"
+  (it "should be an active connection if generic"
+    (with-indium-connection '((backend . fake))
+      (expect (indium-backend-active-connection-p 'fake) :to-be-truthy)))
 
-(ert-deftest indium-webkit-connections-active ()
-  "Only Webkit connections with open websocket are active."
-  (with-indium-connection '((backend . webkit))
-    (should (not (indium-backend-active-connection-p 'webkit)))))
+  (it "should not be active unless a websocket is open"
+    (with-indium-connection '((backend . webkit))
+      (expect (indium-backend-active-connection-p 'webkit) :to-be nil))))
 
-;;
-;; Backend breakpoints functions
-;;
+(describe "Backend breakpoints"
+  (it "can register breakpoints"
+    (with-indium-connection '((backend . fake))
+      (indium-backend-register-breakpoint 'a 12 "foo.js")
+      (expect (indium-backend-get-breakpoints) :to-equal
+              '(((id . a)
+                 (file . "foo.js")
+                 (line . 12))))))
 
-(ert-deftest indium-backend-register-breakpoint-test ()
-  (with-indium-connection '((backend . fake))
-    (indium-backend-register-breakpoint 'a 12 "foo.js")
-    (should (equal (indium-backend-get-breakpoints)
-                   '(((id . a)
-                      (file . "foo.js")
-                      (line . 12)))))))
+  (it "can get breakpoints in a file"
+    (with-indium-connection '((backend . fake))
+      (indium-backend-register-breakpoint 'a 12 "foo.js")
+      (indium-backend-register-breakpoint 'b 25 "foo.js")
+      (indium-backend-register-breakpoint 'c 3 "bar.js")
+      (expect (indium-backend-get-breakpoints-in-file "foo.js") :to-equal
+              '(((id . a)
+                 (file . "foo.js")
+                 (line . 12))
+                ((id . b)
+                 (file . "foo.js")
+                 (line . 25))))))
 
-(ert-deftest indium-backend-get-breakpoints-in-file-test ()
-  (with-indium-connection '((backend . fake))
-    (indium-backend-register-breakpoint 'a 12 "foo.js")
-    (indium-backend-register-breakpoint 'b 25 "foo.js")
-    (indium-backend-register-breakpoint 'c 3 "bar.js")
-    (should (equal (indium-backend-get-breakpoints-in-file "foo.js")
-                   '(((id . a)
-                      (file . "foo.js")
-                      (line . 12))
-                     ((id . b)
-                      (file . "foo.js")
-                      (line . 25)))))))
-
-(ert-deftest indium-backend-unregister-breakpoint-test ()
-  (with-indium-connection '((backend . fake))
-    (indium-backend-register-breakpoint 'a 12 "foo.js")
-    (indium-backend-unregister-breakpoint 'a)
-    (should (null (indium-backend-get-breakpoints)))))
+  (it "can unregister breakpoints"
+    (with-indium-connection '((backend . fake))
+      (indium-backend-register-breakpoint 'a 12 "foo.js")
+      (indium-backend-unregister-breakpoint 'a)
+      (expect (indium-backend-get-breakpoints) :to-be nil))))
 
 (provide 'indium-backend-test)
 ;;; indium-backend-test.el ends here

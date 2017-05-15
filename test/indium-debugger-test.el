@@ -21,26 +21,66 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'buttercup)
 (require 'indium-debugger)
-(require 'indium-test-helpers)
 
-(ert-deftest indium-debugger-setting-frames ()
-  "Debugging frames are correctly set."
-  (with-fake-indium-connection
-    (let ((frames '(first second))
-          (current-frame 'first))
-      (indium-debugger-set-frames frames current-frame)
-      (should (eq (indium-debugger-frames) frames))
-      (should (eq (indium-debugger-current-frame) current-frame)))))
+(describe "Debugging frames are correctly set"
+  (it "can set debugger frames and current frame"
+    (with-fake-indium-connection
+      (let ((frames '(first second))
+            (current-frame 'first))
+        (indium-debugger-set-frames frames current-frame)
+        (expect (indium-debugger-frames) :to-be frames)
+        (expect (indium-debugger-current-frame) :to-be current-frame))))
 
-(ert-deftest indium-debugger-unset-frames ()
-  "Can unset the debugging frames."
-  (with-fake-indium-connection
-    (indium-debugger-set-frames '(first second) 'first)
-    (indium-debugger-unset-frames)
-    (should (null (indium-debugger-frames)))
-    (should (null (indium-debugger-current-frame)))))
+  (it "can set the current frame"
+    ;; We're not interested in buffer setups
+    (spy-on 'indium-debugger-get-buffer-create)
+
+    (with-fake-indium-connection
+      (indium-debugger-set-current-frame 'current)
+      (expect (indium-debugger-current-frame) :to-be 'current)))
+
+  (it "can unset the debugging frames"
+    (with-fake-indium-connection
+      (indium-debugger-set-frames '(first second) 'first)
+      (indium-debugger-unset-frames)
+      (expect (indium-debugger-frames) :to-be nil)
+      (expect (indium-debugger-current-frame) :to-be nil))))
+
+(describe "Jumping to the next/previous frame"
+  (before-each
+    (spy-on 'indium-debugger-select-frame))
+
+  (it "can select the next frame"
+    (with-fake-indium-connection
+      (let ((frames '(first second))
+            (current-frame 'second))
+        (indium-debugger-set-frames frames current-frame)
+        (indium-debugger-next-frame)
+        (expect 'indium-debugger-select-frame :to-have-been-called-with 'first))))
+
+  (it "can select the previous frame"
+    (with-fake-indium-connection
+      (let ((frames '(first second))
+            (current-frame 'first))
+        (indium-debugger-set-frames frames current-frame)
+        (indium-debugger-previous-frame)
+        (expect 'indium-debugger-select-frame :to-have-been-called-with 'second))))
+
+  (it "should throw when selecting the next frame if it does not exist"
+    (with-fake-indium-connection
+      (let ((frames '(first second))
+            (current-frame 'first))
+        (indium-debugger-set-frames frames current-frame)
+        (expect #'indium-debugger-next-frame :to-throw 'user-error))))
+
+  (it "should throw when selecting the previous frame if it does not exist"
+    (with-fake-indium-connection
+      (let ((frames '(first second))
+            (current-frame 'second))
+        (indium-debugger-set-frames frames current-frame)
+        (expect #'indium-debugger-previous-frame :to-throw 'user-error)))))
 
 (provide 'indium-debugger-test)
 ;;; indium-debugger-test.el ends here

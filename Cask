@@ -6,9 +6,8 @@
 (depends-on "websocket")
 
 (development
- (depends-on "ert")
- (depends-on "ert-runner")
- (depends-on "el-mock")
+ (depends-on "undercover")
+ (depends-on "buttercup")
  (depends-on "seq")
  (depends-on "map")
  (depends-on "js2-mode")

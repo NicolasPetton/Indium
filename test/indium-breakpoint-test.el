@@ -21,30 +21,31 @@
 
 ;;; Code:
 
-(require 'ert)
-(require 'indium-test-helpers)
+(require 'buttercup)
+
 (require 'indium-breakpoint)
 
-(ert-deftest indium-breakpoint-overlay-on-current-line-test ()
-  (with-js2-buffer "let a = 1;"
-    (let ((ov (make-overlay (point) (point))))
-      (overlay-put ov 'indium-breakpoint t)
-      (should (eq (indium-breakpoint-overlay-on-current-line)
-                  ov)))))
+(describe "Accessing breakpoints"
+  (it "can get a breakpoint overlays on the current line"
+    (with-js2-buffer "let a = 1;"
+      (let ((ov (make-overlay (point) (point))))
+        (overlay-put ov 'indium-breakpoint t)
+        (expect (indium-breakpoint-overlay-on-current-line) :to-be ov))))
 
-(ert-deftest indium-breakpoint-on-current-line-p-test ()
-  (with-js2-buffer "let a = 1;"
-    (goto-char (point-min))
-    (should-not (indium-breakpoint-on-current-line-p))
-    (indium-breakpoint--put-icon)
-    (should (indium-breakpoint-on-current-line-p))))
-
-(ert-deftest indium-adding-breakpoints-multiple-times-not-duplicate-overlays-test ()
-  (with-temp-buffer
-    (indium-breakpoint--put-icon)
-    (let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
+  (it "can put a breakpoint on the current line"
+    (with-js2-buffer "let a = 1;"
+      (goto-char (point-min))
+      (expect (indium-breakpoint-on-current-line-p) :to-be nil)
       (indium-breakpoint--put-icon)
-      (should (equal number-of-overlays (seq-length (overlays-in (point-min) (point-max))))))))
+      (expect (indium-breakpoint-on-current-line-p) :to-be-truthy))))
+
+(describe "Breakpoint duplication handling"
+  (it "can add a breakpoint multiple times on the same line without duplicating it"
+    (with-temp-buffer
+      (indium-breakpoint--put-icon)
+      (let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
+        (indium-breakpoint--put-icon)
+        (expect (seq-length (overlays-in (point-min) (point-max))) :to-equal number-of-overlays)))))
 
 (provide 'indium-breakpoint-test)
 ;;; indium-breakpoint-test.el ends here

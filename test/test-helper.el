@@ -1,4 +1,4 @@
-;;; indium-test-helpers.el --- Helpers for running Indium tests  -*- lexical-binding: t; -*-
+;;; test-helper.el --- Helpers for running Indium tests  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -23,6 +23,29 @@
 ;; This package provides helpers for running Indium tests.
 
 ;;; Code:
+
+(when (require 'undercover nil t)
+  (setq undercover-force-coverage t)
+  (undercover "*.el"))
+
+(advice-add 'undercover-report :after #'print-coverage-report-safe)
+
+(defun print-coverage-report-safe (&rest _)
+  (ignore-errors
+    (print-coverage-report)))
+
+(defun print-coverage-report ()
+  (let* ((coverage (apply #'concatenate 'list
+                          (seq-map (lambda (src)
+                                     (let ((coverage (map-elt src 'coverage)))
+                                       (seq-filter #'identity coverage)))
+                                   (map-elt (json-read-file "/tmp/undercover_coveralls_report") 'source_files))))
+         (covered-lines (seq-filter (lambda (line)
+                                      (not (zerop line)))
+                                    coverage))
+         (percentage (* (/ (seq-length covered-lines) (seq-length coverage) 1.0) 100)))
+    (message "%d%% covered" percentage)))
+
 
 (defmacro with-js2-buffer (contents &rest body)
   "Evaluate BODY.
@@ -49,5 +72,5 @@ buffer in `js2-mode' with CONTENTS."
   `(with-indium-connection '((backend . fake))
      ,@body))
 
-(provide 'indium-test-helpers)
-;;; indium-test-helpers.el ends here
+(provide 'test-helper)
+;;; test-helper.el ends here

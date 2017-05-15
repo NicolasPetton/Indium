@@ -449,9 +449,7 @@ RESULT should be a reference to a remote object."
                        (number-to-string value)
                      value))
           (`string (format "\"%s\"" value))
-          (`boolean (pcase value
-                      (`t "true")
-                      (_ "false")))
+          (`boolean value)
           (_ (or value "null"))))))
 
 (defun indium-v8-inspector--preview (result)

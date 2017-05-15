@@ -21,8 +21,7 @@
 
 ;;; Code:
 
-(require 'ert)
-(require 'el-mock)
+(require 'buttercup)
 (require 'assess)
 (require 'indium-workspace)
 
@@ -31,70 +30,80 @@
     ("js" ("app.js")))
   "Fake filesystem used in workspace tests.")
 
-(ert-deftest indium-workspace-lookup-file-with-no-workspace-test ()
-  (with-mock (mock (indium-workspace-root) => nil)
-             (should (null (indium-workspace-lookup-file "http://localhost:9229/foo/bar")))))
+(describe "Looking up files"
+  (it "cannot lookup file when no workspace it set"
+    (spy-on 'indium-workspace-root :and-return-value nil)
+    (expect (indium-workspace-lookup-file "http://localhost:9229/foo/bar")
+      :to-be nil))
 
-(ert-deftest indium-workspace-lookup-file-that-exists-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-      (should (equal (expand-file-name "js/app.js")
-                     (indium-workspace-lookup-file "http://localhost:9229/js/app.js")))))
-
-(ert-deftest indium-workspace-lookup-file-ignore-query-string-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-      (should (equal (expand-file-name "js/app.js")
-                  (indium-workspace-lookup-file "http://localhost:9229/js/app.js?foo=bar")))))
-
-(ert-deftest indium-workspace-lookup-file-that-does-not-exist-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-    (should (null (indium-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")))))
-
-(ert-deftest indium-workspace-lookup-file-safe-fallback-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-    (let ((url "http://localhost:9229/non-existant-file-name.js"))
-      (should (equal url (indium-workspace-lookup-file-safe url))))))
-
-(ert-deftest indium-workspace-lookup-file-safe-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-    (let ((url "http://localhost:9229/js/app.js")
-          (file (expand-file-name "js/app.js")))
-      (should (equal file (indium-workspace-lookup-file-safe url))))))
-
-(ert-deftest indium-workspace-make-url-with-no-workspace-test ()
-  (let ((indium-connection '((url . "http://localhost:9229"))))
-    (should (null (indium-workspace-make-url "js/app.js")))))
-
-(ert-deftest indium-workspace-make-url-test ()
-  (let ((indium-connection '((url . "http://localhost:9229"))))
+  (it "can lookup file with .indium marker file"
     (assess-with-filesystem indium-workspace--test-fs
-      (should (equal (indium-workspace-make-url "js/app.js")
-                     "http://localhost:9229/js/app.js")))))
+      (expect (indium-workspace-lookup-file "http://localhost:9229/js/app.js")
+        :to-equal (expand-file-name "js/app.js"))))
 
-(ert-deftest indium-workspace-make-url-strips-query-string-test ()
-  (let ((indium-connection '((url . "http://localhost:9229?foo=bar"))))
+  (it "should ignore query strings from urls when looking up files"
     (assess-with-filesystem indium-workspace--test-fs
-      (should (equal (indium-workspace-make-url "js/app.js")
-                    "http://localhost:9229/js/app.js")))))
+      (expect (indium-workspace-lookup-file "http://localhost:9229/js/app.js?foo=bar")
+        :to-equal (expand-file-name "js/app.js"))))
 
-(ert-deftest indium-workspace-make-strips-connection-path-test ()
-  (let ((indium-connection '((url . "http://localhost:9229/foo/bar"))))
+  (it "cannot find a file that does not exist"
     (assess-with-filesystem indium-workspace--test-fs
-     (should (equal (indium-workspace-make-url "js/app.js")
-                    "http://localhost:9229/js/app.js")))))
+      (expect (indium-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")
+        :to-be nil))))
 
-(ert-deftest indium-workspace-lookup-file-protocol-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-    (let* ((indium-connection '((url . "file:///foo/bar/index.html")))
-          (file (expand-file-name "js/app.js"))
-          (url (format "file://%s" file)))
-     (should (equal (indium-workspace-lookup-file url)
-                    file)))))
+(describe "Looking up files safely"
+  (it "should fallback to the url when no file can be found"
+    (assess-with-filesystem indium-workspace--test-fs
+      (let ((url "http://localhost:9229/non-existant-file-name.js"))
+        (expect (indium-workspace-lookup-file-safe url)
+          :to-equal url))))
 
-(ert-deftest indium-workspace-make-url-file-protocol-test ()
-  (assess-with-filesystem indium-workspace--test-fs
-    (let* ((indium-connection '((url . "file:///foo/bar/index.html")))
-           (file (expand-file-name "js/app.js")))
-      (should (equal (indium-workspace-make-url file) (format "file://%s" file))))))
+  (it "can lookup files that exist"
+    (assess-with-filesystem indium-workspace--test-fs
+      (let ((url "http://localhost:9229/js/app.js")
+            (file (expand-file-name "js/app.js")))
+        (expect (indium-workspace-lookup-file-safe url)
+          :to-equal file)))))
+
+(describe "Making workspace urls from file names"
+  (it "cannot make a url when no workspace is set"
+    (with-indium-connection '((url . "http://localhost:9229"))
+      (expect (indium-workspace-make-url "js/app.js")
+        :to-be nil)))
+
+  (it "can make workspace urls"
+    (with-indium-connection '((url . "http://localhost:9229"))
+      (assess-with-filesystem indium-workspace--test-fs
+        (expect (indium-workspace-make-url "js/app.js")
+          :to-equal "http://localhost:9229/js/app.js"))))
+
+  (it "should strip query strings from computing urls"
+    (with-indium-connection '((url . "http://localhost:9229?foo=bar"))
+      (assess-with-filesystem indium-workspace--test-fs
+        (expect (indium-workspace-make-url "js/app.js")
+          :to-equal "http://localhost:9229/js/app.js"))))
+
+  (it "should strip paths based on the .indium marker when computing urls"
+    (with-indium-connection  '((url . "http://localhost:9229/foo/bar"))
+      (assess-with-filesystem indium-workspace--test-fs
+        (expect (indium-workspace-make-url "js/app.js")
+          :to-equal "http://localhost:9229/js/app.js")))))
+
+(describe "File protocol"
+  (it "can lookup files using the file:// protocol"
+    (assess-with-filesystem indium-workspace--test-fs
+      (with-indium-connection  '((url . "file:///foo/bar/index.html"))
+        (let* ((file (expand-file-name "js/app.js"))
+               (url (format "file://%s" file)))
+          (expect (indium-workspace-lookup-file url)
+            :to-equal file)))))
+
+  (it "can make a url when using the file protocol"
+    (assess-with-filesystem indium-workspace--test-fs
+      (with-indium-connection  '((url . "file:///foo/bar/index.html"))
+       (let* ((file (expand-file-name "js/app.js")))
+         (expect (indium-workspace-make-url file)
+           :to-equal (format "file://%s" file)))))))
 
 (provide 'indium-workspace-test)
 ;;; indium-workspace-test.el ends here

@@ -11,4 +11,4 @@ install:
   - cask install
 script:
   - emacs --version
-  - cask exec ert-runner -L .
+  - ./run-tests.sh
