@@ -57,10 +57,10 @@
 
 (declare 'indium-backend-debugger-get-script-source)
 
-(defun indium-debugger-paused (frames &optional reason)
+(defun indium-debugger-paused (frames &optional reason description)
   (indium-debugger-set-frames frames (car frames))
   (indium-debugger-select-frame (car frames))
-  (indium-debugger-show-help-message reason))
+  (indium-debugger-show-help-message reason description))
 
 (defun indium-debugger-resumed (&rest _args)
   (message "Execution resumed")
@@ -145,7 +145,7 @@ buffer visiting it."
   (indium-debugger-locals-maybe-refresh)
   (indium-debugger-frames-maybe-refresh))
 
-(defun indium-debugger-show-help-message (&optional reason)
+(defun indium-debugger-show-help-message (&optional reason description)
   "Display a help message with REASON in the echo-area."
   (setq indium-debugger-message
         (concat (propertize (or reason "")
@@ -180,7 +180,9 @@ buffer visiting it."
                 "ext "
                 (propertize "p"
                             'face 'font-lock-keyword-face)
-                "rev"))
+                "rev "
+                (propertize (replace-regexp-in-string "\n.*" "" (or description ""))
+                            'face 'font-lock-warning-face)))
   (indium-debugger-refresh-echo-area))
 
 (defun indium-debugger-refresh-echo-area ()
