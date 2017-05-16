@@ -32,9 +32,7 @@
   (seq-doseq (file files)
     (with-current-buffer (find-file file)
       (message "Linting %s..." file)
-      (checkdoc-current-buffer)
-      (message "Compiling %s..." file)
-      (byte-compile-file file))))
+      (checkdoc-current-buffer))))
 
 (provide 'run-lint)
 ;;; run-lint.el ends here
