@@ -24,11 +24,19 @@
 
 ;;; Code:
 
-(require 'company)
 (require 'indium-render)
 (require 'indium-faces)
+(require 'indium-backend)
+
+(require 'company)
 (require 'map)
 (require 'js)
+
+(require 'subr-x)
+(require 'ansi-color)
+
+(declare-function indium-workspace-lookup-file-safe "indium-workspace.el")
+(declare-function indium-inspector-inspect "indium-inspector.el")
 
 (defgroup indium-repl nil
   "Interaction with the REPL."
@@ -70,7 +78,7 @@
   "*JS REPL*")
 
 (defun indium-repl-setup-buffer (buffer)
-  "Setup the REPL BUFFER"
+  "Setup the REPL BUFFER."
   (with-current-buffer buffer
     (indium-repl-mode)
     (indium-repl-setup-markers)

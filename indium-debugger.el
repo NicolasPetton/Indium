@@ -55,14 +55,46 @@
   #("." 0 1 (display (left-fringe right-triangle)))
   "Used as an overlay's before-string prop to place a fringe arrow.")
 
-(declare 'indium-backend-debugger-get-script-source)
+(defvar indium-debugger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " " #'indium-debugger-step-over)
+    (define-key map (kbd "i") #'indium-debugger-step-into)
+    (define-key map (kbd "o") #'indium-debugger-step-out)
+    (define-key map (kbd "c") #'indium-debugger-resume)
+    (define-key map (kbd "l") #'indium-debugger-locals)
+    (define-key map (kbd "s") #'indium-debugger-stack-frames)
+    (define-key map (kbd "q") #'indium-debugger-resume)
+    (define-key map (kbd "h") #'indium-debugger-here)
+    (define-key map (kbd "e") #'indium-debugger-evaluate)
+    (define-key map (kbd "n") #'indium-debugger-next-frame)
+    (define-key map (kbd "p") #'indium-debugger-previous-frame)
+    map))
+
+(define-minor-mode indium-debugger-mode
+  "Minor mode for debugging JS scripts.
+
+\\{indium-debugger-mode-map}"
+  :group 'indium
+  :lighter " JS-debug"
+  :keymap indium-debugger-mode-map
+  (if indium-debugger-mode
+      (progn
+        (unless indium-interaction-mode
+          (indium-interaction-mode))
+        (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t))
+    (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)))
 
 (defun indium-debugger-paused (frames &optional reason)
+  "Handle execution pause.
+Setup the debugging stack FRAMES when the execution has paused.
+If REASON is non-nil, display it in the echo area."
   (indium-debugger-set-frames frames (car frames))
   (indium-debugger-select-frame (car frames))
   (indium-debugger-show-help-message reason))
 
 (defun indium-debugger-resumed (&rest _args)
+  "Handle resumed execution.
+Unset the debugging context and turn off indium-debugger-mode."
   (message "Execution resumed")
   (indium-debugger-unset-frames)
   (seq-doseq (buf (seq-filter (lambda (buf)
@@ -72,7 +104,14 @@
     (with-current-buffer buf
       (set-marker overlay-arrow-position nil (current-buffer))
       (indium-debugger-remove-highlights)
-      (indium-debugger-litable-unset-buffer))))
+      (indium-debugger-litable-unset-buffer)))
+    (let ((locals-buffer (indium-debugger-locals-get-buffer))
+        (frames-buffer (indium-debugger-frames-get-buffer)))
+    (when locals-buffer (kill-buffer locals-buffer))
+    (when frames-buffer (kill-buffer frames-buffer))
+    (if buffer-file-name
+        (indium-debugger-unset-current-buffer)
+      (kill-buffer))))
 
 (defun indium-debugger-next-frame ()
   "Jump to the next frame in the frame stack."
@@ -121,7 +160,7 @@ buffer visiting it."
   "Setup the current buffer for debugging."
   (when (buffer-modified-p)
     (revert-buffer nil nil t))
-  (indium-debugger-position-buffer))
+  (indium-debugger--goto-current-frame))
 
 (defun indium-debugger-setup-buffer-no-file (source)
   "Setup the current buffer with the frame source SOURCE."
@@ -130,9 +169,10 @@ buffer visiting it."
     (let ((inhibit-read-only t))
       (erase-buffer)
       (insert source)))
-  (indium-debugger-position-buffer))
+  (indium-debugger--goto-current-frame))
 
-(defun indium-debugger-position-buffer ()
+(defun indium-debugger--goto-current-frame ()
+  "Move the point to the current stack frame position in the current buffer."
   (let* ((frame (indium-debugger-current-frame))
          (location (map-elt frame 'location))
          (line (map-elt location 'lineNumber))
@@ -188,12 +228,14 @@ buffer visiting it."
   (message indium-debugger-message))
 
 (defun indium-debugger-setup-overlay-arrow ()
+  "Setup the overlay pointing to the current debugging line."
   (let ((pos (line-beginning-position)))
     (setq overlay-arrow-string "=>")
     (setq overlay-arrow-position (make-marker))
     (set-marker overlay-arrow-position pos (current-buffer))))
 
 (defun indium-debugger-highlight-node ()
+  "Highlight the current AST node where the execution has paused."
   (let ((beg (point))
         (end (line-end-position)))
     (indium-debugger-remove-highlights)
@@ -201,6 +243,7 @@ buffer visiting it."
                  'face 'indium-highlight-face)))
 
 (defun indium-debugger-remove-highlights ()
+  "Remove all debugging highlighting overlays from the current buffer."
   (remove-overlays (point-min) (point-max) 'face 'indium-highlight-face))
 
 (defun indium-debugger-top-frame ()
@@ -226,19 +269,13 @@ buffer visiting it."
   (indium-backend-step-out (indium-backend)))
 
 (defun indium-debugger-resume ()
+  "Request the runtime to resume the execution."
   (interactive)
-  (indium-backend-resume (indium-backend) #'indium-debugger-resumed)
-  (let ((locals-buffer (indium-debugger-locals-get-buffer))
-        (frames-buffer (indium-debugger-frames-get-buffer)))
-    (when locals-buffer
-      (kill-buffer locals-buffer))
-    (when frames-buffer
-      (kill-buffer frames-buffer))
-    (if buffer-file-name
-        (indium-debugger-unset-current-buffer)
-      (kill-buffer))))
+  (indium-backend-resume (indium-backend) #'indium-debugger-resumed))
 
 (defun indium-debugger-here ()
+  "Request the runtime to resume the execution until the point.
+When the position of the point is reached, pause the execution."
   (interactive)
   (indium-backend-continue-to-location (indium-backend)
                                      `((scriptId . ,(map-nested-elt (indium-debugger-top-frame)
@@ -333,6 +370,7 @@ frame."
   "*JS Debugger*")
 
 (defun indium-debugger-setup-buffer (buffer)
+  "Setup BUFFER for debugging."
   (with-current-buffer buffer
     (unless (or buffer-file-name
                 (eq major-mode indium-debugger-major-mode))
@@ -351,35 +389,6 @@ frame."
   (indium-debugger-mode -1)
   (read-only-mode -1)
   (indium-debugger-litable-unset-buffer))
-
-(defvar indium-debugger-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " #'indium-debugger-step-over)
-    (define-key map (kbd "i") #'indium-debugger-step-into)
-    (define-key map (kbd "o") #'indium-debugger-step-out)
-    (define-key map (kbd "c") #'indium-debugger-resume)
-    (define-key map (kbd "l") #'indium-debugger-locals)
-    (define-key map (kbd "s") #'indium-debugger-stack-frames)
-    (define-key map (kbd "q") #'indium-debugger-resume)
-    (define-key map (kbd "h") #'indium-debugger-here)
-    (define-key map (kbd "e") #'indium-debugger-evaluate)
-    (define-key map (kbd "n") #'indium-debugger-next-frame)
-    (define-key map (kbd "p") #'indium-debugger-previous-frame)
-    map))
-
-(define-minor-mode indium-debugger-mode
-  "Minor mode for debugging JS scripts.
-
-\\{indium-debugger-mode-map}"
-  :group 'indium
-  :lighter " JS-debug"
-  :keymap indium-debugger-mode-map
-  (if indium-debugger-mode
-      (progn
-        (unless indium-interaction-mode
-          (indium-interaction-mode))
-        (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t))
-    (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)))
 
 (provide 'indium-debugger)
 ;;; indium-debugger.el ends here

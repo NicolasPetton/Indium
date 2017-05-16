@@ -51,6 +51,8 @@
 (require 'map)
 (require 'subr-x)
 
+(require 'indium-backend)
+
 (defun indium-workspace-lookup-file (url)
   "Return a local file matching URL for the current connection.
 If no file is found, return nil."
@@ -63,7 +65,7 @@ If no file is found, return nil."
   (or (indium-workspace-lookup-file url) url))
 
 (defun indium-workspace--lookup-using-file-protocol (url)
-  "Return a local file matching URL if URL uses the file:// protocol."
+  "Return a local file matching URL if URL use the file:// protocol."
   (when (indium-workspace--file-protocol-p)
     (let* ((url (url-generic-parse-url url))
            (path (car (url-path-and-query url))))
@@ -86,7 +88,7 @@ If no file is found, return nil."
       (indium-workspace--make-url-using-workspace file)))
 
 (defun indium-workspace--make-url-using-file-protocol (file)
-  "If the current connection uses the file protocol, return FILE."
+  "If the current connection use the file protocol, return FILE."
   (when (indium-workspace--file-protocol-p)
     (format "file://%s" file)))
 
@@ -100,7 +102,7 @@ The url is built using `indium-workspace-root'."
         (url-recreate-url url))))
 
 (defun indium-workspace--file-protocol-p ()
-  "Return non-nil if the current connection uses the file protocol."
+  "Return non-nil if the current connection use the file protocol."
   (let ((url (url-generic-parse-url (map-elt indium-connection 'url))))
     (string= (url-type url) "file")))
 

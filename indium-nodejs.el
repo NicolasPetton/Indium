@@ -54,7 +54,7 @@
       (indium-nodejs--connect host port path))))
 
 (defun indium-nodejs--connect (host port path)
-  "Ask the user for a tab in the list TABS and connects to it."
+  "Ask the user for a websocket url HOST:PORT/PATH and connects to it."
   (let ((websocket-url (format "ws://%s:%s/%s" host port path))
         (url (format "file://%s" default-directory)))
     (indium-webkit--open-ws-connection url websocket-url t)))
