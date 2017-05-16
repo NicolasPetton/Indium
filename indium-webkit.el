@@ -24,6 +24,7 @@
 ;; indium-chrome.el.  This backend currently supports the REPL, code completion,
 ;; object inspection and the debugger.
 ;;
+;; The protocol supports both Chrome/Chromium and Nodejs.
 ;; The protocol is documented at
 ;; https://chromedevtools.github.io/debugger-protocol-viewer/1-2/.
 
@@ -60,10 +61,10 @@
   (let* ((url (map-elt indium-connection 'url))
          (websocket-url (websocket-url (map-elt indium-connection 'ws))))
     (indium-webkit--open-ws-connection url
-                                     websocket-url
-                                     ;; close all buffers related to the closed
-                                     ;; connection the first
-                                     #'indium-quit)))
+                                       websocket-url
+                                       ;; close all buffers related to the closed
+                                       ;; connection the first
+                                       #'indium-quit)))
 
 (cl-defmethod indium-backend-evaluate ((backend (eql webkit)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
@@ -100,7 +101,7 @@ The breakpoint is set at URL on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
   (let ((url (indium-workspace-make-url buffer-file-name)))
     (unless url
-      (user-error "No URL for the current buffer.  Setup a Indium workspace first"))
+      (user-error "No URL for the current buffer.  Setup an Indium workspace first"))
     (indium-webkit--send-request
      `((method . "Debugger.setBreakpointByUrl")
        (params . ((url . ,url)
@@ -262,7 +263,7 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
   (setq indium-webkit-cache-disabled t)
   (indium-webkit--set-cache-disabled t))
 
-(defun indium-webkit--open-ws-connection (url websocket-url &optional on-open)
+(defun indium-webkit--open-ws-connection (url websocket-url &optional on-open nodejs)
   "Open a websocket connection to URL using WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
@@ -271,26 +272,29 @@ the connection and buffers.
 In a Chrom{e|ium} session, URL corresponds to the url of a tab,
 and WEBSOCKET-URL to its associated `webSocketDebuggerUrl'.
 
-In a NodeJS session, URL and WEBSOCKET-URL should point to the
-same url."
+If NODEJS is non-nil, add a `nodejs' flag to the
+`indium-connection' to handle special cases."
   (unless websocket-url
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
                   :on-open (lambda (ws)
                              (when on-open
                                (funcall on-open))
-                             (indium-webkit--handle-ws-open ws url))
+                             (indium-webkit--handle-ws-open ws url nodejs))
                   :on-message #'indium-webkit--handle-ws-message
                   :on-close #'indium-webkit--handle-ws-closed
                   :on-error #'indium-webkit--handle-ws-error))
 
-(defun indium-webkit--make-connection (ws url)
-  "Return a new connection for WS and URL."
+(defun indium-webkit--make-connection (ws url nodejs)
+  "Return a new connection for WS and URL.
+If NODEJS is non-nil, add a `nodejs' flag to the connection."
   (let ((connection (make-hash-table)))
     (map-put connection 'ws ws)
     (map-put connection 'url url)
     (map-put connection 'backend 'webkit)
     (map-put connection 'callbacks (make-hash-table))
+    (when nodejs
+      (map-put connection 'nodejs t))
     connection))
 
 (defun indium-webkit--callbacks ()
@@ -349,11 +353,13 @@ MESSAGE explains why the connection has been closed."
   (let* ((frames (map-nested-elt message '(params callFrames)))
         (exception (equal (map-nested-elt message '(params reason)) "exception"))
         (reason (if exception "Exception occured" "Breakpoint hit")))
-    (indium-webkit-set-overlay-message "Paused in Emacs debugger")
+    (unless (map-elt indium-connection 'nodejs)
+      (indium-webkit-set-overlay-message "Paused in Emacs debugger"))
     (indium-debugger-paused (indium-webkit--frames frames) reason)))
 
 (defun indium-webkit--handle-debugger-resumed (_message)
-  (indium-webkit-remove-overlay-message)
+  (unless (map-elt indium-connection 'nodejs)
+    (indium-webkit-remove-overlay-message))
   (indium-debugger-resumed))
 
 (defun indium-webkit--handle-script-parsed (message)
@@ -392,7 +398,8 @@ inspectors."
   (indium-webkit--enable-log)
   (indium-webkit--enable-runtime)
   (indium-webkit--enable-network)
-  (indium-webkit--enable-page)
+  (unless (map-elt indium-connection 'nodejs)
+    (indium-webkit--enable-page))
   (indium-webkit--enable-debugger))
 
 (defun indium-webkit--enable-log ()
@@ -405,7 +412,8 @@ inspectors."
 
 (defun indium-webkit--enable-runtime ()
   "Enable the runtime on the current tab."
-  (indium-webkit--send-request '((method . "Runtime.enable"))))
+  (indium-webkit--send-request '((method . "Runtime.enable")))
+  (indium-webkit--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
 
 (defun indium-webkit--enable-network ()
   "Enable the runtime on the current tab."
