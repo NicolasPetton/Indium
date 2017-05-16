@@ -72,16 +72,16 @@ CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
   (let ((callFrameId (map-elt (map-elt indium-connection 'current-frame)
                               'callFrameId)))
-    (indium-webkit--send-request
-     `((method . ,(if callFrameId
-                      "Debugger.evaluateOnCallFrame"
-                    "Runtime.evaluate"))
-       (params . ((expression . ,string)
-                  (callFrameId . ,callFrameId)
-                  (generatePreview . t))))
-     (lambda (response)
-       (when callback
-         (indium-webkit--handle-evaluation-response response callback))))))
+    (apply #'indium-webkit--send-request
+           `((method . ,(if callFrameId
+                            "Debugger.evaluateOnCallFrame"
+                          "Runtime.evaluate"))
+             (params . ((expression . ,string)
+                        (callFrameId . ,callFrameId)
+                        (generatePreview . t))))
+           (when callback
+             (lambda (response)
+               (indium-webkit--handle-evaluation-response response callback))))))
 
 (cl-defmethod indium-backend-get-completions ((_backend (eql webkit)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
