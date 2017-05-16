@@ -18,6 +18,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; Minor mode for interacting with a JavaScript runtime.  This mode provides
+;; commands for managing breakpoints and evaluating code.
+
 ;;; Code:
 
 (require 'js2-mode)
@@ -29,6 +34,10 @@
 (require 'indium-breakpoint)
 (require 'indium-repl)
 (require 'indium-render)
+
+(declare-function indium-backend-activate-breakpoints "indium-backend.el")
+(declare-function indium-backend-deactivate-breakpoints "indium-backend.el")
+(declare-function indium-workspace-make-url "indium-workspace.el")
 
 (defcustom indium-update-script-on-save nil
   "When non-nil, update (hotswap) the script source with the contents of the buffer."
@@ -107,7 +116,8 @@ If PRINT is non-nil, print the output into the current buffer."
     (user-error "No REPL buffer open")))
 
 (defun indium-toggle-breakpoint (arg)
-  "Add a breakpoint at point."
+  "Add a breakpoint at point.
+With a prefix argument ARG, add a conditional breakpoint."
   (interactive "P")
   (if (indium-breakpoint-on-current-line-p)
       (indium-breakpoint-remove)

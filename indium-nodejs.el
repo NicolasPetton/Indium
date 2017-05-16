@@ -39,7 +39,7 @@
 (require 'map)
 (require 'seq)
 
-(require 'indium-v8-inspector)
+(require 'indium-webkit)
 
 (defun indium-connect-to-nodejs ()
   "Open a connection to a webkit tab on host:port/path."
@@ -54,9 +54,10 @@
       (indium-nodejs--connect host port path))))
 
 (defun indium-nodejs--connect (host port path)
-  "Ask the user for a tab in the list TABS and connects to it."
-  (let ((url (format "ws://%s:%s/%s" host port path)))
-    (indium-v8-inspector--open-ws-connection url)))
+  "Ask the user for a websocket url HOST:PORT/PATH and connects to it."
+  (let ((websocket-url (format "ws://%s:%s/%s" host port path))
+        (url (format "file://%s" default-directory)))
+    (indium-webkit--open-ws-connection url websocket-url t)))
 
 (provide 'indium-nodejs)
 ;;; indium-nodejs.el ends here

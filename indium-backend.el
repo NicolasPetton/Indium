@@ -28,7 +28,6 @@
 
 (require 'map)
 (require 'seq)
-(require 'indium-repl)
 (require 'indium-debugger-litable)
 
 (declare 'indium-debugger-unset-current-buffer)
@@ -84,14 +83,14 @@ The new connection is based on the current (usually closed) one."
 
 ;;; indium-connection methods
 
-(cl-defgeneric indium-backend-active-connection-p (backend)
+(cl-defgeneric indium-backend-active-connection-p (_backend)
   "Return non-nil if the current connection is active."
   t)
 
-(cl-defgeneric indium-backend-close-connection (backend)
+(cl-defgeneric indium-backend-close-connection (_backend)
   "Close the current connection.")
 
-(cl-defgeneric indium-backend-reconnect (backend)
+(cl-defgeneric indium-backend-reconnect (_backend)
   "Try to re-establish a connection.
 The new connection is created based on the current
 `indium-connection'.")

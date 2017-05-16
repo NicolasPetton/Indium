@@ -32,7 +32,8 @@
 (defvar indium-inspector-history nil)
 (make-variable-buffer-local 'indium-inspector-history)
 
-(declare indium-backend-get-properties)
+(declare-function indium-backend-get-properties "indium-backend.el")
+(declare-function indium-backend "indium-backend.el")
 
 (defun indium-inspector-inspect (reference)
   "Open an inspector on the remote object REFERENCE."
@@ -45,6 +46,7 @@
       (message "Cannot inspect %S" (map-elt reference 'description)))))
 
 (defun indium-inspector--inspect-properties (properties reference)
+  "Insert all PROPERTIES for the remote object REFERENCE."
   (let ((buf (indium-inspector-get-buffer-create))
         (inhibit-read-only t))
     (with-current-buffer buf
@@ -56,10 +58,8 @@
         (indium-render-properties properties)))
     (pop-to-buffer buf)))
 
-(defun indium-inspector-keybinding (command)
-  (key-description (car (where-is-internal command))))
-
 (defun indium-inspector-pop ()
+  "Go back in the history to the last object inspected."
   (interactive)
   (if (cdr indium-inspector-history)
       (progn
@@ -68,6 +68,8 @@
     (message "No previous object to inspect")))
 
 (defun indium-inspector-goto-reference (direction)
+  "Move point to the next object reference in DIRECTION.
+DIRECTION can be either `next' or `previous'."
   (let* ((delta (pcase direction
                   (`next 1)
                   (`previous -1)))
@@ -88,24 +90,29 @@
       (forward-char 1))))
 
 (defun indium-inspector-next-reference ()
+  "Move the point to the next object reference."
   (interactive)
   (indium-inspector-goto-reference 'next))
 
 (defun indium-inspector-previous-reference ()
+  "Move the point to the previous object reference."
   (interactive)
   (indium-inspector-goto-reference 'previous))
 
 (defun indium-inspector-refresh ()
+  "Request new data to the backend and update the inspector buffer."
   (interactive)
   (when indium-inspector-history
     (funcall #'indium-inspector-inspect (car indium-inspector-history))))
 
 (defun indium-inspector-push-to-history (reference)
+  "Add REFERENCE to the inspected objects history."
   (unless (string= (map-elt reference 'objectid)
                    (map-elt (car indium-inspector-history) 'objectid))
       (push reference indium-inspector-history)))
 
 (defun indium-inspector-get-buffer ()
+  "Return the inspector buffer, or nil if no inspector buffer exists."
   (get-buffer (indium-inspector-buffer-name)))
 
 (defun indium-inspector-get-buffer-create ()

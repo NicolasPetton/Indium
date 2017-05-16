@@ -25,8 +25,12 @@
 ;;; Code:
 
 (require 'indium-faces)
+(require 'seq)
+(require 'map)
 
-(declare 'indium-backend-object-reference-p)
+(declare-function indium-backend-object-reference-p "indium-backend.el")
+(declare-function indium-debugger-frames-select-frame "indium-debugger.el")
+(declare-function indium-inspector-inspect "indium-inspector.el")
 
 (defun indium-render-values (values &optional separator)
   "Render VALUES separated by SEPARATOR.
@@ -54,6 +58,7 @@ with a link to an inspector on that object."
     (buffer-string)))
 
 (defun indium-render-description (value)
+  "Insert VALUE fontified as a description."
   (let ((description (indium-description-string value)))
     (insert
      (propertize description
@@ -61,6 +66,7 @@ with a link to an inspector on that object."
                  'rear-nonsticky '(font-lock-face)))))
 
 (defun indium-render-keyword (string)
+  "Insert STRING as fontified as a keyword."
   (insert
    (propertize string
                'font-lock-face 'indium-keyword-face
@@ -132,6 +138,7 @@ definitions."
       (insert preview))))
 
 (defun indium-render-properties (properties)
+  "Insert all items in PROPERTIES sorted by name."
   (seq-map #'indium-render-property
            (seq-sort (lambda (p1 p2)
                        (string< (map-elt p1 'name)
@@ -139,6 +146,9 @@ definitions."
                      properties)))
 
 (defun indium-render-property (property &optional separator)
+  "Insert the remote reference PROPERTY as a value.
+When SEPARATOR is non-nil, insert it after the property.
+Otherwise, insert a newline."
   (insert "  " (map-elt property 'name) ": ")
   (indium-render-value (map-elt property 'value))
   (insert (or separator "\n")))
@@ -166,7 +176,7 @@ definitions."
     (funcall function)))
 
 (defun indium-message (&rest args)
-  "Like `message', with font-locking for JavaScript."
+  "Display ARGS like `message', but fontified as JavaScript."
   (let ((string (with-temp-buffer
                   (js-mode)
                   (insert (apply #'format args))

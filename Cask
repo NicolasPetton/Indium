@@ -4,6 +4,7 @@
 (package-file "indium.el")
 
 (depends-on "websocket")
+(depends-on "company")
 
 (development
  (depends-on "undercover")

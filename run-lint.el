@@ -1,9 +1,8 @@
-;;; indium-v8-inspector-test.el --- Tests for indum-v8-inspector.el  -*- lexical-binding: t; -*-
+;;; run-lint.el --- Lint project files                         -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
-;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,19 +19,20 @@
 
 ;;; Commentary:
 
-;; Tests for indium-v8-inspector.el
+;; Run checkdoc in batch mode on all project files.
 
 ;;; Code:
 
-(require 'buttercup)
-(require 'indium-v8-inspector)
+(require 'checkdoc)
+(require 'seq)
 
-(describe "V8-Inspector backend result description string"
-  (it "can render booleans (GitHub issue #52)"
-    (expect (indium-v8-inspector--description '((type . "boolean") (value . "true")))
-      :to-equal "true")
-    (expect (indium-v8-inspector--description '((type . "boolean") (value . "false")))
-      :to-equal "false")))
+(let ((files (seq-filter (lambda (file)
+                           (string= (file-name-extension file) "el"))
+                         (directory-files "."))))
+  (seq-doseq (file files)
+    (with-current-buffer (find-file file)
+      (message "Linting %s..." file)
+      (checkdoc-current-buffer))))
 
-(provide 'indium-v8-inspector-test)
-;;; indium-v8-inspector-test.el ends here
+(provide 'run-lint)
+;;; run-lint.el ends here

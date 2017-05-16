@@ -39,11 +39,11 @@ CONDITION is true."
   (let ((ov (indium-breakpoint--put-icon condition)))
     (when indium-connection
       (indium-backend-add-breakpoint (indium-backend)
-                                   buffer-file-name
-                                   (1- (line-number-at-pos))
-                                   (lambda (line id condition)
-                                     (indium-breakpoint-added id ov))
-                                   condition))))
+                                     buffer-file-name
+                                     (1- (line-number-at-pos))
+                                     (lambda (line id condition)
+                                       (indium-breakpoint-added id ov))
+                                     condition))))
 
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."

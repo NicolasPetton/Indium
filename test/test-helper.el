@@ -26,7 +26,7 @@
 
 (when (require 'undercover nil t)
   (setq undercover-force-coverage t)
-  (undercover "*.el"))
+  (undercover "*.el" (:exclude "run-lint.el" "test/*.el")))
 
 (advice-add 'undercover-report :after #'print-coverage-report-safe)
 
