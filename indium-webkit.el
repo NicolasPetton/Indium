@@ -119,7 +119,7 @@ non-nil, evaluate it with the breakpoint's location and id."
              (message "Cannot get breakpoint location"))
            (funcall callback line id condition)))))))
 
-(cl-defgeneric indium-backend-remove-breakpoint ((_backend (eql webkit)) id)
+(cl-defmethod indium-backend-remove-breakpoint ((_backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."
   (indium-webkit--send-request
    `((method . "Debugger.removeBreakpoint")
@@ -127,14 +127,14 @@ non-nil, evaluate it with the breakpoint's location and id."
    (lambda (_response)
      (indium-backend-unregister-breakpoint id))))
 
-(cl-defgeneric indium-backend-deactivate-breakpoints ((_backend (eql webkit)))
+(cl-defmethod indium-backend-deactivate-breakpoints ((_backend (eql webkit)))
   "Deactivate all breakpoints.
 The runtime will not pause on any breakpoint."
   (indium-webkit--send-request
    `((method . "Debugger.setBreakpointsActive")
      (params . ((active . :json-false))))))
 
-(cl-defgeneric indium-backend-activate-breakpoints ((_backend (eql webkit)))
+(cl-defmethod indium-backend-activate-breakpoints ((_backend (eql webkit)))
   "Deactivate all breakpoints.
 The runtime will not pause on any breakpoint."
   (indium-webkit--send-request
