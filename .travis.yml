@@ -11,4 +11,5 @@ install:
   - cask install
 script:
   - emacs --version
+  - ./run-lint.sh
   - ./run-tests.sh

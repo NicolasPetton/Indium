@@ -2,9 +2,13 @@ image: nicolaspetton/emacs:armhf
 
 before_script:
  - cask install
+ - emacs --version
+
+lint:
+  script:
+    - ./run-lint.sh
 
 test:
   script:
-  - emacs --version
-  - ./run-tests.sh
+    - ./run-tests.sh
   
