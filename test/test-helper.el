@@ -43,7 +43,7 @@
          (covered-lines (seq-filter (lambda (line)
                                       (not (zerop line)))
                                     coverage))
-         (round (percentage (* (/ (seq-length covered-lines) (seq-length coverage) 1.0) 100))))
+         (percentage (round (* (/ (seq-length covered-lines) (seq-length coverage) 1.0) 100))))
     (message "%d%% covered" percentage)))
 
 
