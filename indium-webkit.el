@@ -412,9 +412,9 @@ There is currently no support for the DOM inspector and network
 inspectors."
   (indium-webkit--enable-log)
   (indium-webkit--enable-runtime)
-  (indium-webkit--enable-network)
   (unless (map-elt indium-connection 'nodejs)
-    (indium-webkit--enable-page))
+    (indium-webkit--enable-page)
+    (indium-webkit--enable-network))
   (indium-webkit--enable-debugger))
 
 (defun indium-webkit--enable-log ()
