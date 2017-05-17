@@ -8,7 +8,7 @@ Getting up and running
 NodeJS
 ------
 
-Nodejs >= ``7.0`` is required for Indium to work. 
+Nodejs >= ``7.4`` is required for Indium to work. 
 
 Start a node process with the ``--inspect`` flag: ::
 
