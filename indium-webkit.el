@@ -410,11 +410,11 @@ If the current connection is closed, display a message."
 
 There is currently no support for the DOM inspector and network
 inspectors."
-  (indium-webkit--enable-log)
   (indium-webkit--enable-runtime)
   (unless (map-elt indium-connection 'nodejs)
     (indium-webkit--enable-page)
-    (indium-webkit--enable-network))
+    (indium-webkit--enable-network)
+    (indium-webkit--enable-log))
   (indium-webkit--enable-debugger))
 
 (defun indium-webkit--enable-log ()
