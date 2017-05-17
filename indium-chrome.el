@@ -54,7 +54,7 @@
   "Start chrome/chromium with remote debugging enabled.
 Open URL if provided."
   (interactive "sUrl: ")
-  (make-process :name "*indium-chromium*"
+  (make-process :name "indium-chrome-process"
                 :command (list (indium-chrome--find-executable)
                                (format "--remote-debugging-port=%s" indium-chrome-port)
                                (or url "")))

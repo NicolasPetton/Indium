@@ -104,7 +104,8 @@
               '((method . "Runtime.evaluate")
                 (params . ((expression . "foo")
                            (callFrameId . nil)
-                           (generatePreview . t)))))))
+                           (generatePreview . t))))
+              nil)))
 
   (it "calls Debugger.evaluateOnCallFrame when there is stack frame"
     (spy-on 'indium-webkit--send-request)
@@ -114,7 +115,8 @@
               '((method . "Debugger.evaluateOnCallFrame")
                 (params . ((expression . "foo")
                            (callFrameId . 1)
-                           (generatePreview . t))))))))
+                           (generatePreview . t))))
+              nil))))
 
 
 (describe "Webkit backend result description string"
