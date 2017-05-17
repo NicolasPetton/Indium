@@ -29,6 +29,9 @@
 ;; To break on the first line of the application code, provide the --debug-brk
 ;; flag in addition to --inspect.
 ;;
+;; You can optionally use `indium-run-nodejs' to start a node process, in which
+;; case the `--inspect' and `--debug-brk' flags will be added automatically.
+;;
 ;; Important note: For this package to work, NodeJS version 7.0 (or any newer
 ;; version) is required.
 
@@ -41,23 +44,62 @@
 
 (require 'indium-webkit)
 
+(defun indium-run-node (command)
+  "Start a NodeJS process.
+Execute COMMAND, adding the `--inspect' and `--debug-brk' flags.
+When the process is ready, open an Indium connection on it."
+  (interactive (list (read-shell-command "Node command: " "node ")))
+  (make-process :name "indium-nodejs-process"
+                :buffer "*node process*"
+                :filter #'indium-nodejs--process-filter
+                :command (list shell-file-name
+                               shell-command-switch
+                               (indium-nodejs--add-flags command))))
+
 (defun indium-connect-to-nodejs ()
   "Open a connection to a webkit tab on host:port/path."
   (interactive)
+  (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
+        (port (read-from-minibuffer "Port: " "9229"))
+        (path (read-from-minibuffer "Path: ")))
+    (indium-nodejs--connect host port path)))
+
+(defun indium-nodejs--connect (host port path)
+  "Ask the user for a websocket url HOST:PORT/PATH and connects to it."
   (when (or (null indium-connection)
             (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
     (when indium-connection
       (indium-quit))
-    (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
-          (port (read-from-minibuffer "Port: " "9229"))
-          (path (read-from-minibuffer "Path: ")))
-      (indium-nodejs--connect host port path))))
+    (let ((websocket-url (format "ws://%s:%s/%s" host port path))
+          (url (format "file://%s" default-directory)))
+      (indium-webkit--open-ws-connection url websocket-url nil t))))
 
-(defun indium-nodejs--connect (host port path)
-  "Ask the user for a websocket url HOST:PORT/PATH and connects to it."
-  (let ((websocket-url (format "ws://%s:%s/%s" host port path))
-        (url (format "file://%s" default-directory)))
-    (indium-webkit--open-ws-connection url websocket-url t)))
+(defun indium-nodejs--add-flags (command)
+  "Return COMMAND with the `--inspect' `--debug-brk' flags added."
+  (let* ((tokens (split-string command))
+         (program (car tokens))
+         (arguments (cdr tokens))
+         (result `(,program "--inspect" "--debug-brk" ,@arguments)))
+  (mapconcat #'identity result " ")))
+
+(defun indium-nodejs--process-filter (process output)
+  "Filter function for PROCESS.
+Append OUTPUT to the PROCESS buffer, and parse it to detect the
+socket URL to connect to."
+  ;; Append output to the process buffer
+  (with-current-buffer (process-buffer process)
+    (goto-char (point-max))
+    (insert output))
+  (ignore-errors
+    (indium-nodejs--connect-to-process output)))
+
+(defun indium-nodejs--connect-to-process (output)
+  "If OUTPUT contain the WS url, connect to it."
+  (save-match-data
+    (string-match "devtools://.*/\\(.*\\)$" output)
+    (when-let ((path (match-string 1 output)))
+      (indium-nodejs--connect "127.0.0.1" "9229" path))))
+
 
 (provide 'indium-nodejs)
 ;;; indium-nodejs.el ends here
