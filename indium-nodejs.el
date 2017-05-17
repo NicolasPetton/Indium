@@ -49,12 +49,13 @@
 Execute COMMAND, adding the `--inspect' and `--debug-brk' flags.
 When the process is ready, open an Indium connection on it."
   (interactive (list (read-shell-command "Node command: " "node ")))
-  (make-process :name "indium-nodejs-process"
-                :buffer "*node process*"
-                :filter #'indium-nodejs--process-filter
-                :command (list shell-file-name
-                               shell-command-switch
-                               (indium-nodejs--add-flags command))))
+  (let ((process (make-process :name "indium-nodejs-process"
+                               :buffer "*node process*"
+                               :filter #'indium-nodejs--process-filter
+                               :command (list shell-file-name
+                                              shell-command-switch
+                                              (indium-nodejs--add-flags command)))))
+    (switch-to-buffer (process-buffer process))))
 
 (defun indium-connect-to-nodejs ()
   "Open a connection to a webkit tab on host:port/path."

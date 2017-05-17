@@ -26,7 +26,8 @@
 (describe "Executing NodeJS processes"
   (it "should set the correct flags when executing nodejs"
     (spy-on 'make-process)
-    (spy-on 'indium-nodejs--connect-to-process)
+    (spy-on 'switch-to-buffer)
+    (spy-on 'process-buffer)
 
     (spy-on 'indium-nodejs--add-flags)
     (indium-run-node "node foo")
