@@ -1,4 +1,4 @@
-image: nicolaspetton/emacs:armhf
+image: nicolaspetton/emacs
 
 before_script:
  - cask install
