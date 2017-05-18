@@ -250,19 +250,16 @@ buffer visiting it."
 (defun indium-debugger-step-into ()
   "Request a step into."
   (interactive)
-  (indium-debugger-unset-current-buffer)
   (indium-backend-step-into (indium-backend)))
 
 (defun indium-debugger-step-over ()
   "Request a step over."
   (interactive)
-  (indium-debugger-unset-current-buffer)
   (indium-backend-step-over (indium-backend)))
 
 (defun indium-debugger-step-out ()
   "Request a step out."
   (interactive)
-  (indium-debugger-unset-current-buffer)
   (indium-backend-step-out (indium-backend)))
 
 (defun indium-debugger-resume ()

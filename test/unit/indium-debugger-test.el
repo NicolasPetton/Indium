@@ -101,5 +101,21 @@
     (indium-debugger-resume)
     (expect (get-buffer (indium-debugger--buffer-name-no-file)) :not :to-be nil)))
 
+(describe "Debugger stepping"
+  ;; Cleaning up the debugger state should only be done when the execution is
+  ;; resumed, which happens between each step over/into/out.
+  (it "should not unset the debugger buffer when stepping"
+    (spy-on 'indium-debugger-unset-current-buffer)
+    (spy-on 'indium-debugger-step-into)
+    (spy-on 'indium-debugger-step-out)
+    (spy-on 'indium-debugger-step-over)
+
+    (indium-debugger-step-into)
+    (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)
+    (indium-debugger-step-over)
+    (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)
+    (indium-debugger-step-out)
+    (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)))
+
 (provide 'indium-debugger-test)
 ;;; indium-debugger-test.el ends here
