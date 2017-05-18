@@ -72,5 +72,13 @@ buffer in `js2-mode' with CONTENTS."
   `(with-indium-connection '((backend . fake))
      ,@body))
 
+(defun kill-nodejs-process ()
+  (when-let ((buf (get-buffer "*node process*")))
+    (when-let ((process (get-buffer-process buf)))
+      (set-process-query-on-exit-flag process nil))
+    (kill-buffer buf))
+  (ignore-errors
+    (indium-quit)))
+
 (provide 'test-helper)
 ;;; test-helper.el ends here

@@ -623,10 +623,10 @@ If no such script has been parsed, return nil."
                            (symbol-name key)))
                        (map-elt indium-connection 'scripts))))
 
-(defvar indium--request-id 0)
+(defvar indium-webkit--request-id 0)
 (defun indium-webkit--next-request-id ()
   "Return the next unique identifier to be used in a request."
-  (cl-incf indium--request-id))
+  (cl-incf indium-webkit--request-id))
 
 (provide 'indium-webkit)
 ;;; indium-webkit.el ends here
