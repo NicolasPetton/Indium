@@ -10,6 +10,21 @@ NodeJS
 
 Nodejs >= ``7.4`` is required for Indium to work. 
 
+Installing a recent version of NodeJS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your distribution ships an old version of NodeJS, you can install a more
+recent version using `nvm <https://github.com/creationix/nvm>`_: ::
+
+  $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+
+Once ``nvm`` is install, you can easily install and use the version of NodeJS
+you want: ::
+  
+  $ nvm install v7
+  $ nvm alias default v7
+  $ node --version
+
 Executing NodeJS from Emacs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
