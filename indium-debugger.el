@@ -103,15 +103,12 @@ Unset the debugging context and turn off indium-debugger-mode."
                               (buffer-list)))
     (with-current-buffer buf
       (set-marker overlay-arrow-position nil (current-buffer))
-      (indium-debugger-remove-highlights)
+      (indium-debugger-unset-current-buffer)
       (indium-debugger-litable-unset-buffer)))
     (let ((locals-buffer (indium-debugger-locals-get-buffer))
         (frames-buffer (indium-debugger-frames-get-buffer)))
     (when locals-buffer (kill-buffer locals-buffer))
-    (when frames-buffer (kill-buffer frames-buffer))
-    (if buffer-file-name
-        (indium-debugger-unset-current-buffer)
-      (kill-buffer))))
+    (when frames-buffer (kill-buffer frames-buffer))))
 
 (defun indium-debugger-next-frame ()
   "Jump to the next frame in the frame stack."
@@ -271,7 +268,7 @@ buffer visiting it."
 (defun indium-debugger-resume ()
   "Request the runtime to resume the execution."
   (interactive)
-  (indium-backend-resume (indium-backend) #'indium-debugger-resumed))
+  (indium-backend-resume (indium-backend)))
 
 (defun indium-debugger-here ()
   "Request the runtime to resume the execution until the point.

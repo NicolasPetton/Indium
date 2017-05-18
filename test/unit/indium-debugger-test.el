@@ -82,5 +82,24 @@
         (indium-debugger-set-frames frames current-frame)
         (expect #'indium-debugger-previous-frame :to-throw 'user-error)))))
 
+(describe "Regression test for GitHub issue 53"
+  (before-each
+    (let ((debugger-buffer (get-buffer-create (indium-debugger--buffer-name-no-file))))
+      (with-current-buffer debugger-buffer
+        (indium-debugger-mode))))
+  (after-each
+    (ignore-errors
+      (kill-buffer (indium-debugger--buffer-name-no-file))))
+
+  ;; Regression test for https://github.com/NicolasPetton/Indium/issues/53
+  ;; Killing the debugger buffer when stepping results in a visual
+  ;; flickering. Since stepping over or into cause the execution to be resumed
+  ;; and paused, the debugger buffer should not be killed.
+  (it "should not killing the debugger buffer when execution is resumed"
+    (spy-on 'indium-backend-resume)
+    (expect (get-buffer (indium-debugger--buffer-name-no-file)) :not :to-be nil)
+    (indium-debugger-resume)
+    (expect (get-buffer (indium-debugger--buffer-name-no-file)) :not :to-be nil)))
+
 (provide 'indium-debugger-test)
 ;;; indium-debugger-test.el ends here
