@@ -121,10 +121,18 @@
 
 
 (describe "Webkit backend result description string"
-  (it "can render booleans (GitHub issue #52)"
+  ;; The server can send boolean description values either as a string or boolean.
+  ;; See https://bugs.chromium.org/p/chromium/issues/detail?id=724092
+  (it "can render boolean descriptions formatted as string values (GitHub issue #52)"
     (expect (indium-webkit--description '((type . "boolean") (value . "true")))
       :to-equal "true")
     (expect (indium-webkit--description '((type . "boolean") (value . "false")))
+            :to-equal "false"))
+
+  (it "can render boolean descriptions"
+    (expect (indium-webkit--description '((type . "boolean") (value . t)))
+      :to-equal "true")
+    (expect (indium-webkit--description '((type . "boolean") (value . :json-false)))
       :to-equal "false")))
 
 (provide 'indium-webkit-test)

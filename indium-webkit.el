@@ -544,7 +544,16 @@ RESULT should be a reference to a remote object."
                        (number-to-string value)
                      value))
           (`string (format "\"%s\"" value))
-          (`boolean value)
+          ;; The server can either send:
+          ;;
+          ;; { type: "boolean", value: "true" }
+          ;; { type: "boolean", value: true }
+          ;;
+          ;; See https://bugs.chromium.org/p/chromium/issues/detail?id=724092
+          (`boolean (if (or (equal value "true")
+                            (eq value t))
+                        "true"
+                      "false"))
           (_ (or value "null"))))))
 
 (defun indium-webkit--preview (result)
