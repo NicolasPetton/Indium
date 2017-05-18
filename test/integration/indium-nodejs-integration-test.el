@@ -43,13 +43,13 @@
   (it "should be able to start a node process and connect to it"
     (expect indium-connection :to-be nil)
     (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 2)
+    (sleep-for 1)
     (expect indium-connection :not :to-be nil))
 
   (it "should create a REPL buffer upon connection"
     (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
     (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 2)
+    (sleep-for 1)
     (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil)))
 
 (provide 'indium-nodejs-integration-test)
