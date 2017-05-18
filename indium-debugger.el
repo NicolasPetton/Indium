@@ -88,7 +88,7 @@
   "Handle execution pause.
 Setup the debugging stack FRAMES when the execution has paused.
 If REASON is non-nil, display it in the echo area."
-  (indium-debugger-set-frames frames (car frames))
+  (indium-debugger-set-frames frames)
   (indium-debugger-select-frame (car frames))
   (indium-debugger-show-help-message reason))
 
@@ -136,12 +136,18 @@ DIRECTION is `forward' or `backward' (in the frame list)."
 
 (defun indium-debugger-select-frame (frame)
   "Make FRAME the current debugged stack frame.
-Switch to the buffer for FRAME.
 
-Try to find the file locally first using Indium worskspaces.  If a
-local file cannot be found, get the remote source and open a new
-buffer visiting it."
+Setup a debugging buffer for the current stack FRAME and switch
+to that buffer.
+
+Try to find the file for the stack frame locally first using
+Indium worskspaces.  If not local file can be found, get the
+remote source for that frame."
   (indium-debugger-set-current-frame frame)
+    ;; when a buffer is already debugging a frame, be sure to clean it first.
+  (if-let (old-buf (indium-debugger-get-buffer-create))
+      (with-current-buffer old-buf
+        (indium-debugger-unset-current-buffer)))
   (indium-debugger-litable-setup-buffer)
   (switch-to-buffer (indium-debugger-get-buffer-create))
   (if buffer-file-name
@@ -287,17 +293,13 @@ Evaluation happens in the context of the current call frame."
 
 ;; Debugging context
 
-(defun indium-debugger-set-frames (frames current-frame)
-  "Set the debugger FRAMES and the CURRENT-FRAME."
+(defun indium-debugger-set-frames (frames)
+  "Set the debugger FRAMES."
   (map-put indium-connection 'frames frames)
-  (map-put indium-connection 'current-frame current-frame))
+  (indium-debugger-set-current-frame (car frames)))
 
 (defun indium-debugger-set-current-frame (frame)
   "Set FRAME as the current frame."
-  ;; when a buffer is already debugging a frame, be sure to clean it first.
-  (if-let (old-buf (indium-debugger-get-buffer-create))
-      (with-current-buffer old-buf
-        (indium-debugger-unset-current-buffer)))
   (map-put indium-connection 'current-frame frame))
 
 (defun indium-debugger-unset-frames ()

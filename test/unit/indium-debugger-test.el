@@ -29,7 +29,7 @@
     (with-fake-indium-connection
       (let ((frames '(first second))
             (current-frame 'first))
-        (indium-debugger-set-frames frames current-frame)
+        (indium-debugger-set-frames frames)
         (expect (indium-debugger-frames) :to-be frames)
         (expect (indium-debugger-current-frame) :to-be current-frame))))
 
@@ -43,7 +43,7 @@
 
   (it "can unset the debugging frames"
     (with-fake-indium-connection
-      (indium-debugger-set-frames '(first second) 'first)
+      (indium-debugger-set-frames '(first second))
       (indium-debugger-unset-frames)
       (expect (indium-debugger-frames) :to-be nil)
       (expect (indium-debugger-current-frame) :to-be nil))))
@@ -54,32 +54,30 @@
 
   (it "can select the next frame"
     (with-fake-indium-connection
-      (let ((frames '(first second))
-            (current-frame 'second))
-        (indium-debugger-set-frames frames current-frame)
+      (let ((frames '(first second)))
+        (indium-debugger-set-frames frames)
+        (indium-debugger-set-current-frame 'second)
         (indium-debugger-next-frame)
         (expect 'indium-debugger-select-frame :to-have-been-called-with 'first))))
 
   (it "can select the previous frame"
     (with-fake-indium-connection
-      (let ((frames '(first second))
-            (current-frame 'first))
-        (indium-debugger-set-frames frames current-frame)
+      (let ((frames '(first second)))
+        (indium-debugger-set-frames frames)
         (indium-debugger-previous-frame)
         (expect 'indium-debugger-select-frame :to-have-been-called-with 'second))))
 
   (it "should throw when selecting the next frame if it does not exist"
     (with-fake-indium-connection
-      (let ((frames '(first second))
-            (current-frame 'first))
-        (indium-debugger-set-frames frames current-frame)
+      (let ((frames '(first second)))
+        (indium-debugger-set-frames frames)
         (expect #'indium-debugger-next-frame :to-throw 'user-error))))
 
   (it "should throw when selecting the previous frame if it does not exist"
     (with-fake-indium-connection
-      (let ((frames '(first second))
-            (current-frame 'second))
-        (indium-debugger-set-frames frames current-frame)
+      (let ((frames '(first second)))
+        (indium-debugger-set-frames frames)
+        (indium-debugger-set-current-frame 'second)
         (expect #'indium-debugger-previous-frame :to-throw 'user-error)))))
 
 (describe "Regression test for GitHub issue 53"
