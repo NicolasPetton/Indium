@@ -10,7 +10,26 @@ NodeJS
 
 Nodejs >= ``7.4`` is required for Indium to work. 
 
-Start a node process with the ``--inspect`` flag: ::
+Executing NodeJS from Emacs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Indium can start NodeJS processes and connect to them automatically.
+This is the preferred way of using Indium with NodeJS.
+
+Start a process with ``M-x indium-run-node``.  Once the process is ready, Indium
+will connect to it and open a REPL buffer.
+
+The output from the NodeJS process is appended to the ``*nodejs process*`` buffer.
+
+.. NOTE:: Indium will append the ``--inspect`` and ``--debug-brk`` flags to the
+          command-line arguments automatically, so you do not need to provide
+          them.
+
+Connecting to a Nodejs process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to an existing NodeJS process, make sure that process was started
+with the ``--inspect`` flag: ::
 
     node --inspect myfile.js
     
