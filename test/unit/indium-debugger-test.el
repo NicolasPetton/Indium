@@ -115,7 +115,30 @@
     (indium-debugger-step-over)
     (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)
     (indium-debugger-step-out)
-    (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)))
+    (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called))
+
+  (it "should call the backend when stepping into"
+    (spy-on 'indium-backend-step-into)
+    (spy-on 'indium-backend :and-return-value 'backend)
+    (indium-debugger-step-into)
+    (expect #'indium-backend-step-into :to-have-been-called-with 'backend))
+
+  (it "should call the backend when stepping over"
+    (spy-on 'indium-backend-step-over)
+    (spy-on 'indium-backend :and-return-value 'backend)
+    (indium-debugger-step-over)
+    (expect #'indium-backend-step-over :to-have-been-called-with 'backend))
+
+  (it "should call the backend when stepping out"
+    (spy-on 'indium-backend-step-out)
+    (spy-on 'indium-backend :and-return-value 'backend)
+    (indium-debugger-step-out)
+    (expect #'indium-backend-step-out :to-have-been-called-with 'backend))
+  (it "should call the backend when resuming execution"
+    (spy-on 'indium-backend-resume)
+    (spy-on 'indium-backend :and-return-value 'backend)
+    (indium-debugger-resume)
+    (expect #'indium-backend-resume :to-have-been-called-with 'backend)))
 
 (provide 'indium-debugger-test)
 ;;; indium-debugger-test.el ends here
