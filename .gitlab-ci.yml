@@ -3,7 +3,8 @@ image: nicolaspetton/emacs:armhf
 before_script:
  - cask install
  - emacs --version
- - apt-get -y install nodejs
+ - curl -sL https://deb.nodesource.com/setup_7.x | bash -
+ - apt-get install -y nodejs
 
 lint:
   script:
