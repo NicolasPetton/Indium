@@ -115,6 +115,7 @@ Getting up and running
 
 NodeJS
 
+* Installing a recent version of NodeJS:: 
 * Executing NodeJS from Emacs:: 
 * Connecting to a Nodejs process:: 
 
@@ -246,13 +247,35 @@ Add the following to your Emacs configuration:
 Nodejs >= @code{7.4} is required for Indium to work.
 
 @menu
+* Installing a recent version of NodeJS:: 
 * Executing NodeJS from Emacs:: 
 * Connecting to a Nodejs process:: 
 
 @end menu
 
-@node Executing NodeJS from Emacs,Connecting to a Nodejs process,,NodeJS
-@anchor{setup executing-nodejs-from-emacs}@anchor{c}
+@node Installing a recent version of NodeJS,Executing NodeJS from Emacs,,NodeJS
+@anchor{setup installing-a-recent-version-of-nodejs}@anchor{c}
+@subsubsection Installing a recent version of NodeJS
+
+
+If your distribution ships an old version of NodeJS, you can install a more
+recent version using nvm@footnote{https://github.com/creationix/nvm}:
+
+@example
+$ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+@end example
+
+Once @code{nvm} is install, you can easily install and use the version of NodeJS
+you want:
+
+@example
+$ nvm install v7
+$ nvm alias default v7
+$ node --version
+@end example
+
+@node Executing NodeJS from Emacs,Connecting to a Nodejs process,Installing a recent version of NodeJS,NodeJS
+@anchor{setup executing-nodejs-from-emacs}@anchor{d}
 @subsubsection Executing NodeJS from Emacs
 
 
@@ -273,7 +296,7 @@ them.
 @end cartouche
 
 @node Connecting to a Nodejs process,,Executing NodeJS from Emacs,NodeJS
-@anchor{setup connecting-to-a-nodejs-process}@anchor{d}
+@anchor{setup connecting-to-a-nodejs-process}@anchor{e}
 @subsubsection Connecting to a Nodejs process
 
 
@@ -303,7 +326,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome}@anchor{e}@anchor{setup chrome-chromium}@anchor{f}
+@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -327,7 +350,7 @@ M-x indium-connect-to-chrome
 @end example
 
 @node Using local files when debugging,,Chrome/Chromium,Getting up and running
-@anchor{setup local-files}@anchor{10}@anchor{setup using-local-files-when-debugging}@anchor{11}
+@anchor{setup local-files}@anchor{11}@anchor{setup using-local-files-when-debugging}@anchor{12}
 @subsection Using local files when debugging
 
 
@@ -377,7 +400,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{12}@anchor{repl repl}@anchor{13}@anchor{repl doc}@anchor{14}
+@anchor{repl the-repl}@anchor{13}@anchor{repl repl}@anchor{14}@anchor{repl doc}@anchor{15}
 @section The REPL
 
 
@@ -389,7 +412,7 @@ directory!
 @end menu
 
 @node Starting a REPL,Using the REPL,,The REPL
-@anchor{repl starting-a-repl}@anchor{15}
+@anchor{repl starting-a-repl}@anchor{16}
 @subsection Starting a REPL
 
 
@@ -413,13 +436,13 @@ JS syntax highlighting
 Pretty printing and preview of printed values
 
 @item 
-Access to the object inspector (see @ref{16,,The inspector})
+Access to the object inspector (see @ref{17,,The inspector})
 @end itemize
 
 @image{repl2,,,,png}
 
 @node Using the REPL,Code evaluation & context,Starting a REPL,The REPL
-@anchor{repl using-the-repl}@anchor{17}
+@anchor{repl using-the-repl}@anchor{18}
 @subsection Using the REPL
 
 
@@ -430,7 +453,7 @@ Access to the object inspector (see @ref{16,,The inspector})
 @end menu
 
 @node Keybindings,Reconnecting from the REPL buffer,,Using the REPL
-@anchor{repl keybindings}@anchor{18}
+@anchor{repl keybindings}@anchor{19}
 @subsubsection Keybindings
 
 
@@ -506,7 +529,7 @@ Instert the next input in the history.
 
 
 @node Reconnecting from the REPL buffer,,Keybindings,Using the REPL
-@anchor{repl reconnecting-from-the-repl-buffer}@anchor{19}
+@anchor{repl reconnecting-from-the-repl-buffer}@anchor{1a}
 @subsubsection Reconnecting from the REPL buffer
 
 
@@ -516,7 +539,7 @@ connection, and another one to kill Emacs buffers using this connection (the
 REPL buffer, inspectors & debuggers).
 
 @node Code evaluation & context,,Using the REPL,The REPL
-@anchor{repl code-evaluation-context}@anchor{1a}
+@anchor{repl code-evaluation-context}@anchor{1b}
 @subsection Code evaluation & context
 
 
@@ -528,7 +551,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction}@anchor{1b}@anchor{code-evaluation doc}@anchor{1c}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1d}
+@anchor{code-evaluation interaction}@anchor{1c}@anchor{code-evaluation doc}@anchor{1d}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1e}
 @section Interaction in JS buffers
 
 
@@ -553,7 +576,7 @@ add or remove breakpoints from your buffers.
 @end menu
 
 @node Evaluating and inspecting,Switching to the REPL buffer,,Interaction in JS buffers
-@anchor{code-evaluation evaluating-and-inspecting}@anchor{1e}
+@anchor{code-evaluation evaluating-and-inspecting}@anchor{1f}
 @subsection Evaluating and inspecting
 
 
@@ -570,27 +593,27 @@ Here's a list of available keybindings:
 
 @item 
 @code{C-c M-i}: Inspect the result of the evaluation of an expression (see
-@ref{16,,The inspector}).
+@ref{17,,The inspector}).
 
 @item 
 @code{M-x indium-eval-buffer}: Evaluate the entire buffer.
 @end itemize
 
 @node Switching to the REPL buffer,Adding and removing breakpoints,Evaluating and inspecting,Interaction in JS buffers
-@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{1f}
+@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{20}
 @subsection Switching to the REPL buffer
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{13,,The REPL}).
+switch back to the REPL buffer (see @ref{14,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
-@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{20}
+@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{21}
 @subsection Adding and removing breakpoints
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{10,,Using local files when debugging}).
+(see @ref{11,,Using local files when debugging}).
 
 
 @itemize -
@@ -612,7 +635,7 @@ You need to first make sure that Indium is set up correctly to use local files
 @end itemize
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
-Indium debugger pops up (see @ref{21,,The stepping debugger}).
+Indium debugger pops up (see @ref{22,,The stepping debugger}).
 
 @cartouche
 @quotation Note 
@@ -622,7 +645,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end cartouche
 
 @node Live code update hot-swapping JavaScript sources,,Adding and removing breakpoints,Interaction in JS buffers
-@anchor{code-evaluation live-code-update-hot-swapping-javascript-sources}@anchor{22}
+@anchor{code-evaluation live-code-update-hot-swapping-javascript-sources}@anchor{23}
 @subsection Live code update (hot-swapping JavaScript sources)
 
 
@@ -647,7 +670,7 @@ Chrome 57 and earlier.  We strongly encourage you to use Chrome >=
 @end cartouche
 
 To enable live updates, make sure Indium is set up to use local files (see
-@ref{10,,Using local files when debugging}).
+@ref{11,,Using local files when debugging}).
 
 
 @itemize -
@@ -680,18 +703,18 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger doc}@anchor{23}@anchor{debugger debugger}@anchor{21}@anchor{debugger the-stepping-debugger}@anchor{24}
+@anchor{debugger doc}@anchor{24}@anchor{debugger debugger}@anchor{22}@anchor{debugger the-stepping-debugger}@anchor{25}
 @section The stepping debugger
 
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector the-inspector}@anchor{25}@anchor{inspector inspector}@anchor{16}@anchor{inspector doc}@anchor{26}
+@anchor{inspector the-inspector}@anchor{26}@anchor{inspector inspector}@anchor{17}@anchor{inspector doc}@anchor{27}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{13,,The REPL}), the debugger (see @ref{21,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1b,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{14,,The REPL}), the debugger (see @ref{22,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{1c,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -705,7 +728,7 @@ object links from the REPL buffer.
 @end menu
 
 @node Using the inspector,,,The inspector
-@anchor{inspector using-the-inspector}@anchor{27}
+@anchor{inspector using-the-inspector}@anchor{28}
 @subsection Using the inspector
 
 
@@ -765,7 +788,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,,The inspector,Table of contents
-@anchor{network doc}@anchor{28}@anchor{network network}@anchor{29}@anchor{network id1}@anchor{2a}
+@anchor{network doc}@anchor{29}@anchor{network network}@anchor{2a}@anchor{network id1}@anchor{2b}
 @section Network
 
 
@@ -785,7 +808,7 @@ You can make the cache setting permament by setting @cite{indium-webkit-cache-di
 @end example
 
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{2b}
+@anchor{index indices-and-tables}@anchor{2c}
 @chapter Indices and tables
 
 
