@@ -62,7 +62,7 @@ Open URL if provided."
                                       nil
                                       nil
                                       'indium-chrome-url-history
-                                      (first indium-chrome-url-history))))
+                                      (car indium-chrome-url-history))))
   (make-process :name "indium-chrome-process"
                 :command (list (indium-chrome--find-executable)
                                (format "--remote-debugging-port=%s" indium-chrome-port)
