@@ -38,7 +38,7 @@
         (inhibit-read-only t))
     (with-current-buffer buf
      (indium-debugger-frames-list frames current-frame))
-    (switch-to-buffer buf)))
+    (pop-to-buffer buf)))
 
 (defun indium-debugger-frames-maybe-refresh ()
   "When a buffer listing the stack frames is open, refresh it."
