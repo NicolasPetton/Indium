@@ -46,6 +46,9 @@
 (defvar indium-repl-evaluate-hook nil
   "Hook run when input is evaluated in the repl.")
 
+(defvar indium-repl-switch-from-buffer nil
+  "The buffer from which repl was activated last time.")
+
 (defvar indium-repl-history nil "History of the REPL inputs.")
 (make-variable-buffer-local 'indium-repl-history)
 (defvar indium-repl-history-position -1 "Position in the REPL history.")
