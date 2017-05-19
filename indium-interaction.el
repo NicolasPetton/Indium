@@ -108,11 +108,16 @@ If PRINT is non-nil, print the output into the current buffer."
                   (lambda (result _error)
                     (indium-inspector-inspect result))))))
 
+(defvar indium-repl-switch-from-buffer nil
+  "The buffer from which repl was activated last time.")
+
 (defun indium-switch-to-repl-buffer ()
   "Switch to the repl buffer if any."
   (interactive)
   (if-let ((buf (indium-repl-get-buffer)))
-      (switch-to-buffer buf)
+      (progn
+        (setq indium-repl-switch-from-buffer (current-buffer))
+        (pop-to-buffer buf t))
     (user-error "No REPL buffer open")))
 
 (defun indium-toggle-breakpoint (arg)

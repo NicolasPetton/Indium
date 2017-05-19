@@ -307,6 +307,12 @@ DIRECTION is `forward' or `backard' (in the history list)."
       (goto-char (point-min))
       (delete-region (point) indium-repl-output-end-marker))))
 
+(defun indium-repl-pop-buffer ()
+  "Switch to the buffer from which repl was opened buffer if any."
+  (interactive)
+  (when indium-repl-switch-from-buffer
+    (pop-to-buffer indium-repl-switch-from-buffer t)))
+
 (defun indium-repl--handle-connection-closed ()
   "Display a message when the connection is closed."
   (when-let ((buf (indium-repl-get-buffer)))
@@ -386,6 +392,7 @@ Evaluate CALLBACK with the completion candidates."
     (define-key map (kbd "C-<return>") #'newline)
     (define-key map (kbd "C-c M-i") #'indium-repl-inspect)
     (define-key map (kbd "C-c C-o") #'indium-repl-clear-output)
+    (define-key map (kbd "C-c C-z") #'indium-repl-pop-buffer)
     (define-key map (kbd "C-c C-q") #'indium-quit)
     (define-key map (kbd "M-p") #'indium-repl-previous-input)
     (define-key map (kbd "M-n") #'indium-repl-next-input)
