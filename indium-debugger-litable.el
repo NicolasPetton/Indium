@@ -98,7 +98,7 @@
   (let* ((inhibit-read-only t)
          (ov (make-overlay (point-at-bol) (point-at-eol)))
          (contents (indium-debugger-litable--overlay-string
-                    (format " <= %s" (car (split-string description "\n"))))))
+                    (format " %s" (car (split-string description "\n"))))))
     (overlay-put ov 'indium-litable t)
     (overlay-put ov 'indium-exception-description t)
     (font-lock-prepend-text-property 1
