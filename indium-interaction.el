@@ -111,6 +111,9 @@ If PRINT is non-nil, print the output into the current buffer."
                   (lambda (result _error)
                     (indium-inspector-inspect result))))))
 
+(defvar indium-repl-switch-from-buffer nil
+  "The buffer from which repl was activated last time.")
+
 (defun indium-switch-to-repl-buffer ()
   "Switch to the repl buffer if any."
   (interactive)
