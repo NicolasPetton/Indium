@@ -44,11 +44,16 @@
 
 (require 'indium-webkit)
 
+(defvar indium-nodejs-commands-history nil
+  "Nodejs commands history.")
+
 (defun indium-run-node (command)
   "Start a NodeJS process.
 Execute COMMAND, adding the `--inspect' and `--debug-brk' flags.
 When the process is ready, open an Indium connection on it."
-  (interactive (list (read-shell-command "Node command: " "node ")))
+  (interactive (list (read-shell-command "Node command: "
+                                         (or (car indium-nodejs-commands-history) "node ")
+                                         'indium-nodejs-commands-history)))
   (let ((process (make-process :name "indium-nodejs-process"
                                :buffer "*node process*"
                                :filter #'indium-nodejs--process-filter

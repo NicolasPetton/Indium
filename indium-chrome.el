@@ -50,10 +50,19 @@
   "Chrome remote debugger port."
   :type '(integer))
 
+(defvar indium-chrome-url-history nil
+  "Chrome urls history.")
+
 (defun indium-run-chrome (url)
   "Start chrome/chromium with remote debugging enabled.
 Open URL if provided."
-  (interactive "sUrl: ")
+  (interactive (list (completing-read "Url: "
+                                      nil
+                                      nil
+                                      nil
+                                      nil
+                                      'indium-chrome-url-history
+                                      (car indium-chrome-url-history))))
   (make-process :name "indium-chrome-process"
                 :command (list (indium-chrome--find-executable)
                                (format "--remote-debugging-port=%s" indium-chrome-port)
