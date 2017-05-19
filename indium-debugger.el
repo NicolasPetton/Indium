@@ -84,12 +84,16 @@
         (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t))
     (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)))
 
-(defun indium-debugger-paused (frames &optional reason)
+(defun indium-debugger-paused (frames reason &optional description)
   "Handle execution pause.
 Setup the debugging stack FRAMES when the execution has paused.
-If REASON is non-nil, display it in the echo area."
+Display REASON in the echo area with an help message.
+
+If DESCRIPTION is non-nil, display it in an overlay describing
+the exception."
   (indium-debugger-set-frames frames)
   (indium-debugger-select-frame (car frames))
+  (indium-debugger-litable-add-exception-overlay (or description reason))
   (indium-debugger-show-help-message reason))
 
 (defun indium-debugger-resumed (&rest _args)
