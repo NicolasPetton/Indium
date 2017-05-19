@@ -121,19 +121,36 @@
 
 
 (describe "Webkit backend result description string"
-  ;; The server can send boolean description values either as a string or boolean.
-  ;; See https://bugs.chromium.org/p/chromium/issues/detail?id=724092
   (it "can render boolean descriptions formatted as string values (GitHub issue #52)"
-    (expect (indium-webkit--description '((type . "boolean") (value . "true")))
-      :to-equal "true")
-    (expect (indium-webkit--description '((type . "boolean") (value . "false")))
-            :to-equal "false"))
-
-  (it "can render boolean descriptions"
     (expect (indium-webkit--description '((type . "boolean") (value . t)))
-      :to-equal "true")
+            :to-equal "true")
     (expect (indium-webkit--description '((type . "boolean") (value . :json-false)))
-      :to-equal "false")))
+            :to-equal "false")))
+
+(describe "Webkit backend object preview"
+  (it "can render array previews with booleans (GitHub issue #52)"
+    (expect (indium-webkit--preview '((type . "object")
+                                      (subtype . "array")
+                                      (className . "Array")
+                                      (description . "Array[1]")
+                                      (objectId . "{\"injectedScriptId\":12,\"id\":38}")
+                                      (preview (type . "object")
+                                               (subtype . "array")
+                                               (description . "Array[1]")
+                                               (overflow . :json-false)
+                                               (properties . [((name . "0") (type . "boolean") (value . "true"))]))))
+            :to-equal "[ true ]"))
+
+  (it "can render object previews with booleans (GitHub issue #52)"
+    (expect (indium-webkit--preview '((type . "object")
+                                      (className . "Object")
+                                      (description . "Object")
+                                      (objectId . "{\"injectedScriptId\":12,\"id\":43}")
+                                      (preview (type . "object")
+                                               (description . "Object")
+                                               (overflow . :json-false)
+                                               (properties . [((name . "a") (type . "boolean") (value . "true"))]))))
+            :to-equal "{ a: true }")))
 
 (provide 'indium-webkit-test)
 ;;; indium-webkit-test.el ends here

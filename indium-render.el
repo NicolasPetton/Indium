@@ -135,7 +135,7 @@ definitions."
                                           mouse-face highlight
                                           indium-reference ,value))
     (when preview
-      (insert preview))))
+      (insert (format " %s" preview)))))
 
 (defun indium-render-properties (properties)
   "Insert all items in PROPERTIES sorted by name."

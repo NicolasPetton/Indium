@@ -540,18 +540,9 @@ RESULT should be a reference to a remote object."
         (pcase type
           (`undefined "undefined")
           (`function "function")
-          (`number (if (numberp value)
-                       (number-to-string value)
-                     value))
+          (`number (number-to-string value))
           (`string (format "\"%s\"" value))
-          ;; The server can either send:
-          ;;
-          ;; { type: "boolean", value: "true" }
-          ;; { type: "boolean", value: true }
-          ;;
-          ;; See https://bugs.chromium.org/p/chromium/issues/detail?id=724092
-          (`boolean (if (or (equal value "true")
-                            (eq value t))
+          (`boolean (if (eq value t)
                         "true"
                       "false"))
           (_ (or value "null"))))))
@@ -567,11 +558,11 @@ RESULT should be a reference to a remote object."
 
 (defun indium-webkit--preview-object (preview)
   "Return a preview string from the properties of the object PREVIEW."
-  (concat " { "
+  (concat "{ "
           (mapconcat (lambda (prop)
                        (format "%s: %s"
                                (map-elt prop 'name)
-                               (indium-webkit--description prop)))
+                               (indium-webkit--preview-property prop)))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
@@ -580,14 +571,23 @@ RESULT should be a reference to a remote object."
 
 (defun indium-webkit--preview-array (preview)
   "Return a preview string from the elements of the array PREVIEW."
-  (concat " [ "
+  (concat "[ "
           (mapconcat (lambda (prop)
-                       (format "%s" (indium-webkit--description prop)))
+                       (indium-webkit--preview-property prop))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               "… ]"
             " ]")))
+
+(defun indium-webkit--preview-property (property)
+  "Return the string for a single object or array PROPERTY preview."
+  (if (equal (map-elt property 'type) "string")
+      (format "\"%s\"" (map-elt property 'value))
+    (let ((preview (map-elt property 'value)))
+      (if (seq-empty-p preview)
+          (map-elt property 'type)
+        preview))))
 
 (defun indium-webkit--properties (result)
   "Return a list of object properties built from RESULT."
