@@ -72,13 +72,46 @@ buffer in `js2-mode' with CONTENTS."
   `(with-indium-connection '((backend . fake))
      ,@body))
 
+(defmacro with-nodejs-connection (&rest body)
+  "Run BODY within a NodeJS connection on a process on fixtures/test.js."
+  (declare (indent 0))
+  `(progn
+     (indium-run-node "node fixtures/test.js")
+     (sleep-for 1)
+     ,@body
+     (kill-nodejs-process)))
+
 (defun kill-nodejs-process ()
+  "Kill the nodejs process if any."
   (when-let ((buf (get-buffer "*node process*")))
     (when-let ((process (get-buffer-process buf)))
       (set-process-query-on-exit-flag process nil))
     (kill-buffer buf))
   (ignore-errors
     (indium-quit)))
+
+(defmacro with-repl-buffer (&rest body)
+  "Execute BODY within a REPL buffer with a NodeJS connection."
+  (declare (indent 0))
+  `(with-nodejs-connection
+     (with-current-buffer (indium-repl-buffer-name)
+       ,@body)))
+
+(defun repl-eval (expression)
+  "Send EXPRESSION to be evaluated.
+Onece EXPRESSION has been sent for evaluation, sleep for 500ms to
+give time for the runtime to send a response."
+  (insert expression)
+  (press-and-sleep-for "RET" 0.5))
+
+(defun press (keybinding)
+  "Call interactively the command bound to KEYBINDING."
+  (call-interactively (key-binding (kbd keybinding))))
+
+(defun press-and-sleep-for (keybinding seconds)
+  "Call `(press KEYBINDING)` and sleep for SECONDS."
+  (press keybinding)
+  (sleep-for seconds))
 
 (provide 'test-helper)
 ;;; test-helper.el ends here
