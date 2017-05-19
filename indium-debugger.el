@@ -93,7 +93,8 @@ If DESCRIPTION is non-nil, display it in an overlay describing
 the exception."
   (indium-debugger-set-frames frames)
   (indium-debugger-select-frame (car frames))
-  (indium-debugger-litable-add-exception-overlay (or description reason))
+  (when description
+    (indium-debugger-litable-add-exception-overlay description))
   (indium-debugger-show-help-message reason))
 
 (defun indium-debugger-resumed (&rest _args)
