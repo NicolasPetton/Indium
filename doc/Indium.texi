@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.5.0, May 18, 2017
+Indium 0.5.0, May 23, 2017
 
 Nicolas Petton
 
@@ -619,10 +619,13 @@ You need to first make sure that Indium is set up correctly to use local files
 @itemize -
 
 @item 
-@code{C-c b b}: Toggle a breakpoint
+@code{C-c b b}: Add a breakpoint
 
 @item 
-@code{C-u C-c b b}: Toggle a breakpoint with condition
+@code{C-c b c}: Add a conditional breakpoint
+
+@item 
+@code{C-c b k}: Remove a breakpoint
 
 @item 
 @code{C-c b K}: Remove all breakpoints from the current buffer
