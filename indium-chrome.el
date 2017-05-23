@@ -110,18 +110,26 @@ Try a maximum of NUM-TRIES."
                                       (indium-chrome--read-tab-data))))))
 
 (defun indium-chrome--connect-to-tab (tabs)
-  "Ask the user for a tab in the list TABS and connects to it."
+  "Connects to a a tab in the list TABS.
+If there are more then one tab available ask the user which tab to connect."
   (unless tabs
     (error "No Chrome tab found.  Is Chrome running with the `--remote-debugging-port' flag set?"))
-  (let* ((urls (seq-map (lambda (tab)
+  (if (= (seq-length tabs) 1)
+      (indium-chrome--connect-to-tab-by-url (map-elt (seq-elt tabs 0) 'url) tabs)
+    (let* ((urls (seq-map (lambda (tab)
                             (map-elt tab 'url))
                           tabs))
-         (url (completing-read "Tab: " urls nil t))
-         (tab (seq-find (lambda (tab)
-                          (string= (map-elt tab 'url) url))
-                        tabs))
-         (websocket-url (map-elt tab 'webSocketDebuggerUrl)))
+           (url (completing-read "Tab: " urls nil t)))
+      (indium-chrome--connect-to-tab-by-url url tabs))))
+
+(defun indium-chrome--connect-to-tab-by-url (url tabs)
+  "Connect to a tab with URL from list TABS."
+  (let* ((tab (seq-find (lambda (tab)
+                         (string= (map-elt tab 'url) url))
+                       tabs))
+        (websocket-url (map-elt tab 'webSocketDebuggerUrl)))
     (indium-webkit--open-ws-connection url websocket-url)))
+
 
 (defun indium-chrome--read-tab-data ()
   "Return the JSON tabs data in the current buffer."
