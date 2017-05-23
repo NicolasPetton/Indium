@@ -29,6 +29,8 @@
 (require 'map)
 (require 'seq)
 (require 'subr-x)
+(require 'magit-popup)
+
 (require 'indium-backend)
 (require 'indium-inspector)
 (require 'indium-breakpoint)
@@ -117,14 +119,20 @@ If PRINT is non-nil, print the output into the current buffer."
         (pop-to-buffer buf t))
     (user-error "No REPL buffer open")))
 
-(defun indium-toggle-breakpoint (arg)
-  "Add a breakpoint at point.
-With a prefix argument ARG, add a conditional breakpoint."
-  (interactive "P")
-  (if (indium-breakpoint-on-current-line-p)
-      (indium-breakpoint-remove)
-    (indium-breakpoint-add
-     (when arg (read-from-minibuffer "Breakpoint condition: ")))))
+(defun indium-add-breakpoint ()
+  "Add a breakpoint at point."
+  (interactive)
+  (indium-breakpoint-add))
+
+(defun indium-add-conditional-breakpoint ()
+  "Add a conditional breakpoint at point."
+  (interactive)
+  (indium-breakpoint-add (read-from-minibuffer "Breakpoint condition: ")))
+
+(defun indium-remove-breakpoint ()
+  "Remove the breakpoint at point."
+  (interactive)
+  (indium-breakpoint-remove))
 
 (defun indium-remove-all-breakpoints-from-buffer ()
   "Remove all breakpoints from the current buffer."
@@ -187,11 +195,18 @@ hitting a breakpoint."
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
     (define-key map (kbd "C-c C-k") #'indium-update-script-source)
-    (define-key map (kbd "C-c b b") #'indium-toggle-breakpoint)
-    (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
-    (define-key map (kbd "C-c b a") #'indium-activate-breakpoints)
-    (define-key map (kbd "C-c b d") #'indium-deactivate-breakpoints)
+    (define-key map (kbd "C-c b") #'indium-breakpoints-popup)
     map))
+
+(magit-define-popup indium-breakpoints-popup
+  "Popup for breakpoint commands."
+  'magit-popups
+  :actions '((?b "Add breakpoint" indium-add-breakpoint)
+             (?c "Add conditional breakpoint" indium-add-conditional-breakpoint)
+             (?k "Remove breakpoint" indium-remove-breakpoint)
+             (?K "Remove all breakpoints"  indium-remove-all-breakpoints-from-buffer)
+             (?a "Activate breakpoints" indium-activate-breakpoints)
+             (?d "Deactivate breakpoints"  indium-deactivate-breakpoints)))
 
 (define-minor-mode indium-interaction-mode
   "Mode for JavaScript evalution.

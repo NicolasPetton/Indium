@@ -5,6 +5,7 @@
 
 (depends-on "websocket")
 (depends-on "company")
+(depends-on "magit-popup")
 
 (development
  (depends-on "undercover")
