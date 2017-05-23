@@ -110,7 +110,7 @@ Try a maximum of NUM-TRIES."
                                       (indium-chrome--read-tab-data))))))
 
 (defun indium-chrome--connect-to-tab (tabs)
-  "Connects to a a tab in the list TABS.
+  "Connects to a tab in the list TABS.
 If there are more then one tab available ask the user which tab to connect."
   (unless tabs
     (error "No Chrome tab found.  Is Chrome running with the `--remote-debugging-port' flag set?"))
