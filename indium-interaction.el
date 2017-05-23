@@ -193,7 +193,6 @@ hitting a breakpoint."
     (define-key map (kbd "C-c b d") #'indium-deactivate-breakpoints)
     map))
 
-;;;###autoload
 (define-minor-mode indium-interaction-mode
   "Mode for JavaScript evalution.
 
