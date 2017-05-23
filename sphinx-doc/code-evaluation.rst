@@ -36,8 +36,9 @@ Adding and removing breakpoints
 You need to first make sure that Indium is set up correctly to use local files
 (see :ref:`local-files`).
 
-- ``C-c b b``: Toggle a breakpoint
-- ``C-u C-c b b``: Toggle a breakpoint with condition
+- ``C-c b b``: Add a breakpoint
+- ``C-c b c``: Add a conditional breakpoint
+- ``C-c b k``: Remove a breakpoint
 - ``C-c b K``: Remove all breakpoints from the current buffer
 - ``C-c b d``: Deactivate all breakpoints (the runtime won't pause when hitting a breakpoint)
 - ``C-c b a``: Activate all breakpoints (it has no effect if breakpoints have not been deactivated)
