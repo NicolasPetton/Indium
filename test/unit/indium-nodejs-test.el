@@ -52,5 +52,15 @@
       (expect #'indium-nodejs--connect
               :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f"))))
 
+(describe "Setting up the exec path"
+  (it "should setup the exec path before starting a node process"
+    (spy-on 'make-process)
+    (spy-on 'switch-to-buffer)
+    (spy-on 'process-buffer)
+
+    (spy-on 'indium--setup-exec-path)
+    (indium-run-node "node foo")
+    (expect #'indium--setup-exec-path :to-have-been-called)))
+
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here
