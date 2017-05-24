@@ -29,6 +29,7 @@
 (require 'map)
 (require 'seq)
 (require 'subr-x)
+(require 'easymenu)
 
 (require 'indium-backend)
 (require 'indium-inspector)
@@ -200,6 +201,23 @@ hitting a breakpoint."
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
     (define-key map (kbd "C-c b a") #'indium-activate-breakpoints)
     (define-key map (kbd "C-c b d") #'indium-deactivate-breakpoints)
+    (easy-menu-define indium-interaction-mode-menu map
+      "Menu for Indium interaction mode"
+      '("Indium interaction"
+        ["Switch to REPL" indium-switch-to-repl-buffer]
+        "--"
+        ("Evaluation"
+         ["Evaluate last node" indium-eval-last-node]
+         ["Inspect last node" indium-inspect-last-node]
+         ["Evaluate function" indium-eval-defun])
+        "--"
+        ("Breakpoints"
+         ["Add breakpoint" indium-add-breakpoint]
+         ["Add conditional breakpoint" indium-add-conditional-breakpoint]
+         ["Remove breakpoint" indium-remove-breakpoint]
+         ["Remove all breakpoints" indium-remove-all-breakpoints-from-buffer]
+         ["Deactivate breakpoints" indium-deactivate-breakpoints]
+         ["Activate breakpoints" indium-activate-breakpoints])))
     map))
 
 (define-minor-mode indium-interaction-mode
