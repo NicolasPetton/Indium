@@ -115,14 +115,14 @@ If there are more then one tab available ask the user which tab to connect."
   (unless tabs
     (error "No Chrome tab found.  Is Chrome running with the `--remote-debugging-port' flag set?"))
   (if (= (seq-length tabs) 1)
-      (indium-chrome--connect-to-tab-by-url (map-elt (seq-elt tabs 0) 'url) tabs)
+      (indium-chrome--connect-to-tab-with-url (map-elt (seq-elt tabs 0) 'url) tabs)
     (let* ((urls (seq-map (lambda (tab)
                             (map-elt tab 'url))
                           tabs))
            (url (completing-read "Tab: " urls nil t)))
-      (indium-chrome--connect-to-tab-by-url url tabs))))
+      (indium-chrome--connect-to-tab-with-url url tabs))))
 
-(defun indium-chrome--connect-to-tab-by-url (url tabs)
+(defun indium-chrome--connect-to-tab-with-url (url tabs)
   "Connect to a tab with URL from list TABS."
   (let* ((tab (seq-find (lambda (tab)
                          (string= (map-elt tab 'url) url))
