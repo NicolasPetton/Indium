@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.5.0, May 23, 2017
+Indium 0.5.0, May 24, 2017
 
 Nicolas Petton
 
@@ -629,6 +629,9 @@ You need to first make sure that Indium is set up correctly to use local files
 
 @item 
 @code{C-c b K}: Remove all breakpoints from the current buffer
+
+@item 
+@code{C-c b l}: List all breakpoints and easily jump to any breakpoint
 
 @item 
 @code{C-c b d}: Deactivate all breakpoints (the runtime won't pause when hitting a breakpoint)
