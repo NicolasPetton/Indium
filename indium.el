@@ -6,7 +6,7 @@
 ;; URL: https://github.com/NicolasPetton/indium
 ;; Keywords: tools, javascript
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "25") (seq "2.16") (js2-mode "20140114") (company "0.9.0") (websocket "1.6") (magit-popup "2.10.3") (exec-path-from-shell "1.11"))
+;; Package-Requires: ((emacs "25") (seq "2.16") (js2-mode "20140114") (company "0.9.0") (websocket "1.6") (exec-path-from-shell "1.11"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
