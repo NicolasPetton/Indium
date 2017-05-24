@@ -26,6 +26,9 @@
 
 (require 'seq)
 (require 'map)
+
+(require 'easymenu)
+
 (require 'indium-inspector)
 (require 'indium-repl)
 (require 'indium-interaction)
@@ -68,6 +71,22 @@
     (define-key map (kbd "e") #'indium-debugger-evaluate)
     (define-key map (kbd "n") #'indium-debugger-next-frame)
     (define-key map (kbd "p") #'indium-debugger-previous-frame)
+    (easy-menu-define indium-debugger-mode-menu map
+      "Menu for Indium debugger"
+      '("Indium Debugger"
+        ["Resume" indium-debugger-resume]
+        ["Step over" indium-debugger-step-over]
+        ["Step into" indium-debugger-step-into]
+        ["Step out" indium-debugger-step-out]
+        ["Jump here" indium-debugger-here]
+        "--"
+        ["Inspect locals" indium-debugger-locals]
+        ["Show stack" indium-debugger-stack-frames]
+        "--"
+        ["Evaluate" indium-debugger-evaluate]
+        "--"
+        ["Jump to the next frame" indium-debugger-next-frame]
+        ["Jump to the previous frame" indium-debugger-previous-frame]))
     map))
 
 (define-minor-mode indium-debugger-mode

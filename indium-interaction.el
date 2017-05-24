@@ -29,6 +29,8 @@
 (require 'map)
 (require 'seq)
 (require 'subr-x)
+(require 'xref)
+(require 'easymenu)
 
 (require 'indium-backend)
 (require 'indium-inspector)
@@ -152,6 +154,28 @@ hitting a breakpoint."
   (indium-backend-activate-breakpoints (indium-backend))
   (message "Breakpoints activated"))
 
+(defun indium-list-breakpoints ()
+  "List all breakpoints in the current connection."
+  (interactive)
+  (xref--show-xrefs (indium--make-xrefs-from-breakpoints) nil))
+
+(defun indium--make-xrefs-from-breakpoints ()
+  "Return a list of xref objects from all breakpoints."
+  (seq-map (lambda (breakpoint)
+             (xref-make (indium--get-breakpoint-xref-match breakpoint)
+                        (xref-make-file-location (map-elt breakpoint 'file)
+                                                 (1+ (map-elt breakpoint 'line))
+                                                 0)))
+           (indium-backend-get-breakpoints)))
+
+(defun indium--get-breakpoint-xref-match (breakpoint)
+  "Return the source line where BREAKPOINT is set."
+  (with-current-buffer (find-file-noselect (map-elt breakpoint 'file))
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line (map-elt breakpoint 'line))
+      (buffer-substring (point-at-bol) (point-at-eol)))))
+
 (defun indium-interaction-node-before-point ()
   "Return the node before point to be evaluated."
   (save-excursion
@@ -200,6 +224,25 @@ hitting a breakpoint."
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
     (define-key map (kbd "C-c b a") #'indium-activate-breakpoints)
     (define-key map (kbd "C-c b d") #'indium-deactivate-breakpoints)
+    (define-key map (kbd "C-c b l") #'indium-list-breakpoints)
+    (easy-menu-define indium-interaction-mode-menu map
+      "Menu for Indium interaction mode"
+      '("Indium interaction"
+        ["Switch to REPL" indium-switch-to-repl-buffer]
+        "--"
+        ("Evaluation"
+         ["Evaluate last node" indium-eval-last-node]
+         ["Inspect last node" indium-inspect-last-node]
+         ["Evaluate function" indium-eval-defun])
+        "--"
+        ("Breakpoints"
+         ["Add breakpoint" indium-add-breakpoint]
+         ["Add conditional breakpoint" indium-add-conditional-breakpoint]
+         ["Remove breakpoint" indium-remove-breakpoint]
+         ["Remove all breakpoints" indium-remove-all-breakpoints-from-buffer]
+         ["Deactivate breakpoints" indium-deactivate-breakpoints]
+         ["Activate breakpoints" indium-activate-breakpoints]
+         ["List all breakpoints" indium-list-breakpoints])))
     map))
 
 (define-minor-mode indium-interaction-mode

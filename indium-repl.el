@@ -29,6 +29,7 @@
 (require 'indium-backend)
 
 (require 'company)
+(require 'easymenu)
 (require 'map)
 (require 'js)
 
@@ -399,6 +400,15 @@ Evaluate CALLBACK with the completion candidates."
     (define-key map (kbd "C-c C-q") #'indium-quit)
     (define-key map (kbd "M-p") #'indium-repl-previous-input)
     (define-key map (kbd "M-n") #'indium-repl-next-input)
+    (easy-menu-define indium-repl-mode-menu map
+      "Menu for Indium REPL"
+      '("Indium REPL"
+        ["Clear output" indium-repl-clear-output]
+        ["Inspect" indium-repl-inspect]
+        "--"
+        ["Switch to source buffer" indium-repl-pop-buffer]
+        "--"
+        ["Quit" indium-quit]))
     map))
 
 (define-derived-mode indium-repl-mode fundamental-mode "JS-REPL"
