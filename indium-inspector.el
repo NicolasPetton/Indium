@@ -55,8 +55,23 @@
         (erase-buffer)
         (indium-render-keyword (indium-description-string reference t))
         (insert "\n\n")
-        (indium-render-properties properties)))
+        (let ((sorted-properties (indium-inspector--split-properties properties)))
+          (indium-render-properties (cadr sorted-properties))
+          (insert "\n")
+          (indium-render-properties (car sorted-properties)))))
     (pop-to-buffer buf)))
+
+(defun indium-inspector--split-properties (properties)
+  "Split PROPERTIES into list where the first element is native properties and the second is the rest."
+  (seq-reduce (lambda (result property)
+                (push property
+                      (if (string-match-p "{ \\[native code\\] }$"
+                                          (map-nested-elt property '(value description)))
+                          (car result)
+                        (cadr result)))
+                result)
+              properties
+              (list nil nil)))
 
 (defun indium-inspector-pop ()
   "Go back in the history to the last object inspected."
