@@ -56,5 +56,5 @@
     (expect (indium-inspector--split-properties (list native non-native))
             :to-equal `((,native) (,non-native)))))
 
-(provide 'indium-debugger-test)
+(provide 'indium-inspector-test)
 ;;; indium-inspector-test.el ends here
