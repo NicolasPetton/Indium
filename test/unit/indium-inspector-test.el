@@ -27,17 +27,15 @@
 (describe "Inspector should split properties to a better looking form"
   :var (native non-native)
   (before-all
-    (setq native '((value  (description . "function f() { [native code] }") )))
-    (setq non-native '((value  (description . "42") ))))
+    (setq native '((value (description . "function f() { [native code] }") )))
+    (setq non-native '((value (description . "42") ))))
 
   (it "can detect native code property"
-    (expect (indium-inspector--native-property-p
-             native)
+    (expect (indium-inspector--native-property-p native)
             :to-be-truthy))
 
   (it "can detect non-native code property"
-    (expect (indium-inspector--native-property-p
-             non-native)
+    (expect (indium-inspector--native-property-p non-native)
             :to-be nil))
 
   (it "can split empty property list"
