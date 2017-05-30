@@ -93,7 +93,31 @@
     (with-js2-buffer "for (var i = 0; i < 9; i++) {console.log(i);};"
       (goto-char (point-max))
       (expect (js2-node-string (indium-interaction-node-before-point))
-              :to-equal "for (var i = 0; i < 9; i++) {console.log(i);}"))))
+              :to-equal "for (var i = 0; i < 9; i++) {console.log(i);}")))
+
+  (it "can find while loop nodes"
+    (with-js2-buffer "var i = 9; while (i > 0) {console.log(--i);};"
+      (goto-char (point-max))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "while (i > 0) {console.log(--i);}")))
+
+  (it "can find do-while loop nodes"
+    (with-js2-buffer "var i = 9; do {console.log(--i);} while (i > 0);"
+      (goto-char (point-max))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "do {console.log(--i);} while (i > 0);")))
+
+  (it "can find for-in loop nodes"
+    (with-js2-buffer "for (let k in [3, 2, 1]) {console.log(k);};"
+      (goto-char (point-max))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "for (let k in [3, 2, 1]) {console.log(k);}")))
+
+  (it "can find for-of loop nodes"
+    (with-js2-buffer "for (const x of [1, 2, 3]) {console.log(x);};"
+      (goto-char (point-max))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "for (const x of [1, 2, 3]) {console.log(x);}"))))
 
 (provide 'indium-interaction-test)
 ;;; indium-interaction-test.el ends here
