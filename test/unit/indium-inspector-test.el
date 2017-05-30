@@ -1,4 +1,4 @@
-;;; indium-debugger-test.el --- Test for indium-debugger.el  -*- lexical-binding: t; -*-
+;;; indium-inspector-test.el --- Test for indium-inspector.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
