@@ -183,6 +183,8 @@ hitting a breakpoint."
     (while (looking-back "[:,]" nil)
       (backward-char 1))
     (backward-char 1)
+    (while (js2-empty-expr-node-p (js2-node-at-point))
+      (backward-char 1))
     (let* ((node (js2-node-at-point))
            (parent (js2-node-parent node)))
       ;; Heuristics for finding the node to evaluate: if the parent of the node
@@ -202,6 +204,7 @@ hitting a breakpoint."
                       (< (js2-node-abs-pos parent)
                          (js2-node-abs-pos node)))
                  (and (not (js2-function-node-p node))
+                      (not (js2-loop-node-p node))
                       (js2-block-node-p node)))
         (setq node parent))
       node)))

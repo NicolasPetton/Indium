@@ -29,65 +29,71 @@
   (it "can find variable nodes"
     (with-js2-buffer "var foo = 2;\nfoo"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "foo")))
+              :to-equal "foo")))
 
   (it "can find expression nodes"
     (with-js2-buffer "var foo = 2;\nfoo + 1;"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "foo + 1;")))
+              :to-equal "foo + 1;")))
 
   (it "can find assignment nodes"
     (with-js2-buffer "var foo = 2; var bar = 3;"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "var bar = 3;")))
+              :to-equal "var bar = 3;")))
 
   (it "can find function call nodes"
     (with-js2-buffer "this.bar(3); this.baz(3);"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "this.baz(3);")))
+              :to-equal "this.baz(3);")))
 
   (it "can find array literal nodes"
     (with-js2-buffer "[1,2,\n3,\n4]"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "[1,2,\n3,\n4]")))
+              :to-equal "[1,2,\n3,\n4]")))
 
   (it "can find function calls on multiple lines"
     (with-js2-buffer "foo(a,\nb,\nc);"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "foo(a,\nb,\nc);")))
+              :to-equal "foo(a,\nb,\nc);")))
 
   (it "can find function calls with object literal as parameter"
     (with-js2-buffer "foo({\na: 1,\nb: 2,\nc: 3\n});"
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "foo({\na: 1,\nb: 2,\nc: 3\n});")))
+              :to-equal "foo({\na: 1,\nb: 2,\nc: 3\n});")))
 
   (it "can find sub nodes"
     (with-js2-buffer "foo({\na: 1,\nb: 2,\nc: 3\n});"
       (goto-char 11)
       (expect (js2-node-string (indium-interaction-node-before-point))
-        :to-equal "1")
+              :to-equal "1")
 
-     (goto-char 12)
-     (expect (js2-node-string (indium-interaction-node-before-point))
-       :to-equal "1")
+      (goto-char 12)
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "1")
 
-     (goto-char 25)
-     (expect (js2-node-string (indium-interaction-node-before-point))
-       :to-equal "{\na: 1,\nb: 2,\nc: 3\n}")
+      (goto-char 25)
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "{\na: 1,\nb: 2,\nc: 3\n}")
 
-     (goto-char 26)
-     (expect (js2-node-string (indium-interaction-node-before-point))
-       :to-equal "foo({\na: 1,\nb: 2,\nc: 3\n})")))
+      (goto-char 26)
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "foo({\na: 1,\nb: 2,\nc: 3\n})")))
 
   (it "can find function definitions"
     (with-js2-buffer "function() { return 1; }"
-     (goto-char (point-max))
-     (expect (js2-node-string (indium-interaction-node-before-point))
-       :to-equal "function() { return 1; }")
+      (goto-char (point-max))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "function() { return 1; }")
 
-     (goto-char (1- (point-max)))
-     (expect (js2-node-string (indium-interaction-node-before-point))
-       :to-equal "return 1;"))))
+      (goto-char (1- (point-max)))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "return 1;")))
+
+  (it "can find for loop nodes"
+    (with-js2-buffer "for (var i = 0; i < 9; i++) {console.log(i);};"
+      (goto-char (point-max))
+      (expect (js2-node-string (indium-interaction-node-before-point))
+              :to-equal "for (var i = 0; i < 9; i++) {console.log(i);}"))))
 
 (provide 'indium-interaction-test)
 ;;; indium-interaction-test.el ends here
