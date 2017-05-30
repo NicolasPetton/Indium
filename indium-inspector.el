@@ -65,13 +65,17 @@
   "Split PROPERTIES into list where the first element is native properties and the second is the rest."
   (seq-reduce (lambda (result property)
                 (push property
-                      (if (string-match-p "{ \\[native code\\] }$"
-                                          (map-nested-elt property '(value description)))
+                      (if (indium-inspector--native-property-p property)
                           (car result)
                         (cadr result)))
                 result)
               properties
               (list nil nil)))
+
+(defun indium-inspector--native-property-p (property)
+  "Return non-nil value if PROPERTY is a native code."
+  (string-match-p "{ \\[native code\\] }$"
+                  (map-nested-elt property '(value description))))
 
 (defun indium-inspector-pop ()
   "Go back in the history to the last object inspected."
