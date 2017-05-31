@@ -30,6 +30,21 @@
     ("js" ("app.js")))
   "Fake filesystem used in workspace tests.")
 
+(describe "Reading and saving workspace directory list"
+  (it "can add a workspace directory"
+    (let ((indium-workspaces nil))
+      (indium-workspace-add-directory "foobar")
+      (expect indium-workspaces :to-equal '("foobar"))))
+
+  (it "can save and read the workspace file"
+    (with-temp-workspace-file
+      (let ((indium-workspaces nil))
+        (indium-workspace-add-directory "foobar")
+        (indium-workspace-save-workspaces-file)
+        (setq indium-workspaces nil)
+        (indium-workspace-read-workspaces-file)
+        (expect indium-workspaces :to-equal '("foobar"))))))
+
 (describe "Looking up files"
   (it "cannot lookup file when no workspace it set"
     (spy-on 'indium-workspace-root :and-return-value nil)

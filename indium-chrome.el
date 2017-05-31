@@ -34,6 +34,7 @@
 (require 'seq)
 
 (require 'indium-webkit)
+(require 'indium-workspace)
 
 (defgroup indium-chrome nil
   "Chrome interaction."
@@ -125,11 +126,11 @@ If there are more then one tab available ask the user which tab to connect."
 (defun indium-chrome--connect-to-tab-with-url (url tabs)
   "Connect to a tab with URL from list TABS."
   (let* ((tab (seq-find (lambda (tab)
-                         (string= (map-elt tab 'url) url))
-                       tabs))
-        (websocket-url (map-elt tab 'webSocketDebuggerUrl)))
-    (indium-webkit--open-ws-connection url websocket-url)))
-
+                          (string= (map-elt tab 'url) url))
+                        tabs))
+         (websocket-url (map-elt tab 'webSocketDebuggerUrl))
+         (workspace (indium-workspace-read)))
+    (indium-webkit--open-ws-connection url websocket-url nil nil workspace)))
 
 (defun indium-chrome--read-tab-data ()
   "Return the JSON tabs data in the current buffer."

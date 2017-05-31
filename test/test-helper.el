@@ -60,6 +60,16 @@ buffer in `js2-mode' with CONTENTS."
      (js2-parse)
      ,@body))
 
+(defmacro with-temp-workspace-file (&rest body)
+  "Evaluate BODY.
+During the evaluation of BODY, `indium-workspace-file' is set to
+a temporary file, which is removed afterwards."
+  (declare (indent 0))
+  `(let ((indium-workspace-file (make-temp-file "indium-workspace.el")))
+     (prog1
+         (progn ,@body)
+       (ignore-errors (delete-file indium-workspace-file nil)))))
+
 (defmacro with-indium-connection (connection &rest body)
   "Evaluate BODY with CONNECTION as the indium-connection."
   (declare (indent 1))
