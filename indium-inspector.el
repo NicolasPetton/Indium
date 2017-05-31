@@ -63,7 +63,9 @@
   (let ((sorted-properties (indium-inspector--split-properties properties)))
           (indium-render-properties (cadr sorted-properties))
           (insert "\n")
-          (indium-render-properties (car sorted-properties))))
+          (when-let (native (car sorted-properties))
+            (indium-render-properties native)
+            (insert "\n"))))
 
 (defun indium-inspector--split-properties (properties)
   "Split PROPERTIES into list where the first element is native properties and the second is the rest."
