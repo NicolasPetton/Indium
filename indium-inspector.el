@@ -55,11 +55,15 @@
         (erase-buffer)
         (indium-render-keyword (indium-description-string reference t))
         (insert "\n\n")
-        (let ((sorted-properties (indium-inspector--split-properties properties)))
+        (indium-inspector--insert-sorted-properties properties)))
+    (pop-to-buffer buf)))
+
+(defun indium-inspector--insert-sorted-properties (properties)
+  "Insert sorted PROPERTIES."
+  (let ((sorted-properties (indium-inspector--split-properties properties)))
           (indium-render-properties (cadr sorted-properties))
           (insert "\n")
-          (indium-render-properties (car sorted-properties)))))
-    (pop-to-buffer buf)))
+          (indium-render-properties (car sorted-properties))))
 
 (defun indium-inspector--split-properties (properties)
   "Split PROPERTIES into list where the first element is native properties and the second is the rest."

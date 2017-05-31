@@ -351,7 +351,16 @@ Return nil if no local file can be found."
 
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
-  (map-elt (indium-debugger-current-frame) 'scope-chain))
+  (seq-sort-by
+   (lambda (scope)
+     (pcase (map-elt scope 'type)
+       ("local" 0)
+       ("this" 1)
+       ("script" 2)
+       ("global" 3)))
+   #'<
+   (append (map-elt (indium-debugger-current-frame) 'scope-chain)
+           (list (map-elt (indium-debugger-current-frame) 'this)))))
 
 ;; TODO: move to backends?
 (defun indium-debugger-get-scopes-properties (scopes callback)
