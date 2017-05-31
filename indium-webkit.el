@@ -263,7 +263,7 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
   (setq indium-webkit-cache-disabled t)
   (indium-webkit--set-cache-disabled t))
 
-(defun indium-webkit--open-ws-connection (url websocket-url &optional on-open nodejs)
+(defun indium-webkit--open-ws-connection (url websocket-url &optional on-open nodejs workspace)
   "Open a websocket connection to URL using WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
@@ -273,14 +273,17 @@ In a Chrom{e|ium} session, URL corresponds to the url of a tab,
 and WEBSOCKET-URL to its associated `webSocketDebuggerUrl'.
 
 If NODEJS is non-nil, add a `nodejs' flag to the
-`indium-connection' to handle special cases."
+`indium-connection' to handle special cases.
+
+If WORKSPACE is non-nil, make it the workspace directory for that
+connection."
   (unless websocket-url
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
                   :on-open (lambda (ws)
                              (when on-open
                                (funcall on-open))
-                             (indium-webkit--handle-ws-open ws url nodejs))
+                             (indium-webkit--handle-ws-open ws url nodejs workspace))
                   :on-message #'indium-webkit--handle-ws-message
                   :on-close #'indium-webkit--handle-ws-closed
                   :on-error #'indium-webkit--handle-ws-error))
@@ -301,14 +304,16 @@ If NODEJS is non-nil, add a `nodejs' flag to the connection."
   "Return the callbacks associated with the current connection."
   (map-elt indium-connection 'callbacks))
 
-(defun indium-webkit--handle-ws-open (ws url nodejs)
+(defun indium-webkit--handle-ws-open (ws url nodejs workspace)
   "Setup indium for a new connection for the websocket WS.
 URL points to the browser tab.
 
-If NODEJS is non-nil, set a flag in the connection."
+If NODEJS is non-nil, set a flag in the connection.
+If WORKSPACE is non-nil, make it the workspace used for the connection."
   (setq indium-connection (indium-webkit--make-connection ws url nodejs))
   (indium-webkit--enable-tools)
   (switch-to-buffer (indium-repl-buffer-create))
+  (when workspace (cd workspace))
   (indium-breakpoint-restore-breakpoints))
 
 (defun indium-webkit--handle-ws-message (_ws frame)
