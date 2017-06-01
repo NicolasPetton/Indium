@@ -208,7 +208,7 @@ which we're looking."
 
 (defun indium-workspace--read-workspaces-file ()
   "Read the workspaces file and set `indium-worspaces'."
-  (load indium-workspace-file))
+  (load indium-workspace-file t))
 
 (provide 'indium-workspace)
 ;;; indium-workspace.el ends here
