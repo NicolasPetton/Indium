@@ -76,7 +76,13 @@
       (expect #'indium-workspace--save-workspaces-file
               :not :to-have-been-called)
       (expect #'indium-workspace--read-workspaces-file
-              :not :to-have-been-called))))
+              :not :to-have-been-called)))
+
+  (it "should not signal an error if the workspace file does not exist"
+    (let ((indium-workspace-use-workspace-file t)
+          (indium-workspace-file "foobarbaz"))
+      (expect #'indium-workspace--read-workspaces-file
+              :not :to-throw))))
 
 (describe "Looking up files"
   (it "cannot lookup file when no workspace it set"
