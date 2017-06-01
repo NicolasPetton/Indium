@@ -87,9 +87,17 @@ a temporary file, which is removed afterwards."
   (declare (indent 0))
   `(progn
      (indium-run-node "node fixtures/test.js")
-     (sleep-for 1)
+     (wait-for-repl-buffer)
      ,@body
      (kill-nodejs-process)))
+
+(defun wait-for-repl-buffer (&optional retry)
+  (unless retry (setq retry 10))
+  (sleep-for 0.2)
+  (unless (or (get-buffer (indium-repl-buffer-name))
+              (= retry 0))
+    (wait-for-repl-buffer (1- retry)))
+  (sleep-for 0.2))
 
 (defun kill-nodejs-process ()
   "Kill the nodejs process if any."
@@ -112,7 +120,7 @@ a temporary file, which is removed afterwards."
 Onece EXPRESSION has been sent for evaluation, sleep for 500ms to
 give time for the runtime to send a response."
   (insert expression)
-  (press-and-sleep-for "RET" 0.5))
+  (press-and-sleep-for "RET" 1))
 
 (defun press (keybinding)
   "Call interactively the command bound to KEYBINDING."
