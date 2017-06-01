@@ -50,7 +50,14 @@
     (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
     (indium-run-node "node ../fixtures/test.js")
     (sleep-for 1)
-    (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil)))
+    (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil))
+
+  (it "should run hooks when opening a connection"
+    (spy-on 'foo)
+    (add-hook 'indium-connection-open-hook #'foo)
+    (indium-run-node "node ../fixtures/test.js")
+    (sleep-for 1)
+    (expect #'foo :to-have-been-called)))
 
 (provide 'indium-nodejs-integration-test)
 ;;; indium-nodejs-integration-test.el ends here

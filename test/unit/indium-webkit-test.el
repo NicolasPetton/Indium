@@ -45,7 +45,7 @@
     (let ((indium-connection '((backend . webkit))))
      (expect (indium-backend-active-connection-p 'webkit) :to-be nil)))
 
-  (it "closing the connection should close the socket"
+  (it "should close the socket when closing the connection"
     (spy-on 'websocket-close)
     (with-indium-connection '((backend . webkit)
                               (ws . ws))

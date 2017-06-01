@@ -314,7 +314,8 @@ If WORKSPACE is non-nil, make it the workspace used for the connection."
   (indium-webkit--enable-tools)
   (switch-to-buffer (indium-repl-buffer-create))
   (when workspace (cd workspace))
-  (indium-breakpoint-restore-breakpoints))
+  (indium-breakpoint-restore-breakpoints)
+  (run-hooks 'indium-connection-open-hook))
 
 (defun indium-webkit--handle-ws-message (_ws frame)
   "Handle a websocket message FRAME."
@@ -386,6 +387,7 @@ MESSAGE explains why the connection has been closed."
 
 (defun indium-webkit--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."
+  (run-hooks 'indium-connection-closed-hook)
   (indium-repl--handle-connection-closed))
 
 (defun indium-webkit--handle-ws-error (_ws _action error)

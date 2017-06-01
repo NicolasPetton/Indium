@@ -32,6 +32,21 @@
 
 (declare 'indium-debugger-unset-current-buffer)
 
+(defgroup indium-chrome nil
+  "Indium backend."
+  :prefix "indium-backend-"
+  :group 'indium)
+
+(defcustom indium-connection-open-hook nil
+  "Hook called after a connection is open."
+  :group 'indium-backend
+  :type 'hook)
+
+(defcustom indium-connection-closed-hook nil
+  "Hook called after a connection is closed."
+  :group 'indium-backend
+  :type 'hook)
+
 (defvar indium-connection nil
   "Current connection to the browser tab.
 
