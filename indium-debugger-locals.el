@@ -66,8 +66,7 @@ Unless NO-POP in non-nil, pop the locals buffer."
         (goto-char (point-max))
         (indium-render-keyword description)
         (insert "\n\n")
-        (indium-render-properties properties)
-        (insert "\n")))
+        (indium-inspector--insert-sorted-properties properties)))
     (unless no-pop
       (pop-to-buffer buf))))
 

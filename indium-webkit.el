@@ -605,14 +605,25 @@ RESULT should be a reference to a remote object."
                                                  (map-elt prop 'get))))))
            result))
 
+(defun indium-webkit--scope-chain (frame)
+  "Return a scope chain for a FRAME."
+  (let ((scope-chain (seq-map (lambda (scope)
+                                `((object . ,(indium-webkit--value (map-elt scope 'object)))
+                                  (name . ,(map-elt scope 'name))
+                                  (type . ,(map-elt scope 'type))))
+                              (map-elt frame 'scopeChain)))
+        (this `((object . ,(indium-webkit--value (map-elt frame 'this)))
+                (name . "this")
+                (type . "local"))))
+    (cl-loop for scope in scope-chain
+             collect scope
+             when (string= (map-elt scope 'type) "local")
+             collect this)))
+
 (defun indium-webkit--frames (list)
   "Return a list of frames built from LIST."
   (seq-map (lambda (frame)
-             `((scope-chain . ,(seq-map (lambda (scope)
-                                          `((object . ,(indium-webkit--value (map-elt scope 'object)))
-                                            (name . ,(map-elt scope 'name))
-                                            (type . ,(map-elt scope 'type))))
-                                  (map-elt frame 'scopeChain)))
+             `((scope-chain . ,(indium-webkit--scope-chain frame))
                (location . ,(map-elt frame 'location))
                (type . ,(map-elt frame 'type))
                (functionName . ,(map-elt frame 'functionName))
