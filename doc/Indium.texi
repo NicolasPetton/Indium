@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.6.1, Jun 02, 2017
+Indium 0.6.1, Jun 09, 2017
 
 Nicolas Petton
 
@@ -273,6 +273,9 @@ $ nvm install v7
 $ nvm alias default v7
 $ node --version
 @end example
+
+If you install NodeJS using @code{nvm}, chances are that Emacs won't have it in its
+@code{exec path}. A simple solution is to use the excellent exec-path-from-shell@footnote{https://github.com/purcell/exec-path-from-shell} package.
 
 @node Executing NodeJS from Emacs,Connecting to a Nodejs process,Installing a recent version of NodeJS,NodeJS
 @anchor{setup executing-nodejs-from-emacs}@anchor{d}

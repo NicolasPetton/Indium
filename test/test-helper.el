@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'exec-path-from-shell)
+
 (when (require 'undercover nil t)
   (setq undercover-force-coverage t)
   (undercover "*.el" (:exclude "run-lint.el" "test/*.el")))
@@ -86,6 +88,7 @@ a temporary file, which is removed afterwards."
   "Run BODY within a NodeJS connection on a process on fixtures/test.js."
   (declare (indent 0))
   `(progn
+     (ignore-errors (exec-path-from-shell-initialize))
      (indium-run-node "node fixtures/test.js")
      (wait-for-repl-buffer)
      ,@body

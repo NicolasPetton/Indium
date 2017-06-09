@@ -41,15 +41,11 @@
 (require 'json)
 (require 'map)
 (require 'seq)
-(require 'exec-path-from-shell)
 
 (require 'indium-webkit)
 
 (defvar indium-nodejs-commands-history nil
   "Nodejs commands history.")
-
-(defvar indium-exec-path-setup nil
-  "Whether the exec path has been set up.")
 
 (defun indium-run-node (command)
   "Start a NodeJS process.
@@ -58,7 +54,6 @@ When the process is ready, open an Indium connection on it."
   (interactive (list (read-shell-command "Node command: "
                                          (or (car indium-nodejs-commands-history) "node ")
                                          'indium-nodejs-commands-history)))
-  (indium--setup-exec-path)
   (let ((process (make-process :name "indium-nodejs-process"
                                :buffer "*node process*"
                                :filter #'indium-nodejs--process-filter
@@ -110,15 +105,6 @@ socket URL to connect to."
     (string-match "devtools://.*/\\(.*\\)$" output)
     (when-let ((path (match-string 1 output)))
       (indium-nodejs--connect "127.0.0.1" "9229" path))))
-
-(defun indium--setup-exec-path ()
-  "Setup the exec path using `exec-path-from-shell'.
-
-This ensures that the nodejs binary used by Emacs will be the
-same as the one from the user's shell."
-  (unless indium-exec-path-setup
-    (exec-path-from-shell-initialize)
-    (setq indium-exec-path-setup t)))
 
 (provide 'indium-nodejs)
 ;;; indium-nodejs.el ends here

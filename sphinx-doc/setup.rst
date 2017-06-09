@@ -25,6 +25,10 @@ you want: ::
   $ nvm alias default v7
   $ node --version
 
+If you install NodeJS using ``nvm``, chances are that Emacs won't have it in its
+``exec path``. A simple solution is to use the excellent `exec-path-from-shell
+<https://github.com/purcell/exec-path-from-shell>`_ package.
+  
 Executing NodeJS from Emacs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
