@@ -29,7 +29,7 @@
 ;; To break on the first line of the application code, provide the --debug-brk
 ;; flag in addition to --inspect.
 ;;
-;; You can optionally use `indium-run-nodejs' to start a node process, in which
+;; You can optionally use `indium-run-node' to start a node process, in which
 ;; case the `--inspect' and `--debug-brk' flags will be added automatically.
 ;;
 ;; Important note: For this package to work, NodeJS version 7.0 (or any newer
@@ -102,7 +102,7 @@ socket URL to connect to."
 (defun indium-nodejs--connect-to-process (output)
   "If OUTPUT contain the WS url, connect to it."
   (save-match-data
-    (string-match "devtools://.*/\\(.*\\)$" output)
+    (string-match "://.*/\\(.*\\)$" output)
     (when-let ((path (match-string 1 output)))
       (indium-nodejs--connect "127.0.0.1" "9229" path))))
 
