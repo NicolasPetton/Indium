@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(require 'exec-path-from-shell)
-
 (when (require 'undercover nil t)
   (setq undercover-force-coverage t)
   (undercover "*.el" (:exclude "run-lint.el" "test/*.el")))

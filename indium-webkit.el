@@ -383,8 +383,9 @@ MESSAGE explains why the connection has been closed."
 (defun indium-webkit--handle-script-parsed (message)
   "Handle a script parsed event with MESSAGE."
   (let* ((scriptId (map-nested-elt message '(params scriptId)))
-         (url (map-nested-elt message '(params url))))
-    (indium-webkit--add-script-parsed scriptId url)))
+         (url (map-nested-elt message '(params url)))
+         (sourcemap-url (map-nested-elt message '(params sourceMapUrl))))
+    (indium-webkit--add-script-parsed scriptId url sourcemap-url)))
 
 (defun indium-webkit--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."
@@ -631,24 +632,26 @@ RESULT should be a reference to a remote object."
                (callFrameId . ,(map-elt frame 'callFrameId))))
            list))
 
-(defun indium-webkit--add-script-parsed (scriptId url)
-  "Add a parsed script from the runtime with id SCRIPTID at URL."
+(defun indium-webkit--add-script-parsed (scriptId url &optional sourcemap-url)
+  "Add a parsed script from the runtime with id SCRIPTID at URL.
+If SOURCEMAP-URL is non-nil, add it to the parsed script."
   (unless (map-elt indium-connection 'scripts)
     (map-put indium-connection 'scripts '()))
   (map-put (map-elt indium-connection 'scripts)
            (intern scriptId)
-           url))
+           `((url . ,url)
+             (sourcemap-url . ,sourcemap-url))))
 
 (defun indium-webkit--get-script-url (scriptId)
   "Lookup the parsed script with id SCRIPTID.
 If no such script has been parsed, return nil."
-  (map-nested-elt indium-connection (list 'scripts (intern scriptId))))
+  (map-nested-elt indium-connection `(scripts ,(intern scriptId) url)))
 
 (defun indium-webkit--get-script-id (url)
   "Lookup the parsed script id for URL."
   (seq-find #'identity
-            (map-apply (lambda (key val)
-                         (when (string= url val)
+            (map-apply (lambda (key script)
+                         (when (string= url (map-elt script 'url))
                            (symbol-name key)))
                        (map-elt indium-connection 'scripts))))
 
