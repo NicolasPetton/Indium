@@ -90,9 +90,6 @@ ACTION should be a function that takes no argument."
                'font-lock-face 'indium-header-face
                'rear-nonsticky '(font-lock-face))))
 
-(declare 'indium-debugger-switch-to-frame)
-(declare 'indium-backend-get-script-url)
-
 (defun indium-render-frame (frame url current)
   "Render the stack frame FRAME with the URL of its script.
 If CURRENT is non-nil, FRAME rendered as the current frame.  When
