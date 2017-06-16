@@ -191,11 +191,14 @@ The runtime will not pause on any breakpoint."
 The runtime will not pause on any breakpoint."
   )
 
-(defun indium-backend-get-breakpoints-in-file (file)
-  "Return all breakpoints in FILE."
+(defun indium-backend-get-breakpoints-in-file (file &optional line)
+  "Return all breakpoints in FILE at LINE.
+If LINE is not provided, return all breakpoints in FILE."
   (let ((breakpoints (indium-backend-get-breakpoints)))
     (seq-filter (lambda (brk)
-                  (string= (map-elt brk 'file) file))
+                  (and (string= (map-elt brk 'file) file)
+                       (or (not line)
+                           (= (map-elt brk 'line) line))))
                 breakpoints)))
 
 (defun indium-backend-get-breakpoint (id)
