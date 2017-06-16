@@ -151,8 +151,8 @@ performed.")
                                                 (map-elt brk 'id)))
             (indium-backend-get-breakpoints-in-file buffer-file-name))))
 
-(defun indium-backend-register-breakpoint (id line file)
-  "Register the breakpoint with ID at LINE in FILE.
+(defun indium-backend-register-breakpoint (id line file condition)
+  "Register the breakpoint with ID at LINE in FILE and CONDITION.
 
 Breakpoints are registered locally in the current connection so
 that if a buffer later visits FILE with `indium-interaction-mode'
@@ -161,7 +161,8 @@ turned on, the breakpoint can be added back to the buffer."
              (null (map-elt indium-connection 'breakpoints)))
     (map-put indium-connection 'breakpoints (make-hash-table)))
   (let ((breakpoint `((line . ,line)
-                      (file . ,file))))
+                      (file . ,file)
+                      (condition . ,condition))))
     (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
 
 (defun indium-backend-unregister-breakpoint (id)
@@ -170,12 +171,14 @@ turned on, the breakpoint can be added back to the buffer."
 
 (defun indium-backend-get-breakpoints ()
   "Return all breakpoints in the current connection.
-A breakpoint is an alist with the keys `id', `file', and `line'."
+A breakpoint is an alist with the keys `id', `file', `line' and
+`condition'."
   (let ((breakpoints (map-elt indium-connection 'breakpoints)))
     (map-keys-apply (lambda (key)
                       `((id . ,key)
                         (file . ,(map-nested-elt breakpoints `(,key file)))
-                        (line . ,(map-nested-elt breakpoints `(,key line)))))
+                        (line . ,(map-nested-elt breakpoints `(,key line)))
+                        (condition . ,(map-nested-elt breakpoints `(,key condition)))))
                     breakpoints)))
 
 (cl-defgeneric indium-backend-deactivate-breakpoints (backend)

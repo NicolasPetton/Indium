@@ -38,28 +38,31 @@
 (describe "Backend breakpoints"
   (it "can register breakpoints"
     (with-indium-connection '((backend . fake))
-      (indium-backend-register-breakpoint 'a 12 "foo.js")
+      (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
       (expect (indium-backend-get-breakpoints) :to-equal
               '(((id . a)
                  (file . "foo.js")
-                 (line . 12))))))
+                 (line . 12)
+                 (condition . "cond"))))))
 
   (it "can get breakpoints in a file"
     (with-indium-connection '((backend . fake))
-      (indium-backend-register-breakpoint 'a 12 "foo.js")
-      (indium-backend-register-breakpoint 'b 25 "foo.js")
-      (indium-backend-register-breakpoint 'c 3 "bar.js")
+      (indium-backend-register-breakpoint 'a 12 "foo.js" "cond1")
+      (indium-backend-register-breakpoint 'b 25 "foo.js" "cond2")
+      (indium-backend-register-breakpoint 'c 3 "bar.js" "cond3")
       (expect (indium-backend-get-breakpoints-in-file "foo.js") :to-equal
               '(((id . a)
                  (file . "foo.js")
-                 (line . 12))
+                 (line . 12)
+                 (condition . "cond1"))
                 ((id . b)
                  (file . "foo.js")
-                 (line . 25))))))
+                 (line . 25)
+                 (condition . "cond2"))))))
 
   (it "can unregister breakpoints"
     (with-indium-connection '((backend . fake))
-      (indium-backend-register-breakpoint 'a 12 "foo.js")
+      (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
       (indium-backend-unregister-breakpoint 'a)
       (expect (indium-backend-get-breakpoints) :to-be nil))))
 
