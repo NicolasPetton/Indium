@@ -666,7 +666,7 @@ lexical closures.
 
 @cartouche
 @quotation Note 
-This feature currently in only available for Chrome & Chromium.
+This feature is, for now, only available for Chrome & Chromium.
 @end quotation
 @end cartouche
 
