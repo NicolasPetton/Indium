@@ -60,6 +60,20 @@
                  (line . 25)
                  (condition . "cond2"))))))
 
+  (it "can get breakpoint from ID"
+    (with-indium-connection '((backend . fake))
+      (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
+      (expect (indium-backend-get-breakpoint 'a) :to-equal
+              '((id . a)
+                (file . "foo.js")
+                (line . 12)
+                (condition . "cond")))))
+
+  (it "get nil when no breakpoint found for ID"
+    (with-indium-connection '((backend . fake))
+      (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
+      (expect (indium-backend-get-breakpoint 'b) :to-equal nil)))
+
   (it "can unregister breakpoints"
     (with-indium-connection '((backend . fake))
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")

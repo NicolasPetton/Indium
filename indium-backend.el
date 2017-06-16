@@ -198,6 +198,14 @@ The runtime will not pause on any breakpoint."
                   (string= (map-elt brk 'file) file))
                 breakpoints)))
 
+(defun indium-backend-get-breakpoint (id)
+  "Return the breakpoint with ID.
+If not found, return nil."
+  (let ((breakpoints (indium-backend-get-breakpoints)))
+    (seq-find (lambda (brk)
+                (eq (map-elt brk 'id) id))
+              breakpoints)))
+
 (cl-defgeneric indium-backend-set-script-source (backend url source &optional callback)
   "Update the contents of the script at URL to SOURCE.")
 
