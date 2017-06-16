@@ -130,6 +130,11 @@ If PRINT is non-nil, print the output into the current buffer."
   (interactive)
   (indium-breakpoint-add (read-from-minibuffer "Breakpoint condition: ")))
 
+(defun indium-edit-breakpoint-condition ()
+  "Edit the condition of breakpoint at point."
+  (interactive)
+  (indium-breakpoint-edit-condition))
+
 (defun indium-remove-breakpoint ()
   "Remove the breakpoint at point."
   (interactive)
@@ -223,6 +228,7 @@ hitting a breakpoint."
     (define-key map (kbd "C-c C-k") #'indium-update-script-source)
     (define-key map (kbd "C-c b b") #'indium-add-breakpoint)
     (define-key map (kbd "C-c b c") #'indium-add-conditional-breakpoint)
+    (define-key map (kbd "C-c b e") #'indium-edit-breakpoint-condition)
     (define-key map (kbd "C-c b k") #'indium-remove-breakpoint)
     (define-key map (kbd "C-c b K") #'indium-remove-all-breakpoints-from-buffer)
     (define-key map (kbd "C-c b a") #'indium-activate-breakpoints)
