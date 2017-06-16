@@ -129,7 +129,7 @@ EXPRESSION should be a valid JavaScript expression string.")
 (cl-defgeneric indium-backend-add-breakpoint (backend file line &optional callback condition)
   "Request the addition of a breakpoint.
 
-The breakpoint is addet to FILE on line LINE.  When CALLBACK is
+The breakpoint is added to FILE on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id.
 
 Concrete implementations should call
