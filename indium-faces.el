@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'cus-edit)
+
 (defgroup indium-faces nil
   "Faces used in indium."
   :prefix "indium-"
