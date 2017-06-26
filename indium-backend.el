@@ -129,7 +129,7 @@ EXPRESSION should be a valid JavaScript expression string.")
 (cl-defgeneric indium-backend-add-breakpoint (backend file line &optional callback condition)
   "Request the addition of a breakpoint.
 
-The breakpoint is addet to FILE on line LINE.  When CALLBACK is
+The breakpoint is added to FILE on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id.
 
 Concrete implementations should call
@@ -151,8 +151,8 @@ performed.")
                                                 (map-elt brk 'id)))
             (indium-backend-get-breakpoints-in-file buffer-file-name))))
 
-(defun indium-backend-register-breakpoint (id line file)
-  "Register the breakpoint with ID at LINE in FILE.
+(defun indium-backend-register-breakpoint (id line file condition)
+  "Register the breakpoint with ID at LINE in FILE and CONDITION.
 
 Breakpoints are registered locally in the current connection so
 that if a buffer later visits FILE with `indium-interaction-mode'
@@ -161,7 +161,8 @@ turned on, the breakpoint can be added back to the buffer."
              (null (map-elt indium-connection 'breakpoints)))
     (map-put indium-connection 'breakpoints (make-hash-table)))
   (let ((breakpoint `((line . ,line)
-                      (file . ,file))))
+                      (file . ,file)
+                      (condition . ,condition))))
     (map-put (map-elt indium-connection 'breakpoints) id breakpoint)))
 
 (defun indium-backend-unregister-breakpoint (id)
@@ -170,12 +171,14 @@ turned on, the breakpoint can be added back to the buffer."
 
 (defun indium-backend-get-breakpoints ()
   "Return all breakpoints in the current connection.
-A breakpoint is an alist with the keys `id', `file', and `line'."
+A breakpoint is an alist with the keys `id', `file', `line' and
+`condition'."
   (let ((breakpoints (map-elt indium-connection 'breakpoints)))
     (map-keys-apply (lambda (key)
                       `((id . ,key)
                         (file . ,(map-nested-elt breakpoints `(,key file)))
-                        (line . ,(map-nested-elt breakpoints `(,key line)))))
+                        (line . ,(map-nested-elt breakpoints `(,key line)))
+                        (condition . ,(map-nested-elt breakpoints `(,key condition)))))
                     breakpoints)))
 
 (cl-defgeneric indium-backend-deactivate-breakpoints (backend)
@@ -188,12 +191,23 @@ The runtime will not pause on any breakpoint."
 The runtime will not pause on any breakpoint."
   )
 
-(defun indium-backend-get-breakpoints-in-file (file)
-  "Return all breakpoints in FILE."
+(defun indium-backend-get-breakpoints-in-file (file &optional line)
+  "Return all breakpoints in FILE at LINE.
+If LINE is not provided, return all breakpoints in FILE."
   (let ((breakpoints (indium-backend-get-breakpoints)))
     (seq-filter (lambda (brk)
-                  (string= (map-elt brk 'file) file))
+                  (and (string= (map-elt brk 'file) file)
+                       (or (not line)
+                           (= (map-elt brk 'line) line))))
                 breakpoints)))
+
+(defun indium-backend-get-breakpoint (id)
+  "Return the breakpoint with ID.
+If not found, return nil."
+  (let ((breakpoints (indium-backend-get-breakpoints)))
+    (seq-find (lambda (brk)
+                (eq (map-elt brk 'id) id))
+              breakpoints)))
 
 (cl-defgeneric indium-backend-set-script-source (backend url source &optional callback)
   "Update the contents of the script at URL to SOURCE.")

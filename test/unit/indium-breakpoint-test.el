@@ -37,7 +37,19 @@
       (goto-char (point-min))
       (expect (indium-breakpoint-on-current-line-p) :to-be nil)
       (indium-breakpoint--put-icon)
-      (expect (indium-breakpoint-on-current-line-p) :to-be-truthy))))
+      (expect (indium-breakpoint-on-current-line-p) :to-be-truthy)))
+
+  (it "can edit a breakpoint on the current line"
+    (spy-on #'read-from-minibuffer :and-return-value "new condition")
+    (spy-on #'indium-breakpoint-remove)
+    (spy-on #'indium-breakpoint-add)
+    (with-js2-buffer "let a = 1;"
+      (goto-char (point-min))
+      (indium-breakpoint-add "old condition")
+      (indium-breakpoint-edit-condition)
+      (expect #'read-from-minibuffer :to-have-been-called)
+      (expect #'indium-breakpoint-remove :to-have-been-called)
+      (expect #'indium-breakpoint-add :to-have-been-called-with "new condition"))))
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"

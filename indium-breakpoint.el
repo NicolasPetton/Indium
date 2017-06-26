@@ -45,6 +45,20 @@ CONDITION is true."
                                        (indium-breakpoint-added id ov))
                                      condition))))
 
+(defun indium-breakpoint-edit-condition ()
+  "Edit condition of breakpoint at point."
+  (let* ((breakpoint (indium-backend-get-breakpoint (indium-breakpoint-id-at-point)))
+         (old-condition (map-elt breakpoint 'condition))
+         (new-condition (read-from-minibuffer
+                         (format "Breakpoint condition (%s): " old-condition)
+                         nil nil nil nil old-condition))
+         (new-condition (if (string-empty-p new-condition)
+                            old-condition
+                          new-condition)))
+    (map-put breakpoint 'condition new-condition)
+    (indium-breakpoint-remove)
+    (indium-breakpoint-add new-condition)))
+
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
   (if-let ((id (indium-breakpoint-id-at-point)))

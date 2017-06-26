@@ -99,21 +99,22 @@ Evaluate CALLBACK on the filtered candidates."
 
 The breakpoint is set at URL on line LINE.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
-  (let ((url (indium-workspace-make-url file)))
+  (let ((url (indium-workspace-make-url file))
+        (condition (or condition "")))
     (unless url
       (user-error "No URL for the current buffer.  Setup an Indium workspace first"))
     (indium-webkit--send-request
      `((method . "Debugger.setBreakpointByUrl")
        (params . ((url . ,url)
                   (lineNumber . ,line)
-                  (condition . ,(or condition "")))))
+                  (condition . ,condition))))
      (lambda (response)
        (let* ((breakpoint (map-elt response 'result))
               (id (map-elt breakpoint 'breakpointId))
               (locations (map-elt breakpoint 'locations))
               (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
          (when line
-           (indium-backend-register-breakpoint id line file))
+           (indium-backend-register-breakpoint id line file condition))
          (when callback
            (unless line
              (message "Cannot get breakpoint location"))
