@@ -38,6 +38,15 @@
 (require 'sourcemap)
 (require 'memoize)
 
+(defgroup indium-script nil
+  "Indium script and location handling"
+  :prefix "indium-script-"
+  :group 'indium)
+
+(defcustom indium-script-enable-sourcemaps t
+  "When non-nil, use sourcemaps when debugging."
+  :type 'boolean)
+
 (defun indium-script-add-script-parsed (id url &optional sourcemap-url)
   "Add a parsed script from the runtime with ID at URL.
 If SOURCEMAP-URL is non-nil, add it to the parsed script."
@@ -93,7 +102,8 @@ associated to the FRAME."
   "Use the sourcemap of SCRIPT to lookup its original LOCATION.
 If SCRIPT has no sourcemap, return LOCATION.  LOCATION is an
 alist with the `lineNumber' and `columnNumber' keys."
-  (if (indium-script-has-sourcemap-p script)
+  (if (and indium-script-enable-sourcemaps
+	   (indium-script-has-sourcemap-p script))
       (if-let ((script-file (indium-script-get-file script))
 	       (sourcemap-file (indium-workspace-lookup-file-safe
                                 (expand-file-name (map-elt script 'sourcemap-url)
