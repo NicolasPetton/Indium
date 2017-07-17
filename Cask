@@ -5,6 +5,8 @@
 
 (depends-on "websocket")
 (depends-on "company")
+(depends-on "sourcemap")
+(depends-on "memoize")
 
 (development
  (depends-on "undercover")

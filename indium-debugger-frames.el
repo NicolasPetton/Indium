@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'indium-render)
+(require 'indium-script)
 
 (declare 'indium-debugger-frames)
 (declare 'indium-debugger-current-frame)
@@ -60,8 +61,9 @@ CURRENT-FRAME is the current stack frame in the debugger."
     (newline 2)
     (seq-doseq (frame frames)
       (indium-render-frame frame
-                         (indium-backend-get-script-url (indium-backend) frame)
-                         (eq current-frame frame))
+                           (indium-script-get-url
+			    (indium-backend-get-script (indium-backend) frame))
+                           (eq current-frame frame))
       (newline))))
 
 (defun indium-debugger-frames-select-frame (frame)

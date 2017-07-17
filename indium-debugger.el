@@ -168,19 +168,15 @@ Try to find the file for the stack frame locally first using
 Indium worskspaces.  If not local file can be found, get the
 remote source for that frame."
   (indium-debugger-set-current-frame frame)
-    ;; when a buffer is already debugging a frame, be sure to clean it first.
-  (if-let (old-buf (indium-debugger-get-buffer-create))
-      (with-current-buffer old-buf
-        (indium-debugger-unset-current-buffer)))
-  (indium-debugger-litable-setup-buffer)
   (switch-to-buffer (indium-debugger-get-buffer-create))
+  (indium-debugger-litable-setup-buffer)
   (if buffer-file-name
       (indium-debugger-setup-buffer-with-file)
     (indium-backend-get-script-source
        (indium-backend)
        frame
        (lambda (source)
-         (indium-debugger-setup-buffer-no-file
+         (indium-debugger-setup-buffer-with-source
           (map-nested-elt source '(result scriptSource)))))))
 
 (defun indium-debugger-setup-buffer-with-file ()
@@ -189,8 +185,8 @@ remote source for that frame."
     (revert-buffer nil nil t))
   (indium-debugger--goto-current-frame))
 
-(defun indium-debugger-setup-buffer-no-file (source)
-  "Setup the current buffer with the frame source SOURCE."
+(defun indium-debugger-setup-buffer-with-source (source)
+  "Setup the current buffer with the frame SOURCE."
   (unless (string= (buffer-substring-no-properties (point-min) (point-max))
                    source)
     (let ((inhibit-read-only t))
@@ -201,7 +197,7 @@ remote source for that frame."
 (defun indium-debugger--goto-current-frame ()
   "Move the point to the current stack frame position in the current buffer."
   (let* ((frame (indium-debugger-current-frame))
-         (location (map-elt frame 'location))
+         (location (indium-script-get-location frame))
          (line (map-elt location 'lineNumber))
          (column (map-elt location 'columnNumber)))
     (goto-char (point-min))
@@ -339,15 +335,13 @@ Evaluation happens in the context of the current call frame."
   "Return all frames in the current stack."
   (map-elt indium-connection 'frames))
 
+;; TODO: remove
 (defun indium-debugger-lookup-file ()
   "Lookup the local file associated with the current connection.
 Return nil if no local file can be found."
-  (let ((url (indium-backend-get-script-url (indium-backend)
-                                            (indium-debugger-current-frame))))
-    ;; Make sure we are in the correct directory so that indium can find a ".indium"
-    ;; file.
-    (with-current-buffer (indium-repl-get-buffer)
-      (indium-workspace-lookup-file url))))
+  (let ((script (indium-backend-get-script (indium-backend)
+                                           (indium-debugger-current-frame))))
+    (indium-workspace-lookup-file (indium-script-get-url script))))
 
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
@@ -377,7 +371,8 @@ CALLBACK is evaluated with two arguments, the properties and SCOPE."
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let ((buf (if-let ((file (indium-debugger-lookup-file)))
+  (let* ((location (indium-script-get-location (indium-debugger-current-frame)))
+	 (buf (if-let ((file (map-elt location 'file)))
                  (find-file file)
                (get-buffer-create (indium-debugger--buffer-name-no-file)))))
     (indium-debugger-setup-buffer buf)

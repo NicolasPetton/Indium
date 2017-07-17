@@ -40,6 +40,7 @@
 (require 'indium-repl)
 (require 'indium-debugger)
 (require 'indium-workspace)
+(require 'indium-script)
 
 (defvar indium-webkit-cache-disabled nil
   "Network cache disabled state.  If non-nil disable cache when Indium starts.")
@@ -159,7 +160,7 @@ prototype chain of the remote object."
                (map-nested-elt response '(result result)))))))
 
 (cl-defmethod indium-backend-set-script-source ((_backend (eql webkit)) url source &optional callback)
-  (when-let ((script-id (indium-webkit--get-script-id url)))
+  (when-let ((script-id (indium-script-get-id url)))
     (indium-webkit--send-request
      `((method . "Runtime.compileScript")
        (params . ((expression . ,source)
@@ -181,9 +182,9 @@ prototype chain of the remote object."
       (params . ((scriptId . ,script-id))))
     callback)))
 
-(cl-defmethod indium-backend-get-script-url ((_backend (eql webkit)) frame)
+(cl-defmethod indium-backend-get-script ((_backend (eql webkit)) frame)
   (let ((script-id (map-nested-elt frame '(location scriptId))))
-    (when script-id (indium-webkit--get-script-url script-id))))
+    (when script-id (indium-script-get script-id))))
 
 (cl-defmethod indium-backend-resume ((_backend (eql webkit)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
@@ -384,8 +385,8 @@ MESSAGE explains why the connection has been closed."
   "Handle a script parsed event with MESSAGE."
   (let* ((scriptId (map-nested-elt message '(params scriptId)))
          (url (map-nested-elt message '(params url)))
-         (sourcemap-url (map-nested-elt message '(params sourceMapUrl))))
-    (indium-webkit--add-script-parsed scriptId url sourcemap-url)))
+         (sourcemap-url (map-nested-elt message '(params sourceMapURL))))
+    (indium-script-add-script-parsed scriptId url sourcemap-url)))
 
 (defun indium-webkit--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."
@@ -631,29 +632,6 @@ RESULT should be a reference to a remote object."
                (functionName . ,(map-elt frame 'functionName))
                (callFrameId . ,(map-elt frame 'callFrameId))))
            list))
-
-(defun indium-webkit--add-script-parsed (scriptId url &optional sourcemap-url)
-  "Add a parsed script from the runtime with id SCRIPTID at URL.
-If SOURCEMAP-URL is non-nil, add it to the parsed script."
-  (unless (map-elt indium-connection 'scripts)
-    (map-put indium-connection 'scripts '()))
-  (map-put (map-elt indium-connection 'scripts)
-           (intern scriptId)
-           `((url . ,url)
-             (sourcemap-url . ,sourcemap-url))))
-
-(defun indium-webkit--get-script-url (scriptId)
-  "Lookup the parsed script with id SCRIPTID.
-If no such script has been parsed, return nil."
-  (map-nested-elt indium-connection `(scripts ,(intern scriptId) url)))
-
-(defun indium-webkit--get-script-id (url)
-  "Lookup the parsed script id for URL."
-  (seq-find #'identity
-            (map-apply (lambda (key script)
-                         (when (string= url (map-elt script 'url))
-                           (symbol-name key)))
-                       (map-elt indium-connection 'scripts))))
 
 (defvar indium-webkit--request-id 0)
 (defun indium-webkit--next-request-id ()

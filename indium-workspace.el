@@ -63,6 +63,8 @@
 
 (require 'indium-backend)
 
+(declare-function indium-repl-get-buffer "indium-repl.el")
+
 (defgroup indium-workspace nil
   "Indium workspace"
   :prefix "indium-worspace-"
@@ -117,13 +119,16 @@ If no file is found, return nil."
 
 (defun indium-workspace--lookup-using-workspace (url)
   "Return a local file matching URL using the current Indium workspace."
-  (if-let ((root (indium-workspace-root)))
+  ;; Make sure we are in the correct directory so that indium can find a
+  ;; ".indium" file.
+  (with-current-buffer (indium-repl-get-buffer)
+      (if-let ((root (indium-workspace-root)))
           (let* ((path (seq-drop (car (url-path-and-query
                                        (url-generic-parse-url url)))
                                  1))
                  (file (expand-file-name path root)))
             (when (file-regular-p file)
-              file))))
+              file)))))
 
 (defun indium-workspace-make-url (file)
   "Return the url associated with the local FILE."

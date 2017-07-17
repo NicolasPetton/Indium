@@ -152,16 +152,5 @@
                                                (properties . [((name . "a") (type . "boolean") (value . "true"))]))))
             :to-equal "{ a: true }")))
 
-(describe "Parsed scripts handling"
-  (it "should be able to retrieve parsed scripts urls"
-    (with-fake-indium-connection
-     (indium-webkit--add-script-parsed "1" "foo")
-     (expect (indium-webkit--get-script-url "1") :to-equal "foo")))
-
-  (it "should be able to retrieve parsed scripts ids"
-    (with-fake-indium-connection
-     (indium-webkit--add-script-parsed "1" "foo")
-     (expect (indium-webkit--get-script-id "foo") :to-equal "1"))))
-
 (provide 'indium-webkit-test)
 ;;; indium-webkit-test.el ends here

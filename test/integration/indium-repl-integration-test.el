@@ -32,6 +32,7 @@
 (require 'cl-lib)
 
 (require 'indium-repl)
+(require 'indium-nodejs)
 
 (describe "Repl output"
   (it "should display a prompt"
