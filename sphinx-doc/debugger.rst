@@ -7,9 +7,9 @@ The stepping debugger
 Using sourcemaps
 ----------------
 
-Since version 0.7, Indium uses sourcemap files by default when provided.
+Since version 0.7, Indium uses sourcemap files by default.
 
 If you wish to disable sourcemaps when debugging, set ``indium-script-enable-sourcemaps`` to ``nil``.
 
-.. Note:: Only sourcemaps specified in separate files are currently supported,
-          inlined sourcemaps in minified files are not yet supported.
+.. Note:: Only sourcemap files specified with ``sourceMappingURL`` are currently
+          supported, inlined sourcemaps are not yet supported.
