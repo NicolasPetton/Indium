@@ -130,6 +130,8 @@ alist with the `lineNumber' and `columnNumber' keys."
 
 ;; TODO: wait for https://github.com/syohex/emacs-sourcemap/pull/6 to be merged
 (defun indium-script--sourcemap-original-position-for (sourcemap &rest props)
+  "Lookup a position in SOURCEMAP based on PROPS.
+PROPS should be a plist with a `:line' and `:column' key."
   (let ((here (make-sourcemap-entry :generated-line (plist-get props :line)
                                     :generated-column (plist-get props :column))))
     (let ((ret (sourcemap--binary-search sourcemap here 'generated
