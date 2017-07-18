@@ -22,7 +22,7 @@
 
 ;; Generic backend implementation.
 
-;; Backends should define a new backend symbol using `indium-register-backend',
+;; Backends should define a new backend symbol using `indium-register-backend'.
 
 ;;; Code:
 
@@ -32,7 +32,7 @@
 
 (declare 'indium-debugger-unset-current-buffer)
 
-(defgroup indium-chrome nil
+(defgroup indium-backend nil
   "Indium backend."
   :prefix "indium-backend-"
   :group 'indium)
