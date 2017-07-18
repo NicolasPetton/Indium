@@ -95,19 +95,19 @@ Evaluate CALLBACK on the filtered candidates."
      (lambda (response)
        (indium-webkit--handle-completions-response response prefix callback)))))
 
-(cl-defmethod indium-backend-add-breakpoint ((_backend (eql webkit)) file line &optional callback condition)
+(cl-defmethod indium-backend-add-breakpoint ((_backend (eql webkit)) location &optional callback condition)
   "Request the addition of a breakpoint.
 
-The breakpoint is set at URL on line LINE.  When CALLBACK is
+The breakpoint is set at LOCATION.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
-  (let ((url (indium-workspace-make-url file))
+  (let ((url (indium-location-url location))
         (condition (or condition "")))
     (unless url
-      (user-error "No URL for the current buffer.  Setup an Indium workspace first"))
+      (user-error "No URL associated with the current buffer.  Setup an Indium workspace first"))
     (indium-webkit--send-request
      `((method . "Debugger.setBreakpointByUrl")
        (params . ((url . ,url)
-                  (lineNumber . ,line)
+                  (lineNumber . ,(indium-location-line location))
                   (condition . ,condition))))
      (lambda (response)
        (let* ((breakpoint (map-elt response 'result))
@@ -115,11 +115,11 @@ non-nil, evaluate it with the breakpoint's location and id."
               (locations (map-elt breakpoint 'locations))
               (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
          (when line
-           (indium-backend-register-breakpoint id line file condition))
+           (indium-backend-register-breakpoint id line (indium-location-file location) condition))
          (when callback
            (unless line
              (message "Cannot get breakpoint location"))
-           (funcall callback line id condition)))))))
+           (funcall callback id)))))))
 
 (cl-defmethod indium-backend-remove-breakpoint ((_backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."
@@ -160,7 +160,7 @@ prototype chain of the remote object."
                (map-nested-elt response '(result result)))))))
 
 (cl-defmethod indium-backend-set-script-source ((_backend (eql webkit)) url source &optional callback)
-  (when-let ((script-id (indium-script-get-id url)))
+  (when-let ((script (indium-script-find-from-url url)))
     (indium-webkit--send-request
      `((method . "Runtime.compileScript")
        (params . ((expression . ,source)
@@ -169,22 +169,18 @@ prototype chain of the remote object."
      (lambda (_)
        (indium-webkit--send-request
         `((method . "Debugger.setScriptSource")
-          (params . ((scriptId . ,script-id)
+          (params . ((scriptId . ,(indium-script-id script))
                      (scriptSource . ,source))))
         (lambda (_)
           (when callback
             (funcall callback))))))))
 
 (cl-defmethod indium-backend-get-script-source ((_backend (eql webkit)) frame callback)
-  (let ((script-id (map-nested-elt frame '(location scriptId))))
+  (let ((script (map-elt frame 'script)))
    (indium-webkit--send-request
     `((method . "Debugger.getScriptSource")
-      (params . ((scriptId . ,script-id))))
+      (params . ((scriptId . ,(indium-script-id script)))))
     callback)))
-
-(cl-defmethod indium-backend-get-script ((_backend (eql webkit)) frame)
-  (let ((script-id (map-nested-elt frame '(location scriptId))))
-    (when script-id (indium-script-get script-id))))
 
 (cl-defmethod indium-backend-resume ((_backend (eql webkit)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
@@ -216,7 +212,7 @@ prototype chain of the remote object."
 Location should be an alist with a `limeNumber' and `scriptId' key."
   (indium-webkit--send-request
    `((method . "Debugger.continueToLocation")
-     (params . ((location . ,location))))
+     (params . ((location . ,(indium-webkit--convert-to-webkit-location location)))))
    callback))
 
 (defun indium-webkit-set-overlay-message (string)
@@ -383,10 +379,10 @@ MESSAGE explains why the connection has been closed."
 
 (defun indium-webkit--handle-script-parsed (message)
   "Handle a script parsed event with MESSAGE."
-  (let* ((scriptId (map-nested-elt message '(params scriptId)))
+  (let* ((id (map-nested-elt message '(params scriptId)))
          (url (map-nested-elt message '(params url)))
          (sourcemap-url (map-nested-elt message '(params sourceMapURL))))
-    (indium-script-add-script-parsed scriptId url sourcemap-url)))
+    (indium-script-add-script-parsed id url sourcemap-url)))
 
 (defun indium-webkit--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."
@@ -623,12 +619,31 @@ RESULT should be a reference to a remote object."
              when (string= (map-elt scope 'type) "local")
              collect this)))
 
+(defun indium-webkit--convert-to-webkit-location (location)
+  "Return an alist representing a Webkit location from LOCATION."
+  (let ((result '()))
+    (when-let ((line (indium-location-line location)))
+      (map-put result 'lineNumber line))
+    (when-let ((column (indium-location-column location)))
+      (map-put result 'columnNumber column))
+    (when-let ((file (indium-location-file location))
+	       (script (indium-script-find-from-file file)))
+      (map-put result 'scriptId (indium-script-id script)))
+    result))
+
+(defun indium-webkit--convert-from-webkit-location (location)
+  "Return a location struct built from a webkit LOCATION."
+  (make-indium-location-from-script-id :line (map-elt location 'lineNumber)
+				       :column (map-elt location 'columnNumber)
+				       :script-id (map-elt location 'scriptId)))
+
 (defun indium-webkit--frames (list)
   "Return a list of frames built from LIST."
   (seq-map (lambda (frame)
              `((scope-chain . ,(indium-webkit--scope-chain frame))
-               (location . ,(map-elt frame 'location))
+               (location . ,(indium-webkit--convert-from-webkit-location (map-elt frame 'location)))
                (type . ,(map-elt frame 'type))
+	       (script . ,(indium-script-get (map-nested-elt frame '(location scriptId))))
                (functionName . ,(map-elt frame 'functionName))
                (callFrameId . ,(map-elt frame 'callFrameId))))
            list))

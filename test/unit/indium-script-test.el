@@ -29,17 +29,17 @@
   (it "should be able to retrieve parsed scripts url"
     (with-fake-indium-connection
      (indium-script-add-script-parsed "1" "foo")
-     (expect (map-elt (indium-script-get "1") 'url) :to-equal "foo")))
+     (expect (indium-script-url (indium-script-get "1")) :to-equal "foo")))
 
   (it "should be able to retrieve parsed scripts sourcemap url"
     (with-fake-indium-connection
      (indium-script-add-script-parsed "1" "foo" "foo-map")
-     (expect (map-elt (indium-script-get "1") 'sourcemap-url) :to-equal "foo-map")))
+     (expect (indium-script-sourcemap-url (indium-script-get "1")) :to-equal "foo-map")))
 
   (it "should be able to retrieve parsed scripts ids"
     (with-fake-indium-connection
      (indium-script-add-script-parsed "1" "foo")
-     (expect (indium-script-get-id "foo") :to-equal "1"))))
+     (expect (indium-script-id (indium-script-find-from-url "foo")) :to-equal "1"))))
 
 (provide 'indium-script-test)
 ;;; indium-script-test.el ends here

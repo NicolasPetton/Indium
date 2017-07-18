@@ -36,12 +36,13 @@
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (let ((ov (indium-breakpoint--put-icon condition)))
+  (let ((ov (indium-breakpoint--put-icon condition))
+	(location (make-indium-location :file buffer-file-name
+					:line (1- (line-number-at-pos)))))
     (when indium-connection
       (indium-backend-add-breakpoint (indium-backend)
-                                     buffer-file-name
-                                     (1- (line-number-at-pos))
-                                     (lambda (line id condition)
+				     location
+                                     (lambda (id)
                                        (indium-breakpoint-added id ov))
                                      condition))))
 

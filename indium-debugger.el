@@ -197,12 +197,10 @@ remote source for that frame."
 (defun indium-debugger--goto-current-frame ()
   "Move the point to the current stack frame position in the current buffer."
   (let* ((frame (indium-debugger-current-frame))
-         (location (indium-script-get-location frame))
-         (line (map-elt location 'lineNumber))
-         (column (map-elt location 'columnNumber)))
+         (location (indium-script-get-frame-location frame)))
     (goto-char (point-min))
-    (forward-line line)
-    (forward-char column))
+    (forward-line (indium-location-line location))
+    (forward-char (indium-location-column location)))
   (indium-debugger-setup-overlay-arrow)
   (indium-debugger-highlight-node)
   (indium-debugger-locals-maybe-refresh)
@@ -300,7 +298,7 @@ When the position of the point is reached, pause the execution."
   (indium-backend-continue-to-location (indium-backend)
                                      `((scriptId . ,(map-nested-elt (indium-debugger-top-frame)
                                                                     '(location scriptId)))
-                                       (lineNumber . ,(1- (line-number-at-pos))))))
+                                       (line . ,(1- (line-number-at-pos))))))
 
 (defun indium-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
@@ -335,14 +333,6 @@ Evaluation happens in the context of the current call frame."
   "Return all frames in the current stack."
   (map-elt indium-connection 'frames))
 
-;; TODO: remove
-(defun indium-debugger-lookup-file ()
-  "Lookup the local file associated with the current connection.
-Return nil if no local file can be found."
-  (let ((script (indium-backend-get-script (indium-backend)
-                                           (indium-debugger-current-frame))))
-    (indium-workspace-lookup-file (indium-script-get-url script))))
-
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
   (map-elt (indium-debugger-current-frame) 'scope-chain))
@@ -371,8 +361,8 @@ CALLBACK is evaluated with two arguments, the properties and SCOPE."
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let* ((location (indium-script-get-location (indium-debugger-current-frame)))
-	 (buf (if-let ((file (map-elt location 'file)))
+  (let* ((location (indium-script-get-frame-location (indium-debugger-current-frame)))
+	 (buf (if-let ((file (indium-location-file location)))
                  (find-file file)
                (get-buffer-create (indium-debugger--buffer-name-no-file)))))
     (indium-debugger-setup-buffer buf)

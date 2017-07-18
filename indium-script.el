@@ -22,12 +22,12 @@
 ;; Handle script source registration, script locations (with sourcemap support)
 ;; for the current indium connection.
 ;;
-;; Scripts are alists indexed by id in the current Indium connection.  A script
-;; contain an `url' key, and an optional `sourcemap-url' key.
+;; Scripts are structs indexed by id in the current Indium connection.  A script
+;; contain an `url' slot, and an optional `sourcemap-url' slot.
 ;;
-;; A location is an alist with a `lineNumber' and `columnNumber' key.  If a
-;; location points to a local file, it also contains a `file' key.  Columns and
-;; lines start at 0.
+;; A location is a struct with a `line' and `column' slot.  If a location points
+;; to a local file, it also contains a `file' slot.  Columns and lines start at
+;; 0.
 
 ;;; Code:
 
@@ -47,6 +47,26 @@
   "When non-nil, use sourcemaps when debugging."
   :type 'boolean)
 
+(cl-defstruct indium-script
+  (id nil :type string :read-only t)
+  (url nil :type string :read-only t)
+  (sourcemap-url nil :type string :read-only t))
+
+(cl-defstruct
+    (indium-location
+     (:constructor make-indium-location-from-script-id
+		   (&key (script-id "")
+			 line
+			 column
+			 &aux (file (indium-script-get-file (indium-script-get script-id))))))
+  (line 0 :type number :read-only t)
+  (column 0 :type number :read-only t)
+  (file nil :type string :read-only t))
+
+(defun indium-location-url (location)
+  "Lookup the url associated with LOCATION's file."
+  (indium-workspace-make-url (indium-location-file location)))
+
 (defun indium-script-add-script-parsed (id url &optional sourcemap-url)
   "Add a parsed script from the runtime with ID at URL.
 If SOURCEMAP-URL is non-nil, add it to the parsed script."
@@ -54,72 +74,69 @@ If SOURCEMAP-URL is non-nil, add it to the parsed script."
     (map-put indium-connection 'scripts '()))
   (map-put (map-elt indium-connection 'scripts)
            (intern id)
-           `((url . ,url)
-             (sourcemap-url . ,sourcemap-url))))
+	   (make-indium-script :id id
+			       :url url
+			       :sourcemap-url sourcemap-url)))
 
 (defun indium-script-get (id)
   "Return the location for the script with id ID.
 If not such script was parsed, return nil."
   (map-elt (map-elt indium-connection 'scripts) (intern id)))
 
-(defun indium-script-get-url (script)
-  "Return the url for SCRIPT."
-  (map-elt script 'url))
-
 (defun indium-script-get-file (script)
   "Lookup the local file associated with SCRIPT.
 If no local file can be found, return nil."
-  (indium-workspace-lookup-file (indium-script-get-url script)))
+  (indium-workspace-lookup-file (indium-script-url script)))
 
-(defun indium-script-get-id (url)
-  "Lookup the parsed script id for URL."
+(defun indium-script-find-from-url (url)
+  "Lookup a script for URL.
+Return nil if no script can be found."
   (seq-find #'identity
-            (map-apply (lambda (key script)
-                         (when (string= url (map-elt script 'url))
-                           (symbol-name key)))
+            (map-apply (lambda (_id script)
+                         (when (string= url (indium-script-url script))
+                           script))
                        (map-elt indium-connection 'scripts))))
+
+(defun indium-script-find-from-file (file)
+  "Lookup a script from a local FILE.
+Return nil if no script can be found."
+  (indium-script-find-from-url (indium-workspace-make-url file)))
 
 (defun indium-script-has-sourcemap-p (script)
   "Return non-nil if SCRIPT has an associated sourcemap."
-  (let ((sourcemap-url (map-elt script 'sourcemap-url)))
-    (and sourcemap-url (not (seq-empty-p sourcemap-url)))))
+  (when-let ((sourcemap-url (indium-script-sourcemap-url script)))
+    (not (seq-empty-p sourcemap-url))))
 
-(defun indium-script-get-location (frame)
-  "Return the location stack FRAME.
-The location is an list with `lineNumber' and `columnNumber'
-keys.  The location also contains a `file' key if a local file is
-associated to the FRAME."
-  (let* ((script (indium-backend-get-script (indium-backend) frame))
-         (location (map-elt frame 'location))
-         (file (indium-workspace-lookup-file (indium-script-get-url script))))
-    (if file
+(defun indium-script-get-frame-location (frame)
+  "Return the location stack FRAME, possibly using sourcemaps."
+  (let* ((script (map-elt frame 'script))
+         (location (map-elt frame 'location)))
+    (if (indium-location-file location)
 	(progn
-	  (map-put location 'file file)
 	  (indium-script-original-location script location))
       location)))
 
 (defun indium-script-original-location (script location)
   "Use the sourcemap of SCRIPT to lookup its original LOCATION.
-If SCRIPT has no sourcemap, return LOCATION.  LOCATION is an
-alist with the `lineNumber' and `columnNumber' keys."
+If SCRIPT has no sourcemap, return LOCATION."
   (if (and indium-script-enable-sourcemaps
 	   (indium-script-has-sourcemap-p script))
       (if-let ((script-file (indium-script-get-file script))
 	       (sourcemap-file (indium-workspace-lookup-file-safe
-                                (expand-file-name (map-elt script 'sourcemap-url)
+                                (expand-file-name (indium-script-sourcemap-url script)
 						  (file-name-directory script-file)))))
           (let* ((sourcemap (sourcemap-from-file sourcemap-file))
                  (original-location (indium-script--sourcemap-original-position-for
 				     sourcemap
-				     :line (1+ (map-elt location 'lineNumber))
-				     :column (1+ (map-elt location 'columnNumber))
+				     :line (1+ (indium-location-line location))
+				     :column (1+ (indium-location-column location))
 				     :nearest t)))
 	    (if original-location
 		(let ((file (expand-file-name (plist-get original-location :source)
 					      (file-name-directory script-file))))
-		  `((file . ,file)
-		    (lineNumber . ,(max 0 (1- (plist-get original-location :line))))
-		    (columnNumber . ,(max 0 (1- (plist-get original-location :column))))))
+		  (make-indium-location :file file
+					:line (max 0 (1- (plist-get original-location :line)))
+					:column (max 0 (1- (plist-get original-location :column)))))
 	      (progn
 		(message "Could not locate original position from sourcemap!")
 		location)))

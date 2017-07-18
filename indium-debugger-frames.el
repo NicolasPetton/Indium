@@ -61,8 +61,7 @@ CURRENT-FRAME is the current stack frame in the debugger."
     (newline 2)
     (seq-doseq (frame frames)
       (indium-render-frame frame
-                           (indium-script-get-url
-			    (indium-backend-get-script (indium-backend) frame))
+                           (indium-script-url (map-elt frame 'script))
                            (eq current-frame frame))
       (newline))))
 

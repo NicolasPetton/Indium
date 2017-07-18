@@ -1,4 +1,4 @@
-;;; indium-webkit-test.el --- Tests for indum-webkit.el  -*- lexical-binding: t; -*-
+;;; indium-webkit-test.el --- Tests for indium-webkit.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
@@ -119,7 +119,6 @@
                            (generatePreview . t))))
               nil))))
 
-
 (describe "Webkit backend result description string"
   (it "can render boolean descriptions formatted as string values (GitHub issue #52)"
     (expect (indium-webkit--description '((type . "boolean") (value . t)))
@@ -151,6 +150,22 @@
                                                (overflow . :json-false)
                                                (properties . [((name . "a") (type . "boolean") (value . "true"))]))))
             :to-equal "{ a: true }")))
+
+(describe "Location conversion"
+  (it "can convert a location struct into a webkit location"
+    (let ((location (make-indium-location :line 10 :column 5)))
+      (expect (indium-webkit--convert-to-webkit-location location)
+	      :to-equal '((columnNumber . 5)
+			  (lineNumber . 10)))))
+
+  (it "can convert a location struct with file into a webkit location"
+    (let ((location (make-indium-location :line 10 :column 5 :file "foo")))
+      (spy-on #'indium-location-url :and-return-value "foo")
+      (spy-on #'indium-script-find-from-file :and-return-value (make-indium-script :id "1"))
+      (expect (indium-webkit--convert-to-webkit-location location)
+	      :to-equal '((scriptId . "1")
+			  (columnNumber . 5)
+			  (lineNumber . 10))))))
 
 (provide 'indium-webkit-test)
 ;;; indium-webkit-test.el ends here

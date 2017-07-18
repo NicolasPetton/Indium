@@ -126,11 +126,11 @@ Evaluate CALLBACK on the filtered candidates.
 
 EXPRESSION should be a valid JavaScript expression string.")
 
-(cl-defgeneric indium-backend-add-breakpoint (backend file line &optional callback condition)
+(cl-defgeneric indium-backend-add-breakpoint (backend location &optional callback condition)
   "Request the addition of a breakpoint.
 
-The breakpoint is added to FILE on line LINE.  When CALLBACK is
-non-nil, evaluate it with the breakpoint's location and id.
+The breakpoint is added at LOCATION.  When CALLBACK is
+non-nil, evaluate it with the breakpoint's id.
 
 Concrete implementations should call
 `indium-backend-register-breakpoint' once the addition has been
@@ -224,9 +224,6 @@ prototype chain of the remote object.")
   "Get the source of the script for FRAME.
 Evaluate CALLBACK with the result.")
 
-(cl-defgeneric indium-backend-get-script (backend frame)
-  "Return the script for FRAME, or nil.")
-
 (cl-defgeneric indium-backend-resume (backend &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil.")
 
@@ -240,8 +237,7 @@ Evaluate CALLBACK with the result.")
   "Step over the current stack frame and evaluate CALLBACK if non-nil.")
 
 (cl-defgeneric indium-backend-continue-to-location (backend location &optional callback)
-  "Continue to LOCATION and evaluate CALLBACK if non-nil.
-Location should be an alist with a `column' and `row' key.")
+  "Continue to LOCATION and evaluate CALLBACK if non-nil.")
 
 (defun indium-backend-object-reference-p (value)
   "Return non-nil if VALUE is a reference to a remote object."
