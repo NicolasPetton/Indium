@@ -305,9 +305,9 @@ When the position of the point is reached, pause the execution."
 Evaluation happens in the context of the current call frame."
   (interactive "sEvaluate on frame: ")
   (indium-backend-evaluate (indium-backend)
-                         expression
-                         (lambda (value _error)
-                           (message "%s" (indium-render-value-to-string value)))))
+			   expression
+			   (lambda (value _error)
+			     (message "%s" (indium-render-value-to-string value)))))
 
 ;; Debugging context
 
@@ -335,7 +335,7 @@ Evaluation happens in the context of the current call frame."
 
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
-  (map-elt (indium-debugger-current-frame) 'scope-chain))
+  (indium-frame-scope-chain (indium-debugger-current-frame)))
 
 ;; TODO: move to backends?
 (defun indium-debugger-get-scopes-properties (scopes callback)
