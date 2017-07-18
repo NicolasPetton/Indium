@@ -70,8 +70,7 @@
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
-  (let ((callFrameId (map-elt (map-elt indium-connection 'current-frame)
-                              'callFrameId)))
+  (let ((callFrameId (indium-frame-id (map-elt indium-connection 'current-frame))))
     (indium-webkit--send-request
      `((method . ,(if callFrameId
                       "Debugger.evaluateOnCallFrame"
@@ -175,7 +174,7 @@ prototype chain of the remote object."
             (funcall callback))))))))
 
 (cl-defmethod indium-backend-get-script-source ((_backend (eql webkit)) frame callback)
-  (let ((script (map-elt frame 'script)))
+  (let ((script (indium-frame-script frame)))
    (indium-webkit--send-request
     `((method . "Debugger.getScriptSource")
       (params . ((scriptId . ,(indium-script-id script)))))
@@ -639,12 +638,13 @@ RESULT should be a reference to a remote object."
 (defun indium-webkit--frames (list)
   "Return a list of frames built from LIST."
   (seq-map (lambda (frame)
-             `((scope-chain . ,(indium-webkit--scope-chain frame))
-               (location . ,(indium-webkit--convert-from-webkit-location (map-elt frame 'location)))
-               (type . ,(map-elt frame 'type))
-	       (script . ,(indium-script-get (map-nested-elt frame '(location scriptId))))
-               (functionName . ,(map-elt frame 'functionName))
-               (callFrameId . ,(map-elt frame 'callFrameId))))
+	     (make-indium-frame
+	      :scope-chain (indium-webkit--scope-chain frame)
+	      :location (indium-webkit--convert-from-webkit-location (map-elt frame 'location))
+	      :type (map-elt frame 'type)
+	      :script (indium-script-get (map-nested-elt frame '(location scriptId)))
+	      :function-name (map-elt frame 'functionName)
+	      :id (map-elt frame 'callFrameId)))
            list))
 
 (defvar indium-webkit--request-id 0)

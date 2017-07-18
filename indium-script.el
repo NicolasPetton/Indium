@@ -109,8 +109,8 @@ Return nil if no script can be found."
 
 (defun indium-script-get-frame-location (frame)
   "Return the location stack FRAME, possibly using sourcemaps."
-  (let* ((script (map-elt frame 'script))
-         (location (map-elt frame 'location)))
+  (let* ((script (indium-frame-script frame))
+         (location (indium-frame-location frame)))
     (if (indium-location-file location)
 	(progn
 	  (indium-script-original-location script location))

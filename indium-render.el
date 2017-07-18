@@ -191,9 +191,9 @@ If STRING is truncated, append ellipsis."
 
 (defun indium-render--frame-label (frame)
   "Return the label for FRAME to be used in the debugger stack frame list."
-  (let ((label (map-elt frame 'functionName)))
+  (let ((label (indium-frame-function-name frame)))
     (if (seq-empty-p label)
-        (or (map-elt frame 'type) "Closure")
+        (or (indium-frame-type frame) "Closure")
       label)))
 
 (provide 'indium-render)

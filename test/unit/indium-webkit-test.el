@@ -110,7 +110,7 @@
 
   (it "calls Debugger.evaluateOnCallFrame when there is stack frame"
     (spy-on 'indium-webkit--send-request)
-    (with-indium-connection '((current-frame . ((callFrameId . 1))))
+    (with-indium-connection '((current-frame . (make-indium-frame :id 1)))
       (indium-backend-evaluate 'webkit "foo")
       (expect #'indium-webkit--send-request :to-have-been-called-with
               '((method . "Debugger.evaluateOnCallFrame")

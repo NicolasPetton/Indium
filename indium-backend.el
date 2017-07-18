@@ -47,6 +47,15 @@
   :group 'indium-backend
   :type 'hook)
 
+(cl-defstruct indium-frame
+  (id nil :type string :read-only t)
+  ;; TODO: make a scope a struct as well.
+  (scope-chain nil :type list :read-only t)
+  (location nil :type indium-location :read-only t)
+  (script nil :type indium-script :read-only t)
+  (type nil :type string :read-only t)
+  (function-name nil :type string))
+
 (defvar indium-connection nil
   "Current connection to the browser tab.
 
