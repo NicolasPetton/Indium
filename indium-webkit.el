@@ -34,7 +34,6 @@
 (require 'json)
 (require 'map)
 (require 'seq)
-(require 'cl-lib)
 
 (require 'indium-backend)
 (require 'indium-repl)

@@ -46,6 +46,7 @@ the sequence, and its index within the sequence."
                    (setq index (1+ index))))
                sequence))))
 
+(require 'cl-lib)
 (require 'indium-backend)
 (require 'indium-chrome)
 (require 'indium-nodejs)
