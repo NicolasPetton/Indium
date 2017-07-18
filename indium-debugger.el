@@ -296,9 +296,9 @@ remote source for that frame."
 When the position of the point is reached, pause the execution."
   (interactive)
   (indium-backend-continue-to-location (indium-backend)
-                                     `((scriptId . ,(map-nested-elt (indium-debugger-top-frame)
-                                                                    '(location scriptId)))
-                                       (line . ,(1- (line-number-at-pos))))))
+				       (make-indium-location
+					:line (1- (line-number-at-pos))
+					:file buffer-file-name)))
 
 (defun indium-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
