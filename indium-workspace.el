@@ -132,11 +132,18 @@ If no file is found, return nil."
 
 (defun indium-workspace-make-url (file)
   "Return the url associated with the local FILE."
-  (or (indium-workspace--make-url-using-file-protocol file)
+  (or (indium-workspace--make-url-using-file-path file)
+      (indium-workspace--make-url-using-file-protocol file)
       (indium-workspace--make-url-using-workspace file)))
 
+(defun indium-workspace--make-url-using-file-path (file)
+  "When using nodejs, the path of FILE should be used directly."
+  (when (map-elt indium-connection 'nodejs)
+    file))
+
 (defun indium-workspace--make-url-using-file-protocol (file)
-  "If the current connection use the file protocol, return FILE."
+  "Return a url using the \"file://\" protocol for FILE.
+If the current connection doesn't use the file protocol, return nil."
   (when (indium-workspace--file-protocol-p)
     (format "file://%s" file)))
 

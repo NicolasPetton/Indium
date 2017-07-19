@@ -100,7 +100,7 @@ Evaluate CALLBACK on the filtered candidates."
 
 The breakpoint is set at LOCATION.  When CALLBACK is
 non-nil, evaluate it with the breakpoint's location and id."
-  (let ((url (indium-location-url location))
+  (let ((url (indium-workspace-make-url (indium-location-file location)))
         (condition (or condition "")))
     (unless url
       (user-error "No URL associated with the current buffer.  Setup an Indium workspace first"))

@@ -147,7 +147,14 @@
     (with-indium-connection  '((url . "http://localhost:9229/foo/bar"))
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
-          :to-equal "http://localhost:9229/js/app.js")))))
+		:to-equal "http://localhost:9229/js/app.js"))))
+
+  (it "should use the file path if the connection uses nodejs when computing urls"
+    (with-indium-connection  '((nodejs . t))
+      (assess-with-filesystem indium-workspace--test-fs
+	(let ((file (expand-file-name "js/app.js")))
+	  (expect (indium-workspace-make-url file)
+		  :to-equal (expand-file-name "js/app.js")))))))
 
 (describe "File protocol"
   (it "can lookup files using the file:// protocol"
