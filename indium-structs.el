@@ -20,7 +20,17 @@
 
 ;;; Commentary:
 
+;; This files defines all objects used in Indium as cl-structs.
 ;;
+;; Backends should make instances of the structs defined in this file from data
+;; they receive.
+;;
+;; `indium-script' represents a JavaScript file parsed by the runtime.  It can
+;; be uniquely identified with its `id', and points to a `url'.
+;;
+;; `indium-location' represents a location to a file.  `indium-script.el'.
+;;
+;; `indium-frame' represents a call frame in the context of debugging.
 
 ;;; Code:
 
