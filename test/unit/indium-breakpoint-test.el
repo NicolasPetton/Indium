@@ -45,11 +45,12 @@
     (spy-on #'indium-breakpoint-add)
     (with-js2-buffer "let a = 1;"
       (goto-char (point-min))
-      (indium-breakpoint-add "old condition")
+      (indium-breakpoint-add 'position "old condition")
       (indium-breakpoint-edit-condition)
       (expect #'read-from-minibuffer :to-have-been-called)
       (expect #'indium-breakpoint-remove :to-have-been-called)
-      (expect #'indium-breakpoint-add :to-have-been-called-with "new condition"))))
+      ;; called with nil because no valid position could be generated
+      (expect #'indium-breakpoint-add :to-have-been-called-with nil "new condition"))))
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"

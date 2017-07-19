@@ -108,6 +108,7 @@ non-nil, evaluate it with the breakpoint's location and id."
      `((method . "Debugger.setBreakpointByUrl")
        (params . ((url . ,url)
                   (lineNumber . ,(indium-location-line location))
+		  (columnNumber . ,(indium-location-column location))
                   (condition . ,condition))))
      (lambda (response)
        (let* ((breakpoint (map-elt response 'result))

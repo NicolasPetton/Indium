@@ -23,23 +23,46 @@
 ;;; Code:
 
 (require 'buttercup)
+(require 'assess)
 (require 'indium-script)
+
+(defvar indium-script--test-fs
+  '(".indium"
+    ("js" ("foo.js" "foo.js.map" "bar.js")))
+  "Fake filesystem used in script tests.")
 
 (describe "Looking up scripts"
   (it "should be able to retrieve parsed scripts url"
     (with-fake-indium-connection
-     (indium-script-add-script-parsed "1" "foo")
-     (expect (indium-script-url (indium-script-find-by-id "1")) :to-equal "foo")))
+      (indium-script-add-script-parsed "1" "foo")
+      (expect (indium-script-url (indium-script-find-by-id "1")) :to-equal "foo")))
 
   (it "should be able to retrieve parsed scripts sourcemap url"
     (with-fake-indium-connection
-     (indium-script-add-script-parsed "1" "foo" "foo-map")
-     (expect (indium-script-sourcemap-url (indium-script-find-by-id "1")) :to-equal "foo-map")))
+      (indium-script-add-script-parsed "1" "foo" "foo-map")
+      (expect (indium-script-sourcemap-url (indium-script-find-by-id "1")) :to-equal "foo-map")))
 
   (it "should be able to retrieve parsed scripts ids"
     (with-fake-indium-connection
-     (indium-script-add-script-parsed "1" "foo")
-     (expect (indium-script-id (indium-script-find-from-url "foo")) :to-equal "1"))))
+      (indium-script-add-script-parsed "1" "foo")
+      (expect (indium-script-id (indium-script-find-from-url "foo")) :to-equal "1")))
+
+  (it "should be able to return all scripts with a sourcemap"
+    (with-fake-indium-connection
+      (indium-script-add-script-parsed "1" "foo")
+      (indium-script-add-script-parsed "2" "bar" "bar.map")
+      (expect (seq-map #'indium-script-id
+		       (indium-script-all-scripts-with-sourcemap))
+	      :to-equal '("2"))))
+
+  (it "should be able to find the sourcemap file for a script"
+    (assess-with-filesystem indium-script--test-fs
+      (with-fake-indium-connection
+	(indium-script-add-script-parsed "1" "http://localhost/js/foo.js" "foo.js.map")
+	(spy-on 'indium-repl-get-buffer :and-return-value (find-file-noselect (expand-file-name ".")))
+	(let ((script (indium-script-find-by-id "1")))
+	  (expect (indium-script-sourcemap-file script)
+		  :to-equal (expand-file-name "js/foo.js.map")))))))
 
 (provide 'indium-script-test)
 ;;; indium-script-test.el ends here

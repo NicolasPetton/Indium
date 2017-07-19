@@ -30,21 +30,20 @@
 
 (require 'indium-backend)
 (require 'indium-faces)
+(require 'indium-script)
 
-(defun indium-breakpoint-add (&optional condition)
-  "Add a breakpoint at point.
+(defun indium-breakpoint-add (location &optional condition)
+  "Add a breakpoint at LOCATION.
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (let ((ov (indium-breakpoint--put-icon condition))
-	(location (make-indium-location :file buffer-file-name
-					:line (1- (line-number-at-pos)))))
+  (let ((ov (indium-breakpoint--put-icon condition)))
     (when indium-connection
       (indium-backend-add-breakpoint (indium-backend)
 				     location
-                                     (lambda (id)
-                                       (indium-breakpoint-added id ov))
-                                     condition))))
+				     (lambda (id)
+				       (indium-breakpoint-added id ov))
+				     condition))))
 
 (defun indium-breakpoint-edit-condition ()
   "Edit condition of breakpoint at point."
@@ -58,7 +57,8 @@ CONDITION is true."
                           new-condition)))
     (map-put breakpoint 'condition new-condition)
     (indium-breakpoint-remove)
-    (indium-breakpoint-add new-condition)))
+    (indium-breakpoint-add (indium-script-generated-location-at-point)
+			   new-condition)))
 
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
@@ -112,7 +112,8 @@ This function is used when reconnecting to a new connection."
               (let ((condition (overlay-get ov 'indium-breakpoint-condition))
                     (start (overlay-start ov)))
                 (goto-char start)
-                (indium-breakpoint-add condition)))))))))
+                (indium-breakpoint-add (indium-script-generated-location-at-point)
+				       condition)))))))))
 
 (defun indium-breakpoint--put-icon (&optional condition)
   "Add a breakpoint icon on the current line.
