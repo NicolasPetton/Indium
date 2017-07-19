@@ -48,6 +48,8 @@ You need to first make sure that Indium is set up correctly to use local files
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
 Indium debugger pops up (see :ref:`debugger`).
 
+Since Indium 0.7, breakpoints are supported in source files with an associated sourcemap, see :ref:`sourcemaps`.
+
 .. Note:: Breakpoints are persistent: if the connection is closed, when a new
           connection is made Indium will attempt to add back all breakpoints.
 
