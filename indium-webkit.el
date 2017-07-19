@@ -39,6 +39,7 @@
 (require 'indium-repl)
 (require 'indium-debugger)
 (require 'indium-workspace)
+(require 'indium-structs)
 (require 'indium-script)
 
 (defvar indium-webkit-cache-disabled nil
@@ -642,7 +643,7 @@ RESULT should be a reference to a remote object."
 	      :scope-chain (indium-webkit--scope-chain frame)
 	      :location (indium-webkit--convert-from-webkit-location (map-elt frame 'location))
 	      :type (map-elt frame 'type)
-	      :script (indium-script-get (map-nested-elt frame '(location scriptId)))
+	      :script (indium-script-find-by-id (map-nested-elt frame '(location scriptId)))
 	      :function-name (map-elt frame 'functionName)
 	      :id (map-elt frame 'callFrameId)))
            list))

@@ -47,15 +47,6 @@
   :group 'indium-backend
   :type 'hook)
 
-(cl-defstruct indium-frame
-  (id nil :type string :read-only t)
-  ;; TODO: make a scope a struct as well.
-  (scope-chain nil :type list :read-only t)
-  (location nil :type indium-location :read-only t)
-  (script nil :type indium-script :read-only t)
-  (type nil :type string :read-only t)
-  (function-name nil :type string))
-
 (defvar indium-connection nil
   "Current connection to the browser tab.
 
@@ -94,6 +85,9 @@ The new connection is based on the current (usually closed) one."
   (unless indium-connection
     (user-error "No Indium connection to reconnect to"))
   (indium-backend-reconnect (indium-backend)))
+
+(declare-function indium-repl-get-buffer "indium-repl.el")
+(declare-function indium-debugger-unset-current-buffer "indium-debugger.el")
 
 (defun indium-backend-cleanup-buffers ()
   "Cleanup all Indium buffers."

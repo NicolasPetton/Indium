@@ -33,6 +33,7 @@
 
 (require 'seq)
 (require 'indium-backend)
+(require 'indium-structs)
 (require 'indium-workspace)
 (require 'indium-backend)
 (require 'sourcemap)
@@ -46,22 +47,6 @@
 (defcustom indium-script-enable-sourcemaps t
   "When non-nil, use sourcemaps when debugging."
   :type 'boolean)
-
-(cl-defstruct indium-script
-  (id nil :type string :read-only t)
-  (url nil :type string :read-only t)
-  (sourcemap-url nil :type string :read-only t))
-
-(cl-defstruct
-    (indium-location
-     (:constructor make-indium-location-from-script-id
-		   (&key (script-id "")
-			 line
-			 column
-			 &aux (file (indium-script-get-file (indium-script-get script-id))))))
-  (line 0 :type number :read-only t)
-  (column 0 :type number :read-only t)
-  (file nil :type string :read-only t))
 
 (defun indium-location-url (location)
   "Lookup the url associated with LOCATION's file."
@@ -78,8 +63,8 @@ If SOURCEMAP-URL is non-nil, add it to the parsed script."
 			       :url url
 			       :sourcemap-url sourcemap-url)))
 
-(defun indium-script-get (id)
-  "Return the location for the script with id ID.
+(defun indium-script-find-by-id (id)
+  "Return the parsed script with id ID in the current connection.
 If not such script was parsed, return nil."
   (map-elt (map-elt indium-connection 'scripts) (intern id)))
 
