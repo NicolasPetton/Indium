@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.6.1, Jul 19, 2017
+Indium 0.7.0, Jul 19, 2017
 
 Nicolas Petton
 
@@ -333,7 +333,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
+@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -357,7 +357,7 @@ M-x indium-connect-to-chrome
 @end example
 
 @node Using local files when debugging,,Chrome/Chromium,Getting up and running
-@anchor{setup local-files}@anchor{11}@anchor{setup using-local-files-when-debugging}@anchor{12}
+@anchor{setup using-local-files-when-debugging}@anchor{11}@anchor{setup local-files}@anchor{12}
 @subsection Using local files when debugging
 
 
@@ -407,7 +407,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{13}@anchor{repl repl}@anchor{14}@anchor{repl doc}@anchor{15}
+@anchor{repl repl}@anchor{13}@anchor{repl the-repl}@anchor{14}@anchor{repl doc}@anchor{15}
 @section The REPL
 
 
@@ -558,7 +558,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{1c}@anchor{code-evaluation doc}@anchor{1d}@anchor{code-evaluation interaction}@anchor{1e}
+@anchor{code-evaluation interaction}@anchor{1c}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1d}@anchor{code-evaluation doc}@anchor{1e}
 @section Interaction in JS buffers
 
 
@@ -612,7 +612,7 @@ Here's a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{14,,The REPL}).
+switch back to the REPL buffer (see @ref{13,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{21}
@@ -620,7 +620,7 @@ switch back to the REPL buffer (see @ref{14,,The REPL}).
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{11,,Using local files when debugging}).
+(see @ref{12,,Using local files when debugging}).
 
 
 @itemize -
@@ -688,7 +688,7 @@ Chrome 57 and earlier.  We strongly encourage you to use Chrome >=
 @end cartouche
 
 To enable live updates, make sure Indium is set up to use local files (see
-@ref{11,,Using local files when debugging}).
+@ref{12,,Using local files when debugging}).
 
 
 @itemize -
@@ -721,7 +721,7 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger the-stepping-debugger}@anchor{25}@anchor{debugger debugger}@anchor{22}@anchor{debugger doc}@anchor{26}
+@anchor{debugger debugger}@anchor{22}@anchor{debugger the-stepping-debugger}@anchor{25}@anchor{debugger doc}@anchor{26}
 @section The stepping debugger
 
 
@@ -731,14 +731,14 @@ window.addEventListener("patch", (event) => @{
 @end menu
 
 @node Using sourcemaps,,,The stepping debugger
-@anchor{debugger sourcemap}@anchor{23}@anchor{debugger using-sourcemaps}@anchor{27}
+@anchor{debugger sourcemaps}@anchor{23}@anchor{debugger using-sourcemaps}@anchor{27}
 @subsection Using sourcemaps
 
 
 Since version 0.7, Indium uses sourcemap files by default.
 
 For sourcemaps to work propertly with Chrome/Chromium, make sure that a
-workspace is correctly set (see @ref{11,,Using local files when debugging}).
+workspace is correctly set (see @ref{12,,Using local files when debugging}).
 
 If you wish to disable sourcemaps when debugging, set @code{indium-script-enable-sourcemaps} to @code{nil}.
 
@@ -750,13 +750,13 @@ supported, inlined sourcemaps are not yet supported.
 @end cartouche
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector inspector}@anchor{17}@anchor{inspector doc}@anchor{28}@anchor{inspector the-inspector}@anchor{29}
+@anchor{inspector the-inspector}@anchor{28}@anchor{inspector inspector}@anchor{17}@anchor{inspector doc}@anchor{29}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{14,,The REPL}), the debugger (see @ref{22,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1e,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{13,,The REPL}), the debugger (see @ref{22,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{1c,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -830,7 +830,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,,The inspector,Table of contents
-@anchor{network id1}@anchor{2b}@anchor{network doc}@anchor{2c}@anchor{network network}@anchor{2d}
+@anchor{network id1}@anchor{2b}@anchor{network network}@anchor{2c}@anchor{network doc}@anchor{2d}
 @section Network
 
 
