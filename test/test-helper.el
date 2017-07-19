@@ -24,6 +24,9 @@
 
 ;;; Code:
 
+(require 'seq)
+(require 'map)
+
 (when (require 'undercover nil t)
   (setq undercover-force-coverage t)
   (undercover "*.el" (:exclude "run-lint.el" "test/*.el")))
@@ -35,7 +38,7 @@
     (print-coverage-report)))
 
 (defun print-coverage-report ()
-  (let* ((coverage (apply #'concatenate 'list
+  (let* ((coverage (apply #'seq-concatenate 'list
                           (seq-map (lambda (src)
                                      (let ((coverage (map-elt src 'coverage)))
                                        (seq-filter #'identity coverage)))
