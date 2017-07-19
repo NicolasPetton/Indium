@@ -21,13 +21,6 @@
 
 ;; Handle script source registration, script locations (with sourcemap support)
 ;; for the current indium connection.
-;;
-;; Scripts are structs indexed by id in the current Indium connection.  A script
-;; contain an `url' slot, and an optional `sourcemap-url' slot.
-;;
-;; A location is a struct with a `line' and `column' slot.  If a location points
-;; to a local file, it also contains a `file' slot.  Columns and lines start at
-;; 0.
 
 ;;; Code:
 

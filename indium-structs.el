@@ -25,10 +25,13 @@
 ;; Backends should make instances of the structs defined in this file from data
 ;; they receive.
 ;;
-;; `indium-script' represents a JavaScript file parsed by the runtime.  It can
-;; be uniquely identified with its `id', and points to a `url'.
+;; `indium-script' represents a JavaScript file parsed by the runtime.  Scripts
+;; are structs indexed by `id' in the current Indium connection.  A script contain
+;; an `url' slot, and an optional `sourcemap-url' slot.
 ;;
-;; `indium-location' represents a location to a file.  `indium-script.el'.
+;; `indium-location' represents a location (most often to a file).  A location
+;; is a struct with a `line' and `column' slot.  If a location points to a local
+;; file, it also contains a `file' slot.  Columns and lines start at 0.
 ;;
 ;; `indium-frame' represents a call frame in the context of debugging.
 
