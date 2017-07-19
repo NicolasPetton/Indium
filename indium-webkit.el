@@ -71,7 +71,8 @@
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
-  (let ((callFrameId (indium-frame-id (map-elt indium-connection 'current-frame))))
+  (let* ((current-frame (map-elt indium-connection 'current-frame))
+	 (callFrameId (and current-frame (indium-frame-id current-frame))))
     (indium-webkit--send-request
      `((method . ,(if callFrameId
                       "Debugger.evaluateOnCallFrame"
