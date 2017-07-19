@@ -49,8 +49,7 @@
       (indium-breakpoint-edit-condition)
       (expect #'read-from-minibuffer :to-have-been-called)
       (expect #'indium-breakpoint-remove :to-have-been-called)
-      ;; called with nil because no valid position could be generated
-      (expect #'indium-breakpoint-add :to-have-been-called-with nil "new condition"))))
+      (expect #'indium-breakpoint-add :to-have-been-called-with (make-indium-location) "new condition"))))
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"
