@@ -92,7 +92,7 @@ Return nil if no script can be found."
   (when-let ((sourcemap-url (indium-script-sourcemap-url script)))
     (not (seq-empty-p sourcemap-url))))
 
-(defun indium-script-get-frame-location (frame)
+(defun indium-script-get-frame-original-location (frame)
   "Return the location stack FRAME, possibly using sourcemaps."
   (let* ((script (indium-frame-script frame))
          (location (indium-frame-location frame)))

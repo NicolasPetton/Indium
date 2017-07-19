@@ -197,7 +197,7 @@ remote source for that frame."
 (defun indium-debugger--goto-current-frame ()
   "Move the point to the current stack frame position in the current buffer."
   (let* ((frame (indium-debugger-current-frame))
-         (location (indium-script-get-frame-location frame)))
+         (location (indium-script-get-frame-original-location frame)))
     (goto-char (point-min))
     (forward-line (indium-location-line location))
     (forward-char (indium-location-column location)))
@@ -361,7 +361,7 @@ CALLBACK is evaluated with two arguments, the properties and SCOPE."
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let* ((location (indium-script-get-frame-location (indium-debugger-current-frame)))
+  (let* ((location (indium-script-get-frame-original-location (indium-debugger-current-frame)))
 	 (buf (if-let ((file (indium-location-file location)))
                  (find-file file)
                (get-buffer-create (indium-debugger--buffer-name-no-file)))))
