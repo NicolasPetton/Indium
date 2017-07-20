@@ -12,7 +12,6 @@
  (depends-on "undercover")
  (depends-on "buttercup")
  (depends-on "seq")
- (depends-on "map")
  (depends-on "js2-mode")
  (depends-on "assess")
  (depends-on "exec-path-from-shell"))
