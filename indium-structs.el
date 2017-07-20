@@ -40,6 +40,80 @@
 (declare-function indium-script-get-file "indium-script.el")
 (declare-function indium-script-find-by-id "indium-script.el")
 
+(defmacro when-indium-connected (&rest body)
+  "Evaluate BODY if there is a current Indium connection."
+  (declare (indent 0))
+  `(when indium-current-connection
+     ,@body))
+
+(defmacro unless-indium-connected (&rest body)
+  "Evalute BODY unless there is a current Indium connection."
+  (declare (indent 0))
+  `(unless indium-current-connection
+     ,@body))
+
+(defvar indium-current-connection nil
+  "Current connection to the browser tab.")
+
+(cl-defstruct indium-connection
+  (backend nil :type symbol :read-only t)
+  (url nil :type string :read-only t)
+  (callbacks (make-hash-table) :type hash-table)
+  (scripts (make-hash-table) :type hash-table)
+  (breakpoints (make-hash-table) :type hash-table)
+  (frames nil :type list)
+  (current-frame nil :type indium-frame)
+  ;; extra properties that can be added by the backend
+  (props (make-hash-table) :type hash-table))
+
+(defun indium-current-connection-backend ()
+  "Return the backend of the current connection if any."
+  (when-indium-connected
+    (indium-connection-backend indium-current-connection)))
+
+(defun indium-current-connection-url ()
+  "Return the url of the current connection if any."
+  (when-indium-connected
+   (indium-connection-url indium-current-connection)))
+
+(defun indium-current-connection-callbacks ()
+  "Return the callbacks of the current connection if any."
+  (when-indium-connected
+    (indium-connection-callbacks indium-current-connection)))
+
+(defun indium-current-connection-scripts ()
+  "Return the scripts of the current connection if any."
+  (when-indium-connected
+    (indium-connection-scripts indium-current-connection)))
+
+(defun indium-current-connection-breakpoints ()
+  "Return the breakpoints of the current connection if any."
+  (when-indium-connected
+    (indium-connection-breakpoints indium-current-connection)))
+
+(defun indium-current-connection-props ()
+  "Return the props of the current connection if any."
+  (when-indium-connected
+    (indium-connection-props indium-current-connection)))
+
+(defun indium-current-connection-frames ()
+  "Return the frames of the current connection if any."
+  (when-indium-connected
+    (indium-connection-frames indium-current-connection)))
+
+(cl-defmethod (setf indium-current-connection-frames) (frames)
+  (when-indium-connected
+    (setf (indium-connection-frames indium-current-connection) frames)))
+
+(defun indium-current-connection-current-frame ()
+  "Return the current frame of the current connection if any."
+  (when-indium-connected
+    (indium-connection-current-frame indium-current-connection)))
+
+(cl-defmethod (setf indium-current-connection-current-frame) (frame)
+  (when-indium-connected
+    (setf (indium-connection-current-frame indium-current-connection) frame)))
+
 (cl-defstruct indium-script
   (id nil :type string :read-only t)
   (url nil :type string :read-only t)

@@ -23,12 +23,15 @@
 ;; Generic backend implementation.
 
 ;; Backends should define a new backend symbol using `indium-register-backend'.
+;; Once a connection to a JavaScript runtime is established by the backend, it
+;; should set `indium-current-connection'.
 
 ;;; Code:
 
 (require 'map)
 (require 'seq)
 (require 'indium-debugger-litable)
+(eval-and-compile (require 'indium-structs))
 
 (declare 'indium-debugger-unset-current-buffer)
 
@@ -47,18 +50,7 @@
   :group 'indium-backend
   :type 'hook)
 
-(defvar indium-current-connection nil
-  "Current connection to the browser tab.
-
-A connection should be an alist with the following required keys:
-`backend' and `url'.  Other backend-specific keys might be used
-by backends.")
-
 (defvar indium-backends nil "List of registered backends.")
-
-(defun indium-backend ()
-  "Return the backend for the current connection."
-  (map-elt indium-current-connection 'backend))
 
 (defun indium-register-backend (backend)
   "Register a new BACKEND.
@@ -69,12 +61,12 @@ BACKEND should be a symbol."
   "Close the current connection and kill its REPL buffer if any.
 When called interactively, prompt for a confirmation first."
   (interactive)
-  (unless indium-current-connection
+  (unless-indium-connected
     (user-error "No active connection to close"))
   (when (or (not (called-interactively-p 'interactive))
             (y-or-n-p (format "Do you really want to close the connection to %s ? "
-                              (map-elt indium-current-connection 'url))))
-    (indium-backend-close-connection (indium-backend))
+                              (indium-current-connection-url))))
+    (indium-backend-close-connection (indium-current-connection-backend))
     (indium-backend-cleanup-buffers)
     (setq indium-current-connection nil)))
 
@@ -82,9 +74,9 @@ When called interactively, prompt for a confirmation first."
   "Try to re-establish a connection.
 The new connection is based on the current (usually closed) one."
   (interactive)
-  (unless indium-current-connection
+  (unless-indium-connected
     (user-error "No Indium connection to reconnect to"))
-  (indium-backend-reconnect (indium-backend)))
+  (indium-backend-reconnect (indium-current-connection-backend)))
 
 (declare-function indium-repl-get-buffer "indium-repl.el")
 (declare-function indium-debugger-unset-current-buffer "indium-debugger.el")
@@ -98,8 +90,6 @@ The new connection is based on the current (usually closed) one."
            (buffer-list))
   (when-let ((buf (indium-repl-get-buffer)))
     (kill-buffer buf)))
-
-;;; indium-connection methods
 
 (cl-defgeneric indium-backend-active-connection-p (_backend)
   "Return non-nil if the current connection is active."
@@ -150,7 +140,7 @@ performed.")
   "Remove all breakpoints from BUFFER."
   (with-current-buffer buffer
     (seq-do (lambda (brk)
-              (indium-backend-remove-breakpoint (indium-backend)
+              (indium-backend-remove-breakpoint (indium-current-connection-backend)
                                                 (map-elt brk 'id)))
             (indium-backend-get-breakpoints-in-file buffer-file-name))))
 
@@ -160,23 +150,20 @@ performed.")
 Breakpoints are registered locally in the current connection so
 that if a buffer later visits FILE with `indium-interaction-mode'
 turned on, the breakpoint can be added back to the buffer."
-  (when (and indium-current-connection
-             (null (map-elt indium-current-connection 'breakpoints)))
-    (map-put indium-current-connection 'breakpoints (make-hash-table)))
   (let ((breakpoint `((line . ,line)
                       (file . ,file)
                       (condition . ,condition))))
-    (map-put (map-elt indium-current-connection 'breakpoints) id breakpoint)))
+    (map-put (indium-current-connection-breakpoints) id breakpoint)))
 
 (defun indium-backend-unregister-breakpoint (id)
   "Remove the breakpoint with ID from the current connection."
-  (map-delete (map-elt indium-current-connection 'breakpoints) id))
+  (map-delete (indium-current-connection-breakpoints) id))
 
 (defun indium-backend-get-breakpoints ()
   "Return all breakpoints in the current connection.
 A breakpoint is an alist with the keys `id', `file', `line' and
 `condition'."
-  (let ((breakpoints (map-elt indium-current-connection 'breakpoints)))
+  (let ((breakpoints (indium-current-connection-breakpoints)))
     (map-keys-apply (lambda (key)
                       `((id . ,key)
                         (file . ,(map-nested-elt breakpoints `(,key file)))

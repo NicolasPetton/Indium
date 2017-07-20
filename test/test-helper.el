@@ -82,7 +82,7 @@ a temporary file, which is removed afterwards."
 (defmacro with-fake-indium-connection (&rest body)
   "Evaluate BODY with an indium connection with a fake backend."
   (declare (indent 0))
-  `(with-indium-connection '((backend . fake))
+  `(with-indium-connection (make-indium-connection :backend 'fake)
      ,@body))
 
 (defmacro with-nodejs-connection (&rest body)

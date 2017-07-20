@@ -21,6 +21,8 @@
 
 ;;; Code:
 
+(require 'map)
+
 (require 'buttercup)
 (require 'assess)
 (require 'indium-workspace)
@@ -127,30 +129,32 @@
 
 (describe "Making workspace urls from file names"
   (it "cannot make a url when no workspace is set"
-    (with-indium-connection '((url . "http://localhost:9229"))
+    (with-indium-connection (make-indium-connection :url "http://localhost:9229")
       (expect (indium-workspace-make-url "js/app.js")
         :to-be nil)))
 
   (it "can make workspace urls"
-    (with-indium-connection '((url . "http://localhost:9229"))
+    (with-indium-connection (make-indium-connection :url "http://localhost:9229")
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
           :to-equal "http://localhost:9229/js/app.js"))))
 
   (it "should strip query strings from computing urls"
-    (with-indium-connection '((url . "http://localhost:9229?foo=bar"))
+    (with-indium-connection (make-indium-connection :url "http://localhost:9229?foo=bar")
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
           :to-equal "http://localhost:9229/js/app.js"))))
 
   (it "should strip paths based on the .indium marker when computing urls"
-    (with-indium-connection  '((url . "http://localhost:9229/foo/bar"))
+    (with-indium-connection (make-indium-connection :url "http://localhost:9229/foo/bar")
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
 		:to-equal "http://localhost:9229/js/app.js"))))
 
   (it "should use the file path if the connection uses nodejs when computing urls"
-    (with-indium-connection  '((nodejs . t))
+    (with-indium-connection (make-indium-connection)
+      (map-put (indium-current-connection-props)
+	       'nodejs t)
       (assess-with-filesystem indium-workspace--test-fs
 	(let ((file (expand-file-name "js/app.js")))
 	  (expect (indium-workspace-make-url file)
@@ -159,7 +163,7 @@
 (describe "File protocol"
   (it "can lookup files using the file:// protocol"
     (assess-with-filesystem indium-workspace--test-fs
-      (with-indium-connection  '((url . "file:///foo/bar/index.html"))
+      (with-indium-connection (make-indium-connection :url "file:///foo/bar/index.html")
         (let* ((file (expand-file-name "js/app.js"))
                (url (format "file://%s" file)))
           (expect (indium-workspace-lookup-file url)
@@ -167,7 +171,7 @@
 
   (it "can make a url when using the file protocol"
     (assess-with-filesystem indium-workspace--test-fs
-      (with-indium-connection  '((url . "file:///foo/bar/index.html"))
+      (with-indium-connection (make-indium-connection :url "file:///foo/bar/index.html")
        (let* ((file (expand-file-name "js/app.js")))
          (expect (indium-workspace-make-url file)
            :to-equal (format "file://%s" file)))))))

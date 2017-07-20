@@ -29,6 +29,7 @@
 
 (require 'easymenu)
 
+(require 'indium-structs)
 (require 'indium-inspector)
 (require 'indium-repl)
 (require 'indium-interaction)
@@ -130,7 +131,7 @@ Unset the debugging context and turn off indium-debugger-mode."
       (indium-debugger-unset-current-buffer)
       (indium-debugger-litable-unset-buffer)))
     (let ((locals-buffer (indium-debugger-locals-get-buffer))
-        (frames-buffer (indium-debugger-frames-get-buffer)))
+	  (frames-buffer (indium-debugger-frames-get-buffer)))
     (when locals-buffer (kill-buffer locals-buffer))
     (when frames-buffer (kill-buffer frames-buffer))))
 
@@ -147,16 +148,17 @@ Unset the debugging context and turn off indium-debugger-mode."
 (defun indium-debugger--jump-to-frame (direction)
   "Jump to the next frame in DIRECTION.
 DIRECTION is `forward' or `backward' (in the frame list)."
-  (let* ((current-position (seq-position (indium-debugger-frames) (indium-debugger-current-frame)))
+  (let* ((current-position (seq-position (indium-current-connection-frames)
+					 (indium-current-connection-current-frame)))
          (step (pcase direction
                  (`forward -1)
                  (`backward 1)))
          (position (+ current-position step)))
-    (when (>= position (seq-length (indium-debugger-frames)))
+    (when (>= position (seq-length (indium-current-connection-frames)))
       (user-error "End of frames"))
     (when (< position 0)
       (user-error "Beginning of frames"))
-    (indium-debugger-select-frame (seq-elt (indium-debugger-frames) position))))
+    (indium-debugger-select-frame (seq-elt (indium-current-connection-frames) position))))
 
 (defun indium-debugger-select-frame (frame)
   "Make FRAME the current debugged stack frame.
@@ -173,7 +175,7 @@ remote source for that frame."
   (if buffer-file-name
       (indium-debugger-setup-buffer-with-file)
     (indium-backend-get-script-source
-       (indium-backend)
+       (indium-current-connection-backend)
        frame
        (lambda (source)
          (indium-debugger-setup-buffer-with-source
@@ -196,7 +198,7 @@ remote source for that frame."
 
 (defun indium-debugger--goto-current-frame ()
   "Move the point to the current stack frame position in the current buffer."
-  (let* ((frame (indium-debugger-current-frame))
+  (let* ((frame (indium-current-connection-current-frame))
          (location (indium-script-get-frame-original-location frame)))
     (goto-char (point-min))
     (forward-line (indium-location-line location))
@@ -269,33 +271,33 @@ remote source for that frame."
 
 (defun indium-debugger-top-frame ()
   "Return the top frame of the current debugging context."
-  (car (indium-debugger-frames)))
+  (car (indium-current-connection-frames)))
 
 (defun indium-debugger-step-into ()
   "Request a step into."
   (interactive)
-  (indium-backend-step-into (indium-backend)))
+  (indium-backend-step-into (indium-current-connection-backend)))
 
 (defun indium-debugger-step-over ()
   "Request a step over."
   (interactive)
-  (indium-backend-step-over (indium-backend)))
+  (indium-backend-step-over (indium-current-connection-backend)))
 
 (defun indium-debugger-step-out ()
   "Request a step out."
   (interactive)
-  (indium-backend-step-out (indium-backend)))
+  (indium-backend-step-out (indium-current-connection-backend)))
 
 (defun indium-debugger-resume ()
   "Request the runtime to resume the execution."
   (interactive)
-  (indium-backend-resume (indium-backend)))
+  (indium-backend-resume (indium-current-connection-backend)))
 
 (defun indium-debugger-here ()
   "Request the runtime to resume the execution until the point.
 When the position of the point is reached, pause the execution."
   (interactive)
-  (indium-backend-continue-to-location (indium-backend)
+  (indium-backend-continue-to-location (indium-current-connection-backend)
 				       (make-indium-location
 					:line (1- (line-number-at-pos))
 					:file buffer-file-name)))
@@ -304,7 +306,7 @@ When the position of the point is reached, pause the execution."
   "Prompt for EXPRESSION to be evaluated.
 Evaluation happens in the context of the current call frame."
   (interactive "sEvaluate on frame: ")
-  (indium-backend-evaluate (indium-backend)
+  (indium-backend-evaluate (indium-current-connection-backend)
 			   expression
 			   (lambda (value _error)
 			     (message "%s" (indium-render-value-to-string value)))))
@@ -313,29 +315,21 @@ Evaluation happens in the context of the current call frame."
 
 (defun indium-debugger-set-frames (frames)
   "Set the debugger FRAMES."
-  (map-put indium-current-connection 'frames frames)
+  (setf (indium-current-connection-frames) frames)
   (indium-debugger-set-current-frame (car frames)))
 
 (defun indium-debugger-set-current-frame (frame)
   "Set FRAME as the current frame."
-  (map-put indium-current-connection 'current-frame frame))
+  (setf (indium-current-connection-current-frame) frame))
 
 (defun indium-debugger-unset-frames ()
   "Remove debugging information from the current connection."
-  (setq indium-current-connection (map-delete indium-current-connection 'frames))
-  (setq indium-current-connection (map-delete indium-current-connection 'current-frame)))
-
-(defun indium-debugger-current-frame ()
-  "Return the current debugged stack frame."
-  (map-elt indium-current-connection 'current-frame))
-
-(defun indium-debugger-frames ()
-  "Return all frames in the current stack."
-  (map-elt indium-current-connection 'frames))
+  (setf (indium-current-connection-frames) nil)
+  (setf (indium-current-connection-current-frame) nil))
 
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
-  (indium-frame-scope-chain (indium-debugger-current-frame)))
+  (indium-frame-scope-chain (indium-current-connection-current-frame)))
 
 ;; TODO: move to backends?
 (defun indium-debugger-get-scopes-properties (scopes callback)
@@ -352,7 +346,7 @@ CALLBACK is evaluated with the result."
   "Request the properties of SCOPE and evaluate CALLBACK.
 CALLBACK is evaluated with two arguments, the properties and SCOPE."
   (indium-backend-get-properties
-   (indium-backend)
+   (indium-current-connection-backend)
    (map-nested-elt scope '(object objectid))
    (lambda (properties)
      (funcall callback properties scope))))
@@ -361,7 +355,7 @@ CALLBACK is evaluated with two arguments, the properties and SCOPE."
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let* ((location (indium-script-get-frame-original-location (indium-debugger-current-frame)))
+  (let* ((location (indium-script-get-frame-original-location (indium-current-connection-current-frame)))
 	 (buf (if-let ((file (indium-location-file location)))
                  (find-file file)
                (get-buffer-create (indium-debugger--buffer-name-no-file)))))

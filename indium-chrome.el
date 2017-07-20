@@ -36,6 +36,8 @@
 (require 'indium-webkit)
 (require 'indium-workspace)
 
+(eval-and-compile (require 'indium-structs))
+
 (defgroup indium-chrome nil
   "Chrome interaction."
   :prefix "indium-chrome-"
@@ -96,7 +98,7 @@ Try a maximum of NUM-TRIES."
   (interactive)
   (when (or (null indium-current-connection)
             (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
-    (when indium-current-connection
+    (when-indium-connected
       (indium-quit))
     (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
           (port (read-from-minibuffer "Port: " (number-to-string indium-chrome-port))))

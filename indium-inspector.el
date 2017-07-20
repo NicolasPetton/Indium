@@ -39,7 +39,7 @@
   "Open an inspector on the remote object REFERENCE."
   (let ((objectid (map-elt reference 'objectid)))
     (if objectid
-        (indium-backend-get-properties (indium-backend)
+        (indium-backend-get-properties (indium-current-connection-backend)
                                      objectid
                                      (lambda (properties)
                                        (indium-inspector--inspect-properties properties reference)))

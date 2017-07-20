@@ -111,8 +111,8 @@ Doing this will also close all inspectors and debugger buffers
 connected to the process.
 
 ")
-   (map-elt indium-current-connection 'backend)
-   (map-elt indium-current-connection 'url)))
+   (indium-current-connection-backend)
+   (indium-current-connection-url)))
 
 
 (defun indium-repl-setup-markers ()
@@ -163,10 +163,10 @@ connected to the process.
 (defun indium-repl-inspect ()
   "Inspect the result of the evaluation of the input at point."
   (interactive)
-  (indium-backend-evaluate (indium-backend)
-                         (indium-repl--input-content)
-                         (lambda (result _error)
-                           (indium-inspector-inspect result))))
+  (indium-backend-evaluate (indium-current-connection-backend)
+			   (indium-repl--input-content)
+			   (lambda (result _error)
+			     (indium-inspector-inspect result))))
 
 (defun indium-repl--input-content ()
   "Return the content of the current input."
@@ -181,7 +181,7 @@ connected to the process.
 (defun indium-repl-evaluate (string)
   "Evaluate STRING in the browser tab and emit the output."
   (push string indium-repl-history)
-  (indium-backend-evaluate (indium-backend) string #'indium-repl-emit-value)
+  (indium-backend-evaluate (indium-current-connection-backend) string #'indium-repl-emit-value)
   ;; move the output markers so that output is put after the current prompt
   (save-excursion
     (goto-char (point-max))
@@ -366,7 +366,7 @@ Evaluate CALLBACK with the completion candidates."
                            (max bol prev-delimiter)
                          bol))
                      (point))))
-    (indium-backend-get-completions (indium-backend) expression arg callback)))
+    (indium-backend-get-completions (indium-current-connection-backend) expression arg callback)))
 
 (defun indium-repl--complete-or-indent ()
   "Complete or indent at point."

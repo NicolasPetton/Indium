@@ -26,6 +26,7 @@
 
 (require 'indium-interaction)
 (require 'indium-repl)
+(eval-and-compile (require 'indium-structs))
 
 (defun indium-scratch ()
   "Pop to the scratch buffer.
@@ -39,7 +40,7 @@ one first."
 If no buffer exists, create one.
 
 If there is no current connection, throw an error."
-  (unless indium-current-connection
+  (unless-indium-connected
     (user-error "No current connection"))
   (let* ((bufname (indium-scratch-buffer-name))
          (buf (get-buffer bufname)))

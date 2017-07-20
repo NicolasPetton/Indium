@@ -30,8 +30,8 @@
       (let ((frames '(first second))
             (current-frame 'first))
         (indium-debugger-set-frames frames)
-        (expect (indium-debugger-frames) :to-be frames)
-        (expect (indium-debugger-current-frame) :to-be current-frame))))
+        (expect (indium-current-connection-frames) :to-be frames)
+        (expect (indium-current-connection-current-frame) :to-be current-frame))))
 
   (it "can set the current frame"
     ;; We're not interested in buffer setups
@@ -39,14 +39,14 @@
 
     (with-fake-indium-connection
       (indium-debugger-set-current-frame 'current)
-      (expect (indium-debugger-current-frame) :to-be 'current)))
+      (expect (indium-current-connection-current-frame) :to-be 'current)))
 
   (it "can unset the debugging frames"
     (with-fake-indium-connection
       (indium-debugger-set-frames '(first second))
       (indium-debugger-unset-frames)
-      (expect (indium-debugger-frames) :to-be nil)
-      (expect (indium-debugger-current-frame) :to-be nil))))
+      (expect (indium-current-connection-frames) :to-be nil)
+      (expect (indium-current-connection-current-frame) :to-be nil))))
 
 (describe "Jumping to the next/previous frame"
   (before-each
@@ -117,24 +117,24 @@
 
   (it "should call the backend when stepping into"
     (spy-on 'indium-backend-step-into)
-    (spy-on 'indium-backend :and-return-value 'backend)
+    (spy-on 'indium-current-connection-backend :and-return-value 'backend)
     (indium-debugger-step-into)
     (expect #'indium-backend-step-into :to-have-been-called-with 'backend))
 
   (it "should call the backend when stepping over"
     (spy-on 'indium-backend-step-over)
-    (spy-on 'indium-backend :and-return-value 'backend)
+    (spy-on 'indium-current-connection-backend :and-return-value 'backend)
     (indium-debugger-step-over)
     (expect #'indium-backend-step-over :to-have-been-called-with 'backend))
 
   (it "should call the backend when stepping out"
     (spy-on 'indium-backend-step-out)
-    (spy-on 'indium-backend :and-return-value 'backend)
+    (spy-on 'indium-current-connection-backend :and-return-value 'backend)
     (indium-debugger-step-out)
     (expect #'indium-backend-step-out :to-have-been-called-with 'backend))
   (it "should call the backend when resuming execution"
     (spy-on 'indium-backend-resume)
-    (spy-on 'indium-backend :and-return-value 'backend)
+    (spy-on 'indium-current-connection-backend :and-return-value 'backend)
     (indium-debugger-resume)
     (expect #'indium-backend-resume :to-have-been-called-with 'backend)))
 

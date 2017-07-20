@@ -25,32 +25,29 @@
 
 (require 'indium-render)
 (require 'indium-script)
+(require 'indium-structs)
 
-(declare 'indium-debugger-frames)
-(declare 'indium-debugger-current-frame)
-(declare 'indium-debugger-select-frame)
+(declare-function indium-debugger-select-frame "indium-debugger.el")
 
 (defun indium-debugger-stack-frames ()
   "List the stack frames in a separate buffer and switch to it."
   (interactive)
   (let ((buf (indium-debugger-frames-get-buffer-create))
-        (frames (indium-debugger-frames))
-        (current-frame (indium-debugger-current-frame))
         (inhibit-read-only t))
     (with-current-buffer buf
-     (indium-debugger-frames-list frames current-frame))
+      (indium-debugger-frames-list (indium-current-connection-frames)
+				   (indium-current-connection-current-frame)))
     (pop-to-buffer buf)))
 
 (defun indium-debugger-frames-maybe-refresh ()
   "When a buffer listing the stack frames is open, refresh it."
   (interactive)
   (let ((buf (indium-debugger-frames-get-buffer))
-        (frames (indium-debugger-frames))
-        (current-frame (indium-debugger-current-frame))
         (inhibit-read-only t))
     (when buf
       (with-current-buffer buf
-        (indium-debugger-frames-list frames current-frame)))))
+        (indium-debugger-frames-list (indium-current-connection-frames)
+				     (indium-current-connection-current-frame))))))
 
 (defun indium-debugger-frames-list (frames &optional current-frame)
   "Render the list of stack frames FRAMES.

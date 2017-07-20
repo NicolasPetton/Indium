@@ -58,7 +58,7 @@ When CALLBACK is non-nil, evaluate CALLBACK with the result.
 When called interactively, prompt the user for the string to be
 evaluated."
   (interactive "sEvaluate JavaScript: ")
-  (indium-backend-evaluate (indium-backend) string callback))
+  (indium-backend-evaluate (indium-current-connection-backend) string callback))
 
 (defun indium-eval-buffer ()
   "Evaluate the accessible portion of current buffer."
@@ -100,7 +100,7 @@ If PRINT is non-nil, print the output into the current buffer."
   "Reload the page."
   (interactive)
   (indium-interaction--ensure-connection)
-  (indium-backend-evaluate (indium-backend) "window.location.reload()"))
+  (indium-backend-evaluate (indium-current-connection-backend) "window.location.reload()"))
 
 (defun indium-inspect-last-node ()
   "Evaluate and inspect the node before point."
@@ -153,13 +153,13 @@ If PRINT is non-nil, print the output into the current buffer."
 Breakpoints are not removed, but the runtime won't pause when
 hitting a breakpoint."
   (interactive)
-  (indium-backend-deactivate-breakpoints (indium-backend))
+  (indium-backend-deactivate-breakpoints (indium-current-connection-backend))
   (message "Breakpoints deactivated"))
 
 (defun indium-activate-breakpoints ()
   "Activate all breakpoints in all buffers."
   (interactive)
-  (indium-backend-activate-breakpoints (indium-backend))
+  (indium-backend-activate-breakpoints (indium-current-connection-backend))
   (message "Breakpoints activated"))
 
 (defun indium-list-breakpoints ()
@@ -219,7 +219,7 @@ hitting a breakpoint."
 
 (defun indium-interaction--ensure-connection ()
   "Signal an error if there is no indium connection."
-  (unless indium-current-connection
+  (unless-indium-connected
     (user-error "No Indium connection")))
 
 (defvar indium-interaction-mode-map
@@ -269,7 +269,7 @@ hitting a breakpoint."
 
 (defun indium-interaction-mode-on ()
   "Function to be evaluated when `indium-interaction-mode' is turned on."
-  (when indium-current-connection
+  (when-indium-connected
     (indium-breakpoint-add-breakpoints-to-buffer)))
 
 (defun indium-interaction-mode-off ()
@@ -287,7 +287,7 @@ hitting a breakpoint."
   "Update the script source of the backend based on the current buffer."
   (interactive)
   (when-let ((url (indium-workspace-make-url buffer-file-name)))
-    (indium-backend-set-script-source (indium-backend)
+    (indium-backend-set-script-source (indium-current-connection-backend)
                                       url
                                       (buffer-string)
                                       (lambda ()

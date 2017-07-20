@@ -32,12 +32,12 @@
       (expect (indium-backend-active-connection-p 'fake) :to-be-truthy)))
 
   (it "should not be active unless a websocket is open"
-    (with-indium-connection '((backend . webkit))
+    (with-indium-connection (make-indium-connection :backend 'webkit)
       (expect (indium-backend-active-connection-p 'webkit) :to-be nil))))
 
 (describe "Backend breakpoints"
   (it "can register breakpoints"
-    (with-indium-connection '((backend . fake))
+    (with-indium-connection (make-indium-connection :backend 'fake)
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
       (expect (indium-backend-get-breakpoints) :to-equal
               '(((id . a)
@@ -46,7 +46,7 @@
                  (condition . "cond"))))))
 
   (it "can get breakpoints in a file"
-    (with-indium-connection '((backend . fake))
+    (with-indium-connection (make-indium-connection :backend 'fake)
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond1")
       (indium-backend-register-breakpoint 'b 25 "foo.js" "cond2")
       (indium-backend-register-breakpoint 'c 3 "bar.js" "cond3")
@@ -61,7 +61,7 @@
                  (condition . "cond2"))))))
 
   (it "can get breakpoints in a file with line"
-    (with-indium-connection '((backend . fake))
+    (with-indium-connection (make-indium-connection :backend 'fake)
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond1")
       (indium-backend-register-breakpoint 'b 25 "foo.js" "cond2")
       (indium-backend-register-breakpoint 'c 3 "bar.js" "cond3")
@@ -72,7 +72,7 @@
                  (condition . "cond2"))))))
 
   (it "can get breakpoint from ID"
-    (with-indium-connection '((backend . fake))
+    (with-indium-connection (make-indium-connection :backend 'fake)
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
       (expect (indium-backend-get-breakpoint 'a) :to-equal
               '((id . a)
@@ -81,12 +81,12 @@
                 (condition . "cond")))))
 
   (it "get nil when no breakpoint found for ID"
-    (with-indium-connection '((backend . fake))
+    (with-indium-connection (make-indium-connection :backend 'fake)
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
       (expect (indium-backend-get-breakpoint 'b) :to-equal nil)))
 
   (it "can unregister breakpoints"
-    (with-indium-connection '((backend . fake))
+    (with-indium-connection (make-indium-connection :backend 'fake)
       (indium-backend-register-breakpoint 'a 12 "foo.js" "cond")
       (indium-backend-unregister-breakpoint 'a)
       (expect (indium-backend-get-breakpoints) :to-be nil))))

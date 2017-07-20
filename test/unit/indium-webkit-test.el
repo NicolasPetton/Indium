@@ -35,6 +35,13 @@
       (expect (indium-webkit--next-request-id) :to-be 3)
       (expect (indium-webkit--next-request-id) :to-be 4))))
 
+(describe "Webkit connection websocket"
+  (it "should be able to set a websocket"
+    (let ((conn (make-indium-connection)))
+      (setf (indium-connection-ws conn) 'foo)
+      (expect (indium-connection-ws conn)
+	      :to-be 'foo))))
+
 (describe "Webkit connection handling"
   (it "should be active if the websocket is open"
     (spy-on 'websocket-openp :and-return-value t)
@@ -42,13 +49,13 @@
       (expect (indium-backend-active-connection-p 'webkit) :to-be-truthy)))
 
   (it "should be inactive if the websocket is closed"
-    (let ((indium-current-connection '((backend . webkit))))
+    (let ((indium-current-connection (make-indium-connection :backend 'webkit)))
      (expect (indium-backend-active-connection-p 'webkit) :to-be nil)))
 
   (it "should close the socket when closing the connection"
     (spy-on 'websocket-close)
-    (with-indium-connection '((backend . webkit)
-                              (ws . ws))
+    (with-indium-connection (make-indium-connection :backend 'webkit)
+      (map-put (indium-current-connection-props) 'ws 'ws)
       (indium-backend-close-connection 'webkit)
       (expect #'websocket-close :to-have-been-called-with 'ws))))
 
@@ -70,9 +77,9 @@
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
     (spy-on 'indium-webkit--next-request-id :and-return-value 'id)
-    (with-indium-connection '((backend . webkit)
-                              (ws . ws))
-      (indium-webkit--send-request '((message ."message")))
+    (with-indium-connection (make-indium-connection :backend 'webkit)
+      (map-put (indium-current-connection-props) 'ws 'ws)
+      (indium-webkit--send-request '((message . "message")))
       (expect #'websocket-send-text :to-have-been-called-with
               'ws (json-encode '((id . id) (message . "message"))))))
 
@@ -80,10 +87,9 @@
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
     (spy-on 'indium-webkit--next-request-id :and-return-value 'id)
-    (with-indium-connection `((backend . webkit)
-                              (callbacks . ,(make-hash-table)))
+    (with-indium-connection (make-indium-connection :backend 'webkit)
       (indium-webkit--send-request '((message . "message")) 'callback)
-      (expect (map-elt (indium-webkit--callbacks) 'id) :to-equal 'callback))))
+      (expect (map-elt (indium-current-connection-callbacks) 'id) :to-equal 'callback))))
 
 (describe "Making completion expressions"
   (it "should return \"this\" if there is no property to complete"
@@ -110,7 +116,8 @@
 
   (it "calls Debugger.evaluateOnCallFrame when there is stack frame"
     (spy-on 'indium-webkit--send-request)
-    (with-indium-connection `((current-frame . ,(make-indium-frame :id 1)))
+    (with-indium-connection (make-indium-connection
+			     :current-frame (make-indium-frame :id 1))
       (indium-backend-evaluate 'webkit "foo")
       (expect #'indium-webkit--send-request :to-have-been-called-with
               '((method . "Debugger.evaluateOnCallFrame")

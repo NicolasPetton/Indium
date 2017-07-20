@@ -30,7 +30,8 @@
 
 (require 'indium-backend)
 (require 'indium-faces)
-(require 'indium-script)
+(eval-and-compile
+  (require 'indium-script))
 
 (defun indium-breakpoint-add (location &optional condition)
   "Add a breakpoint at LOCATION.
@@ -38,8 +39,8 @@
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
   (let ((ov (indium-breakpoint--put-icon condition)))
-    (when indium-current-connection
-      (indium-backend-add-breakpoint (indium-backend)
+    (when-indium-connected
+      (indium-backend-add-breakpoint (indium-current-connection-backend)
 				     location
 				     (lambda (id)
 				       (indium-breakpoint-added id ov))
@@ -63,8 +64,8 @@ CONDITION is true."
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
   (if-let ((id (indium-breakpoint-id-at-point)))
-      (when indium-current-connection
-        (indium-backend-remove-breakpoint (indium-backend) id)))
+      (when-indium-connected
+        (indium-backend-remove-breakpoint (indium-current-connection-backend) id)))
   (indium-breakpoint--remove-icon))
 
 (defun indium-breakpoint-remove-all ()
@@ -96,7 +97,7 @@ This function does no unset breakpoints,"
 
 (defun indium-breakpoint-update-breakpoints ()
   "Update all breakpoints for the current buffer in the backend."
-  (when indium-current-connection
+  (when-indium-connected
     (indium-backend-remove-all-breakpoints-from-buffer (current-buffer))
     (indium-breakpoint-restore-breakpoints)))
 
