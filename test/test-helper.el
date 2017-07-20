@@ -124,7 +124,7 @@ a temporary file, which is removed afterwards."
 Onece EXPRESSION has been sent for evaluation, sleep for 500ms to
 give time for the runtime to send a response."
   (insert expression)
-  (press-and-sleep-for "RET" 1))
+  (press-and-sleep-for "RET" 2))
 
 (defun press (keybinding)
   "Call interactively the command bound to KEYBINDING."

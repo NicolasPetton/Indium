@@ -57,7 +57,7 @@
     (with-repl-buffer
       (insert "console")
       (expect (indium-inspector-get-buffer) :to-be nil)
-      (press-and-sleep-for "C-c M-i" 1)
+      (press-and-sleep-for "C-c M-i" 2)
       (expect (indium-inspector-get-buffer) :not :to-be nil))))
 
 (provide 'indium-repl-integration-test)

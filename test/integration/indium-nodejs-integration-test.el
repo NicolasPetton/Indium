@@ -43,20 +43,20 @@
   (it "should be able to start a node process and connect to it"
     (expect indium-current-connection :to-be nil)
     (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 1)
+    (sleep-for 2)
     (expect indium-current-connection :not :to-be nil))
 
   (it "should create a REPL buffer upon connection"
     (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
     (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 1)
+    (sleep-for 2)
     (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil))
 
   (it "should run hooks when opening a connection"
     (spy-on 'foo)
     (add-hook 'indium-connection-open-hook #'foo)
     (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 1)
+    (sleep-for 2)
     (expect #'foo :to-have-been-called)))
 
 (provide 'indium-nodejs-integration-test)
