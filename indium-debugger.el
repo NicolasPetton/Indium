@@ -313,25 +313,25 @@ Evaluation happens in the context of the current call frame."
 
 (defun indium-debugger-set-frames (frames)
   "Set the debugger FRAMES."
-  (map-put indium-connection 'frames frames)
+  (map-put indium-current-connection 'frames frames)
   (indium-debugger-set-current-frame (car frames)))
 
 (defun indium-debugger-set-current-frame (frame)
   "Set FRAME as the current frame."
-  (map-put indium-connection 'current-frame frame))
+  (map-put indium-current-connection 'current-frame frame))
 
 (defun indium-debugger-unset-frames ()
   "Remove debugging information from the current connection."
-  (setq indium-connection (map-delete indium-connection 'frames))
-  (setq indium-connection (map-delete indium-connection 'current-frame)))
+  (setq indium-current-connection (map-delete indium-current-connection 'frames))
+  (setq indium-current-connection (map-delete indium-current-connection 'current-frame)))
 
 (defun indium-debugger-current-frame ()
   "Return the current debugged stack frame."
-  (map-elt indium-connection 'current-frame))
+  (map-elt indium-current-connection 'current-frame))
 
 (defun indium-debugger-frames ()
   "Return all frames in the current stack."
-  (map-elt indium-connection 'frames))
+  (map-elt indium-current-connection 'frames))
 
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."

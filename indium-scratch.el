@@ -39,7 +39,7 @@ one first."
 If no buffer exists, create one.
 
 If there is no current connection, throw an error."
-  (unless indium-connection
+  (unless indium-current-connection
     (user-error "No current connection"))
   (let* ((bufname (indium-scratch-buffer-name))
          (buf (get-buffer bufname)))

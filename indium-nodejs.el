@@ -72,9 +72,9 @@ When the process is ready, open an Indium connection on it."
 
 (defun indium-nodejs--connect (host port path)
   "Ask the user for a websocket url HOST:PORT/PATH and connects to it."
-  (when (or (null indium-connection)
+  (when (or (null indium-current-connection)
             (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
-    (when indium-connection
+    (when indium-current-connection
       (indium-quit))
     (let ((websocket-url (format "ws://%s:%s/%s" host port path))
           (url (format "file://%s" default-directory)))

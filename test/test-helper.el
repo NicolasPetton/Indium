@@ -74,9 +74,9 @@ a temporary file, which is removed afterwards."
        (ignore-errors (delete-file indium-workspace-file nil)))))
 
 (defmacro with-indium-connection (connection &rest body)
-  "Evaluate BODY with CONNECTION as the indium-connection."
+  "Evaluate BODY with CONNECTION as the indium-current-connection."
   (declare (indent 1))
-  `(let ((indium-connection ,connection))
+  `(let ((indium-current-connection ,connection))
      ,@body))
 
 (defmacro with-fake-indium-connection (&rest body)

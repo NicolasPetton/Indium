@@ -138,7 +138,7 @@ If no file is found, return nil."
 
 (defun indium-workspace--make-url-using-file-path (file)
   "When using nodejs, the path of FILE should be used directly."
-  (when (map-elt indium-connection 'nodejs)
+  (when (map-elt indium-current-connection 'nodejs)
     file))
 
 (defun indium-workspace--make-url-using-file-protocol (file)
@@ -151,14 +151,14 @@ If the current connection doesn't use the file protocol, return nil."
   "Return the url associated with the local FILE.
 The url is built using `indium-workspace-root'."
   (if-let ((root (indium-workspace-root)))
-      (let* ((url (indium-workspace--url-basepath (map-elt indium-connection 'url)))
+      (let* ((url (indium-workspace--url-basepath (map-elt indium-current-connection 'url)))
              (path (file-relative-name file root)))
         (setf (url-filename url) (indium-workspace--absolute-path path))
         (url-recreate-url url))))
 
 (defun indium-workspace--file-protocol-p ()
   "Return non-nil if the current connection use the file protocol."
-  (let ((url (url-generic-parse-url (map-elt indium-connection 'url))))
+  (let ((url (url-generic-parse-url (map-elt indium-current-connection 'url))))
     (string= (url-type url) "file")))
 
 (defun indium-workspace--absolute-path (path)

@@ -48,9 +48,9 @@
 (defun indium-script-add-script-parsed (id url &optional sourcemap-url)
   "Add a parsed script from the runtime with ID at URL.
 If SOURCEMAP-URL is non-nil, add it to the parsed script."
-  (unless (map-elt indium-connection 'scripts)
-    (map-put indium-connection 'scripts '()))
-  (map-put (map-elt indium-connection 'scripts)
+  (unless (map-elt indium-current-connection 'scripts)
+    (map-put indium-current-connection 'scripts '()))
+  (map-put (map-elt indium-current-connection 'scripts)
            (intern id)
 	   (make-indium-script :id id
 			       :url url
@@ -59,7 +59,7 @@ If SOURCEMAP-URL is non-nil, add it to the parsed script."
 (defun indium-script-find-by-id (id)
   "Return the parsed script with id ID in the current connection.
 If not such script was parsed, return nil."
-  (map-elt (map-elt indium-connection 'scripts) (intern id)))
+  (map-elt (map-elt indium-current-connection 'scripts) (intern id)))
 
 (defun indium-script-get-file (script)
   "Lookup the local file associated with SCRIPT.
@@ -73,7 +73,7 @@ Return nil if no script can be found."
             (map-apply (lambda (_id script)
                          (when (string= url (indium-script-url script))
                            script))
-                       (map-elt indium-connection 'scripts))))
+                       (map-elt indium-current-connection 'scripts))))
 
 (defun indium-script-find-from-file (file)
   "Lookup a script from a local FILE.
@@ -88,7 +88,7 @@ Return nil if no script can be found."
 (defun indium-script-all-scripts-with-sourcemap ()
   "Return all parsed scripts that contain a sourcemap."
   (seq-filter #'indium-script-has-sourcemap-p
-	      (map-values (map-elt indium-connection 'scripts))))
+	      (map-values (map-elt indium-current-connection 'scripts))))
 
 (defun indium-script-sourcemap-file (script)
   "Return the local sourcemap file associated with SCRIPT.

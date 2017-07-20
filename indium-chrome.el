@@ -94,9 +94,9 @@ Try a maximum of NUM-TRIES."
 (defun indium-connect-to-chrome ()
   "Open a connection to a webkit tab."
   (interactive)
-  (when (or (null indium-connection)
+  (when (or (null indium-current-connection)
             (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
-    (when indium-connection
+    (when indium-current-connection
       (indium-quit))
     (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
           (port (read-from-minibuffer "Port: " (number-to-string indium-chrome-port))))

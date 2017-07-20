@@ -111,8 +111,8 @@ Doing this will also close all inspectors and debugger buffers
 connected to the process.
 
 ")
-   (map-elt indium-connection 'backend)
-   (map-elt indium-connection 'url)))
+   (map-elt indium-current-connection 'backend)
+   (map-elt indium-current-connection 'url)))
 
 
 (defun indium-repl-setup-markers ()

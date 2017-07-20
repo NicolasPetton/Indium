@@ -51,16 +51,16 @@
 
 (cl-defmethod indium-backend-active-connection-p ((_backend (eql webkit)))
   "Return non-nil if the current connection is active."
-  (and indium-connection
-       (websocket-openp (map-elt indium-connection 'ws))))
+  (and indium-current-connection
+       (websocket-openp (map-elt indium-current-connection 'ws))))
 
 (cl-defmethod indium-backend-close-connection ((_backend (eql webkit)))
   "Close the websocket associated with the current connection."
-  (websocket-close (map-elt indium-connection 'ws)))
+  (websocket-close (map-elt indium-current-connection 'ws)))
 
 (cl-defmethod indium-backend-reconnect ((_backend (eql webkit)))
-  (let* ((url (map-elt indium-connection 'url))
-         (websocket-url (websocket-url (map-elt indium-connection 'ws))))
+  (let* ((url (map-elt indium-current-connection 'url))
+         (websocket-url (websocket-url (map-elt indium-current-connection 'ws))))
     (indium-webkit--open-ws-connection url
                                        websocket-url
                                        ;; close all buffers related to the closed
@@ -71,7 +71,7 @@
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
-  (let* ((current-frame (map-elt indium-connection 'current-frame))
+  (let* ((current-frame (map-elt indium-current-connection 'current-frame))
 	 (callFrameId (and current-frame (indium-frame-id current-frame))))
     (indium-webkit--send-request
      `((method . ,(if callFrameId
@@ -272,7 +272,7 @@ In a Chrom{e|ium} session, URL corresponds to the url of a tab,
 and WEBSOCKET-URL to its associated `webSocketDebuggerUrl'.
 
 If NODEJS is non-nil, add a `nodejs' flag to the
-`indium-connection' to handle special cases.
+`indium-current-connection' to handle special cases.
 
 If WORKSPACE is non-nil, make it the workspace directory for that
 connection."
@@ -301,7 +301,7 @@ If NODEJS is non-nil, add a `nodejs' flag to the connection."
 
 (defun indium-webkit--callbacks ()
   "Return the callbacks associated with the current connection."
-  (map-elt indium-connection 'callbacks))
+  (map-elt indium-current-connection 'callbacks))
 
 (defun indium-webkit--handle-ws-open (ws url nodejs workspace)
   "Setup indium for a new connection for the websocket WS.
@@ -309,7 +309,7 @@ URL points to the browser tab.
 
 If NODEJS is non-nil, set a flag in the connection.
 If WORKSPACE is non-nil, make it the workspace used for the connection."
-  (setq indium-connection (indium-webkit--make-connection ws url nodejs))
+  (setq indium-current-connection (indium-webkit--make-connection ws url nodejs))
   (indium-webkit--enable-tools)
   (switch-to-buffer (indium-repl-buffer-create))
   (when workspace (cd workspace))
@@ -368,13 +368,13 @@ MESSAGE explains why the connection has been closed."
          (exception (equal (map-nested-elt message '(params reason)) "exception"))
          (reason (if exception "Exception occured" "Breakpoint hit"))
          (description (map-nested-elt message '(params data description))))
-    (unless (map-elt indium-connection 'nodejs)
+    (unless (map-elt indium-current-connection 'nodejs)
       (indium-webkit-set-overlay-message "Paused in Emacs debugger"))
     (indium-debugger-paused (indium-webkit--frames frames) reason description)))
 
 (defun indium-webkit--handle-debugger-resumed (_message)
   "Handle a runtime execution resumed event."
-  (unless (map-elt indium-connection 'nodejs)
+  (unless (map-elt indium-current-connection 'nodejs)
     (indium-webkit-remove-overlay-message))
   (indium-debugger-resumed))
 
@@ -405,7 +405,7 @@ If the current connection is closed, display a message."
             (callbacks (indium-webkit--callbacks)))
         (when callback
           (map-put callbacks id callback))
-        (websocket-send-text (map-elt indium-connection 'ws)
+        (websocket-send-text (map-elt indium-current-connection 'ws)
                              (json-encode (cons `(id . ,id) request))))
     (message "Socket connection closed")))
 
@@ -419,7 +419,7 @@ If the current connection is closed, display a message."
 There is currently no support for the DOM inspector and network
 inspectors."
   (indium-webkit--enable-runtime)
-  (unless (map-elt indium-connection 'nodejs)
+  (unless (map-elt indium-current-connection 'nodejs)
     (indium-webkit--enable-page)
     (indium-webkit--enable-network)
     (indium-webkit--enable-log))

@@ -42,7 +42,7 @@
       (expect (indium-backend-active-connection-p 'webkit) :to-be-truthy)))
 
   (it "should be inactive if the websocket is closed"
-    (let ((indium-connection '((backend . webkit))))
+    (let ((indium-current-connection '((backend . webkit))))
      (expect (indium-backend-active-connection-p 'webkit) :to-be nil)))
 
   (it "should close the socket when closing the connection"

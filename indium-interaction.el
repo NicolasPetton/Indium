@@ -219,7 +219,7 @@ hitting a breakpoint."
 
 (defun indium-interaction--ensure-connection ()
   "Signal an error if there is no indium connection."
-  (unless indium-connection
+  (unless indium-current-connection
     (user-error "No Indium connection")))
 
 (defvar indium-interaction-mode-map
@@ -269,7 +269,7 @@ hitting a breakpoint."
 
 (defun indium-interaction-mode-on ()
   "Function to be evaluated when `indium-interaction-mode' is turned on."
-  (when indium-connection
+  (when indium-current-connection
     (indium-breakpoint-add-breakpoints-to-buffer)))
 
 (defun indium-interaction-mode-off ()
@@ -278,7 +278,7 @@ hitting a breakpoint."
 
 (defun indium-interaction-update ()
   "Update breakpoints and script source of the current buffer."
-  (when (and indium-interaction-mode indium-connection)
+  (when (and indium-interaction-mode indium-current-connection)
     (indium-breakpoint-update-breakpoints)
     (when indium-update-script-on-save
       (indium-update-script-source))))

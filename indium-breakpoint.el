@@ -38,7 +38,7 @@
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
   (let ((ov (indium-breakpoint--put-icon condition)))
-    (when indium-connection
+    (when indium-current-connection
       (indium-backend-add-breakpoint (indium-backend)
 				     location
 				     (lambda (id)
@@ -63,7 +63,7 @@ CONDITION is true."
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
   (if-let ((id (indium-breakpoint-id-at-point)))
-      (when indium-connection
+      (when indium-current-connection
         (indium-backend-remove-breakpoint (indium-backend) id)))
   (indium-breakpoint--remove-icon))
 
@@ -96,7 +96,7 @@ This function does no unset breakpoints,"
 
 (defun indium-breakpoint-update-breakpoints ()
   "Update all breakpoints for the current buffer in the backend."
-  (when indium-connection
+  (when indium-current-connection
     (indium-backend-remove-all-breakpoints-from-buffer (current-buffer))
     (indium-breakpoint-restore-breakpoints)))
 
