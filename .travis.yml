@@ -1,12 +1,9 @@
 language: emacs-lisp
 sudo: required
 cache: apt
-env:
-  - EVM_EMACS=emacs-25.2-travis
 before_install:
   - sudo apt-get install -y nodejs
-  - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > travis.sh && source ./travis.sh
-  - evm install $EVM_EMACS --use --skip
+  - curl -fsSkL https://gist.githubusercontent.com/NicolasPetton/f4eafee84499580eb6a8c5706fec925b/raw > travis.sh && source ./travis.sh
   - cask
 install:
   - cask install
