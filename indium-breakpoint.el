@@ -86,7 +86,7 @@ This function does not add breakpoints."
 This function does no unset breakpoints."
   (remove-overlays (point-min)
                    (point-max)
-                   'indium-breakpoint
+                   'indium-breakpoint-ov
                    t))
 
 (defun indium-breakpoint-remove-breakpoints-from-buffer (buffer)
