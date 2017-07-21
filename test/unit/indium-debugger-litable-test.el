@@ -29,7 +29,7 @@
   (before-each
     (spy-on 'window-width :and-return-value 50))
 
-  (it "should trucate long strings"
+  (it "should truncate long strings"
     (let ((buffer-contents "let foo = 1;")
           (short-string "short")
           (long-string "very very very long string that overflows"))
