@@ -1,5 +1,5 @@
 language: emacs-lisp
-dist: precise
+dist: trusty
 sudo: required
 cache: apt
 before_install:
