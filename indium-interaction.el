@@ -169,12 +169,12 @@ hitting a breakpoint."
 
 (defun indium--make-xrefs-from-breakpoints ()
   "Return a list of xref objects from all breakpoints."
-  (seq-map (lambda (breakpoint)
-             (xref-make (indium--get-breakpoint-xref-match breakpoint)
-                        (xref-make-file-location (map-elt breakpoint 'file)
-                                                 (1+ (map-elt breakpoint 'line))
-                                                 0)))
-           (indium-backend-get-breakpoints)))
+  (map-values-apply (lambda (breakpoint)
+		      (xref-make (indium--get-breakpoint-xref-match breakpoint)
+				 (xref-make-file-location (map-elt breakpoint 'file)
+							  (1+ (map-elt breakpoint 'line))
+							  0)))
+		    (indium-current-connection-breakpoints)))
 
 (defun indium--get-breakpoint-xref-match (breakpoint)
   "Return the source line where BREAKPOINT is set."
@@ -274,7 +274,7 @@ hitting a breakpoint."
 
 (defun indium-interaction-mode-off ()
   "Function to be evaluated when `indium-interaction-mode' is turned off."
-  (indium-breakpoint-remove-breakpoints-from-buffer))
+  (indium-breakpoint-remove-all-overlays))
 
 (defun indium-interaction-update ()
   "Update breakpoints and script source of the current buffer."

@@ -22,7 +22,7 @@
 ;;; Code:
 
 (require 'buttercup)
-
+(require 'assess)
 (require 'indium-breakpoint)
 
 (describe "Accessing breakpoints"
@@ -36,28 +36,46 @@
     (with-js2-buffer "let a = 1;"
       (goto-char (point-min))
       (expect (indium-breakpoint-on-current-line-p) :to-be nil)
-      (indium-breakpoint--put-icon)
+      (indium-breakpoint-add (make-indium-location))
       (expect (indium-breakpoint-on-current-line-p) :to-be-truthy)))
 
   (it "can edit a breakpoint on the current line"
     (spy-on #'read-from-minibuffer :and-return-value "new condition")
-    (spy-on #'indium-breakpoint-remove)
-    (spy-on #'indium-breakpoint-add)
+    (spy-on #'indium-breakpoint-remove :and-call-through)
+    (spy-on #'indium-breakpoint-add :and-call-through)
     (with-js2-buffer "let a = 1;"
       (goto-char (point-min))
-      (indium-breakpoint-add 'position "old condition")
-      (indium-breakpoint-edit-condition)
-      (expect #'read-from-minibuffer :to-have-been-called)
-      (expect #'indium-breakpoint-remove :to-have-been-called)
-      (expect #'indium-breakpoint-add :to-have-been-called-with (make-indium-location) "new condition"))))
+      (let ((location (make-indium-location :file buffer-file-name
+					    :line 0)))
+	(indium-breakpoint-add location "old condition")
+	(indium-breakpoint-edit-condition)
+	(expect #'read-from-minibuffer :to-have-been-called)
+	(expect #'indium-breakpoint-remove :to-have-been-called)
+	(expect #'indium-breakpoint-add :to-have-been-called-with location "new condition")))))
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"
     (with-temp-buffer
-      (indium-breakpoint--put-icon)
+      (indium-breakpoint-add (make-indium-location))
       (let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
-        (indium-breakpoint--put-icon)
+        (indium-breakpoint-add (make-indium-location))
         (expect (seq-length (overlays-in (point-min) (point-max))) :to-equal number-of-overlays)))))
+
+(describe "Restoring breakpoints"
+  (it "can restore breakpoints from buffers when opening a new connection"
+    (spy-on 'indium-backend-add-breakpoint)
+    (spy-on 'indium-breakpoint-add :and-call-through)
+    (with-js2-buffer "let a = 2;"
+      (goto-char (point-min))
+      (let ((loc (make-indium-location))
+	    (condition "condition"))
+	(indium-breakpoint-add loc condition)
+	;; simulate getting the breakpoint ID from a backend
+	(setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'id)
+	(with-fake-indium-connection
+	  (indium-breakpoint-restore-breakpoints)
+	  (expect #'indium-backend-add-breakpoint :to-have-been-called)
+	  (expect #'indium-breakpoint-add :to-have-been-called-with loc condition))))))
 
 (provide 'indium-breakpoint-test)
 ;;; indium-breakpoint-test.el ends here

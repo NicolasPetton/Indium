@@ -119,57 +119,19 @@ Evaluate CALLBACK on the filtered candidates.
 
 EXPRESSION should be a valid JavaScript expression string.")
 
-(cl-defgeneric indium-backend-add-breakpoint (backend location &optional callback condition)
-  "Request the addition of a breakpoint.
-
-The breakpoint is added at LOCATION.  When CALLBACK is
-non-nil, evaluate it with the breakpoint's id.
+(cl-defgeneric indium-backend-add-breakpoint (backend breakpoint &optional callback)
+  "Request the addition of BREAKPOINT.
 
 Concrete implementations should call
-`indium-backend-register-breakpoint' once the addition has been
-performed.")
+`indium-current-connection-add-breakpoint' once the addition has
+been performed.")
 
 (cl-defgeneric indium-backend-remove-breakpoint (backend id)
   "Request the removal of the breakpoint with id ID.
 
 Concrete implementations should call
-`indium-backend-unregister-breakpoint' once the removal has been
-performed.")
-
-(defun indium-backend-remove-all-breakpoints-from-buffer (buffer)
-  "Remove all breakpoints from BUFFER."
-  (with-current-buffer buffer
-    (seq-do (lambda (brk)
-              (indium-backend-remove-breakpoint (indium-current-connection-backend)
-                                                (map-elt brk 'id)))
-            (indium-backend-get-breakpoints-in-file buffer-file-name))))
-
-(defun indium-backend-register-breakpoint (id line file condition)
-  "Register the breakpoint with ID at LINE in FILE and CONDITION.
-
-Breakpoints are registered locally in the current connection so
-that if a buffer later visits FILE with `indium-interaction-mode'
-turned on, the breakpoint can be added back to the buffer."
-  (let ((breakpoint `((line . ,line)
-                      (file . ,file)
-                      (condition . ,condition))))
-    (map-put (indium-current-connection-breakpoints) id breakpoint)))
-
-(defun indium-backend-unregister-breakpoint (id)
-  "Remove the breakpoint with ID from the current connection."
-  (map-delete (indium-current-connection-breakpoints) id))
-
-(defun indium-backend-get-breakpoints ()
-  "Return all breakpoints in the current connection.
-A breakpoint is an alist with the keys `id', `file', `line' and
-`condition'."
-  (let ((breakpoints (indium-current-connection-breakpoints)))
-    (map-keys-apply (lambda (key)
-                      `((id . ,key)
-                        (file . ,(map-nested-elt breakpoints `(,key file)))
-                        (line . ,(map-nested-elt breakpoints `(,key line)))
-                        (condition . ,(map-nested-elt breakpoints `(,key condition)))))
-                    breakpoints)))
+`indium-current-connection-remove-breakpoint' once the removal
+has been performed.")
 
 (cl-defgeneric indium-backend-deactivate-breakpoints (backend)
   "Deactivate all breakpoints.
@@ -180,24 +142,6 @@ The runtime will not pause on any breakpoint."
   "Deactivate all breakpoints.
 The runtime will not pause on any breakpoint."
   )
-
-(defun indium-backend-get-breakpoints-in-file (file &optional line)
-  "Return all breakpoints in FILE at LINE.
-If LINE is not provided, return all breakpoints in FILE."
-  (let ((breakpoints (indium-backend-get-breakpoints)))
-    (seq-filter (lambda (brk)
-                  (and (string= (map-elt brk 'file) file)
-                       (or (not line)
-                           (= (map-elt brk 'line) line))))
-                breakpoints)))
-
-(defun indium-backend-get-breakpoint (id)
-  "Return the breakpoint with ID.
-If not found, return nil."
-  (let ((breakpoints (indium-backend-get-breakpoints)))
-    (seq-find (lambda (brk)
-                (eq (map-elt brk 'id) id))
-              breakpoints)))
 
 (cl-defgeneric indium-backend-set-script-source (backend url source &optional callback)
   "Update the contents of the script at URL to SOURCE.")

@@ -106,13 +106,11 @@ Evaluate CALLBACK on the filtered candidates."
      (lambda (response)
        (indium-webkit--handle-completions-response response prefix callback)))))
 
-(cl-defmethod indium-backend-add-breakpoint ((_backend (eql webkit)) location &optional callback condition)
-  "Request the addition of a breakpoint.
-
-The breakpoint is set at LOCATION.  When CALLBACK is
-non-nil, evaluate it with the breakpoint's location and id."
-  (let ((url (indium-workspace-make-url (indium-location-file location)))
-        (condition (or condition "")))
+(cl-defmethod indium-backend-add-breakpoint ((_backend (eql webkit)) breakpoint &optional callback)
+  "Request the addition of BREAKPOINT."
+  (let* ((location (indium-breakpoint-location breakpoint))
+	 (file (indium-location-file location))
+	 (url (indium-workspace-make-url file)))
     (unless url
       (user-error "No URL associated with the current buffer.  Setup an Indium workspace first"))
     (indium-webkit--send-request
@@ -120,18 +118,19 @@ non-nil, evaluate it with the breakpoint's location and id."
        (params . ((url . ,url)
                   (lineNumber . ,(indium-location-line location))
 		  (columnNumber . ,(indium-location-column location))
-                  (condition . ,condition))))
+                  (condition . ,(indium-breakpoint-condition breakpoint)))))
      (lambda (response)
-       (let* ((breakpoint (map-elt response 'result))
-              (id (map-elt breakpoint 'breakpointId))
-              (locations (map-elt breakpoint 'locations))
+       (let* ((result (map-elt response 'result))
+              (id (map-elt result 'breakpointId))
+              (locations (map-elt result 'locations))
               (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
-         (when line
-           (indium-backend-register-breakpoint id line (indium-location-file location) condition))
-         (when callback
-           (unless line
-             (message "Cannot get breakpoint location"))
-           (funcall callback id)))))))
+         (if line
+	     (progn
+	       (setf (indium-breakpoint-id breakpoint) id)
+	       (indium-current-connection-add-breakpoint breakpoint)
+	       (when callback
+		 (funcall callback breakpoint)))
+	   (message "Cannot get breakpoint location")))))))
 
 (cl-defmethod indium-backend-remove-breakpoint ((_backend (eql webkit)) id)
   "Request the removal of the breakpoint with id ID."
@@ -139,7 +138,7 @@ non-nil, evaluate it with the breakpoint's location and id."
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (_response)
-     (indium-backend-unregister-breakpoint id))))
+     (indium-current-connection-remove-breakpoint id))))
 
 (cl-defmethod indium-backend-deactivate-breakpoints ((_backend (eql webkit)))
   "Deactivate all breakpoints.

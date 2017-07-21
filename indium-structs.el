@@ -34,8 +34,13 @@
 ;; file, it also contains a `file' slot.  Columns and lines start at 0.
 ;;
 ;; `indium-frame' represents a call frame in the context of debugging.
+;;
+;; `indium-breakpoint' represents a breakpoint set at a location with a possible
+;; breaking condition.
 
 ;;; Code:
+
+(require 'map)
 
 (declare-function indium-script-get-file "indium-script.el")
 (declare-function indium-script-find-by-id "indium-script.el")
@@ -66,6 +71,21 @@
   ;; extra properties that can be added by the backend
   (props (make-hash-table) :type hash-table))
 
+(defun indium-connection-add-breakpoint (breakpoint connection)
+  "Add BREAKPOINT to the map of breakpoints in CONNECTION."
+  (map-put (indium-connection-breakpoints connection)
+	   (indium-breakpoint-id breakpoint)
+	   breakpoint))
+
+(defun indium-connection-remove-breakpoint (id connection)
+  "Remove the breakpoint with ID from CONNECTION."
+  (map-delete (indium-connection-breakpoints connection) id))
+
+(defun indium-connection-get-breakpoint (id connection)
+  "Return the breakpoint with ID in CONNECTION.
+If no breakpoint with ID exist in CONNECTION, return nil."
+  (map-elt (indium-connection-breakpoints connection) id))
+
 (defun indium-current-connection-backend ()
   "Return the backend of the current connection if any."
   (when-indium-connected
@@ -90,6 +110,39 @@
   "Return the breakpoints of the current connection if any."
   (when-indium-connected
     (indium-connection-breakpoints indium-current-connection)))
+
+(defun indium-current-connection-add-breakpoint (breakpoint)
+  "Add BREAKPOINT to the current connection.
+
+Breakpoints are registered locally in the current connection so
+that if a buffer later visits FILE with `indium-interaction-mode'
+turned on, the breakpoint can be added back to the buffer."
+  (when-indium-connected
+    (indium-connection-add-breakpoint breakpoint indium-current-connection)))
+
+(defun indium-current-connection-remove-breakpoint (id)
+  "Remove the breakpoint with ID from the current connection."
+  (when-indium-connected
+    (indium-connection-remove-breakpoint id indium-current-connection)))
+
+(defun indium-current-connection-get-breakpoint (id)
+  "Return the breakpoint with ID in the current connection.
+If no such breakpoint exist, return nil."
+  (indium-connection-get-breakpoint id indium-current-connection))
+
+(defun indium-current-connection-get-breakpoints-in-file (file &optional line)
+  "Return all breakpoints in FILE at LINE.
+If LINE is not provided, return all breakpoints in FILE."
+  (let ((breakpoints (map-values (indium-current-connection-breakpoints))))
+    (seq-filter (lambda (brk)
+                  (and (string= (indium-location-file
+				 (indium-breakpoint-location brk))
+				file)
+                       (or (not line)
+                           (= (indium-location-line
+			       (indium-breakpoint-location brk))
+			      line))))
+                breakpoints)))
 
 (defun indium-current-connection-props ()
   "Return the props of the current connection if any."
@@ -138,6 +191,20 @@
   (script nil :type indium-script :read-only t)
   (type nil :type string :read-only t)
   (function-name nil :type string))
+
+(cl-defstruct (indium-breakpoint
+	       (:constructor nil)
+	       (:constructor make-indium-breakpoint
+			     (&key id
+				   line
+				   file
+				   condition
+				   &aux (location (make-indium-location
+						   :line line
+						   :file file)))))
+  (id nil :type string)
+  (location nil :type indium-location :read-only t)
+  (condition "" :type string))
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here
