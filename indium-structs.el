@@ -101,6 +101,10 @@ If no breakpoint with ID exist in CONNECTION, return nil."
   (when-indium-connected
     (indium-connection-callbacks indium-current-connection)))
 
+(cl-defmethod (setf indium-current-connection-callbacks) (callbacks)
+  (when-indium-connected
+    (setf (indium-connection-callbacks indium-current-connection) callbacks)))
+
 (defun indium-current-connection-scripts ()
   "Return the scripts of the current connection if any."
   (when-indium-connected
