@@ -64,9 +64,10 @@ lexical closures.
 
 .. Note:: This feature currently in only available for Chrome & Chromium.
 
-.. Warning:: Stability issues have been reported when using this feature with
-             Chrome 57 and earlier.  We strongly encourage you to use Chrome >=
-             58 when using live code updates.
+.. Warning:: This feature is experimental and stability issues have been
+             reported.  If you experience issues with breakpoints when using
+             this feature, try disabling it.  Also, we strongly encourage you to
+             use Chrome >= 58 when using live code updates.
 
 To enable live updates, make sure Indium is set up to use local files (see
 :ref:`local-files`).
