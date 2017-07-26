@@ -1,4 +1,4 @@
-;;; indium-webkit-test.el --- Tests for indium-webkit.el  -*- lexical-binding: t; -*-
+;;; indium-v8-test.el --- Tests for indium-v8.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Nicolas Petton
 
@@ -20,43 +20,43 @@
 
 ;;; Commentary:
 
-;; Tests for indium-webkit.el
+;; Tests for indium-v8.el
 
 ;;; Code:
 
 (require 'buttercup)
-(require 'indium-webkit)
+(require 'indium-v8)
 
 (describe "Generating request ids"
   (it "should increment request ids"
-    (let ((indium-webkit--request-id 0))
-      (expect (indium-webkit--next-request-id) :to-be 1)
-      (expect (indium-webkit--next-request-id) :to-be 2)
-      (expect (indium-webkit--next-request-id) :to-be 3)
-      (expect (indium-webkit--next-request-id) :to-be 4))))
+    (let ((indium-v8--request-id 0))
+      (expect (indium-v8--next-request-id) :to-be 1)
+      (expect (indium-v8--next-request-id) :to-be 2)
+      (expect (indium-v8--next-request-id) :to-be 3)
+      (expect (indium-v8--next-request-id) :to-be 4))))
 
-(describe "Webkit connection websocket"
+(describe "V8 connection websocket"
   (it "should be able to set a websocket"
     (let ((conn (make-indium-connection)))
       (setf (indium-connection-ws conn) 'foo)
       (expect (indium-connection-ws conn)
 	      :to-be 'foo))))
 
-(describe "Webkit connection handling"
+(describe "V8 connection handling"
   (it "should be active if the websocket is open"
     (spy-on 'websocket-openp :and-return-value t)
     (with-fake-indium-connection
-      (expect (indium-backend-active-connection-p 'webkit) :to-be-truthy)))
+      (expect (indium-backend-active-connection-p 'v8) :to-be-truthy)))
 
   (it "should be inactive if the websocket is closed"
-    (let ((indium-current-connection (make-indium-connection :backend 'webkit)))
-     (expect (indium-backend-active-connection-p 'webkit) :to-be nil)))
+    (let ((indium-current-connection (make-indium-connection :backend 'v8)))
+     (expect (indium-backend-active-connection-p 'v8) :to-be nil)))
 
   (it "should close the socket when closing the connection"
     (spy-on 'websocket-close)
-    (with-indium-connection (make-indium-connection :backend 'webkit)
+    (with-indium-connection (make-indium-connection :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
-      (indium-backend-close-connection 'webkit)
+      (indium-backend-close-connection 'v8)
       (expect #'websocket-close :to-have-been-called-with 'ws))))
 
 (describe "Sending requests"
@@ -64,50 +64,50 @@
     (spy-on 'websocket-send-test)
     (spy-on 'message)
     (with-fake-indium-connection
-      (indium-webkit--send-request 'foo)
+      (indium-v8--send-request 'foo)
       (expect #'websocket-send-test :not :to-have-been-called)))
 
   (it "should display a warning message if the connection is closed"
     (spy-on 'message)
     (with-fake-indium-connection
-      (indium-webkit--send-request 'foo)
+      (indium-v8--send-request 'foo)
       (expect #'message :to-have-been-called-with "Socket connection closed")))
 
   (it "should send requests if the connection is active"
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
-    (spy-on 'indium-webkit--next-request-id :and-return-value 'id)
-    (with-indium-connection (make-indium-connection :backend 'webkit)
+    (spy-on 'indium-v8--next-request-id :and-return-value 'id)
+    (with-indium-connection (make-indium-connection :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
-      (indium-webkit--send-request '((message . "message")))
+      (indium-v8--send-request '((message . "message")))
       (expect #'websocket-send-text :to-have-been-called-with
               'ws (json-encode '((id . id) (message . "message"))))))
 
   (it "should register callbacks when sending requests"
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
-    (spy-on 'indium-webkit--next-request-id :and-return-value 'id)
-    (with-indium-connection (make-indium-connection :backend 'webkit)
-      (indium-webkit--send-request '((message . "message")) 'callback)
+    (spy-on 'indium-v8--next-request-id :and-return-value 'id)
+    (with-indium-connection (make-indium-connection :backend 'v8)
+      (indium-v8--send-request '((message . "message")) 'callback)
       (expect (map-elt (indium-current-connection-callbacks) 'id) :to-equal 'callback))))
 
 (describe "Making completion expressions"
   (it "should return \"this\" if there is no property to complete"
-    (expect (indium-webkit--completion-expression "foo")
+    (expect (indium-v8--completion-expression "foo")
       :to-equal "this"))
 
   (it "should return the parent property"
-    (expect (indium-webkit--completion-expression "foo.bar")
+    (expect (indium-v8--completion-expression "foo.bar")
       :to-equal "foo")
-    (expect (indium-webkit--completion-expression "foo.bar.baz")
+    (expect (indium-v8--completion-expression "foo.bar.baz")
       :to-equal "foo.bar")))
 
 (describe "Evaluating code"
   (it "calls Runtime.evaluate with the expression to evaluate"
-    (spy-on 'indium-webkit--send-request)
+    (spy-on 'indium-v8--send-request)
     (with-fake-indium-connection
-      (indium-backend-evaluate 'webkit "foo")
-      (expect #'indium-webkit--send-request :to-have-been-called-with
+      (indium-backend-evaluate 'v8 "foo")
+      (expect #'indium-v8--send-request :to-have-been-called-with
               '((method . "Runtime.evaluate")
                 (params . ((expression . "foo")
                            (callFrameId . nil)
@@ -115,27 +115,27 @@
               nil)))
 
   (it "calls Debugger.evaluateOnCallFrame when there is stack frame"
-    (spy-on 'indium-webkit--send-request)
+    (spy-on 'indium-v8--send-request)
     (with-indium-connection (make-indium-connection
 			     :current-frame (make-indium-frame :id 1))
-      (indium-backend-evaluate 'webkit "foo")
-      (expect #'indium-webkit--send-request :to-have-been-called-with
+      (indium-backend-evaluate 'v8 "foo")
+      (expect #'indium-v8--send-request :to-have-been-called-with
               '((method . "Debugger.evaluateOnCallFrame")
                 (params . ((expression . "foo")
                            (callFrameId . 1)
                            (generatePreview . t))))
               nil))))
 
-(describe "Webkit backend result description string"
+(describe "V8 backend result description string"
   (it "can render boolean descriptions formatted as string values (GitHub issue #52)"
-    (expect (indium-webkit--description '((type . "boolean") (value . t)))
+    (expect (indium-v8--description '((type . "boolean") (value . t)))
             :to-equal "true")
-    (expect (indium-webkit--description '((type . "boolean") (value . :json-false)))
+    (expect (indium-v8--description '((type . "boolean") (value . :json-false)))
             :to-equal "false")))
 
-(describe "Webkit backend object preview"
+(describe "V8 backend object preview"
   (it "can render array previews with booleans (GitHub issue #52)"
-    (expect (indium-webkit--preview '((type . "object")
+    (expect (indium-v8--preview '((type . "object")
                                       (subtype . "array")
                                       (className . "Array")
                                       (description . "Array[1]")
@@ -148,7 +148,7 @@
             :to-equal "[ true ]"))
 
   (it "can render object previews with booleans (GitHub issue #52)"
-    (expect (indium-webkit--preview '((type . "object")
+    (expect (indium-v8--preview '((type . "object")
                                       (className . "Object")
                                       (description . "Object")
                                       (objectId . "{\"injectedScriptId\":12,\"id\":43}")
@@ -159,20 +159,20 @@
             :to-equal "{ a: true }")))
 
 (describe "Location conversion"
-  (it "can convert a location struct into a webkit location"
+  (it "can convert a location struct into a v8 location"
     (let ((location (make-indium-location :line 10 :column 5)))
-      (expect (indium-webkit--convert-to-webkit-location location)
+      (expect (indium-v8--convert-to-v8-location location)
 	      :to-equal '((columnNumber . 5)
 			  (lineNumber . 10)))))
 
-  (it "can convert a location struct with file into a webkit location"
+  (it "can convert a location struct with file into a v8 location"
     (let ((location (make-indium-location :line 10 :column 5 :file "foo")))
       (spy-on #'indium-location-url :and-return-value "foo")
       (spy-on #'indium-script-find-from-file :and-return-value (make-indium-script :id "1"))
-      (expect (indium-webkit--convert-to-webkit-location location)
+      (expect (indium-v8--convert-to-v8-location location)
 	      :to-equal '((scriptId . "1")
 			  (columnNumber . 5)
 			  (lineNumber . 10))))))
 
-(provide 'indium-webkit-test)
-;;; indium-webkit-test.el ends here
+(provide 'indium-v8-test)
+;;; indium-v8-test.el ends here

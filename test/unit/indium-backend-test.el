@@ -24,7 +24,7 @@
 (require 'buttercup)
 
 (require 'indium-backend)
-(require 'indium-webkit)
+(require 'indium-v8)
 
 (describe "Open/Closed connections"
   (it "should be an active connection if generic"
@@ -32,8 +32,8 @@
       (expect (indium-backend-active-connection-p 'fake) :to-be-truthy)))
 
   (it "should not be active unless a websocket is open"
-    (with-indium-connection (make-indium-connection :backend 'webkit)
-      (expect (indium-backend-active-connection-p 'webkit) :to-be nil))))
+    (with-indium-connection (make-indium-connection :backend 'v8)
+      (expect (indium-backend-active-connection-p 'v8) :to-be nil))))
 
 (provide 'indium-backend-test)
 ;;; indium-backend-test.el ends here

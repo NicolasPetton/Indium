@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Handle indium connections to Chrom{e|ium} using the webkit backend.
+;; Handle indium connections to Chrom{e|ium} using the v8 backend.
 ;;
 ;; To open a Indium connection, enable chromium/chrome remote debugging:
 ;;
@@ -33,7 +33,7 @@
 (require 'map)
 (require 'seq)
 
-(require 'indium-webkit)
+(require 'indium-v8)
 (require 'indium-workspace)
 
 (eval-and-compile (require 'indium-structs))
@@ -94,7 +94,7 @@ Try a maximum of NUM-TRIES."
                                   (indium-chrome--try-connect host (1- num-tries))))))
 
 (defun indium-connect-to-chrome ()
-  "Open a connection to a webkit tab."
+  "Open a connection to a v8 tab."
   (interactive)
   (when (or (null indium-current-connection)
             (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
@@ -132,7 +132,7 @@ If there are more then one tab available ask the user which tab to connect."
                         tabs))
          (websocket-url (map-elt tab 'webSocketDebuggerUrl))
          (workspace (indium-workspace-read)))
-    (indium-webkit--open-ws-connection url websocket-url nil nil workspace)))
+    (indium-v8--open-ws-connection url websocket-url nil nil workspace)))
 
 (defun indium-chrome--read-tab-data ()
   "Return the JSON tabs data in the current buffer."

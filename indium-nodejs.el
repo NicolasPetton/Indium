@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Handle indium connections to a NodeJS process using the webkit backend.
+;; Handle indium connections to a NodeJS process using the v8 backend.
 ;; The nodejs process must be started with the `--inspect' flag:
 ;;
 ;;     node --inspect myfile.js
@@ -42,7 +42,7 @@
 (require 'map)
 (require 'seq)
 
-(require 'indium-webkit)
+(require 'indium-v8)
 
 (defvar indium-nodejs-commands-history nil
   "Nodejs commands history.")
@@ -63,7 +63,7 @@ When the process is ready, open an Indium connection on it."
     (switch-to-buffer (process-buffer process))))
 
 (defun indium-connect-to-nodejs ()
-  "Open a connection to a webkit tab on host:port/path."
+  "Open a connection to host:port/path."
   (interactive)
   (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
         (port (read-from-minibuffer "Port: " "9229"))
@@ -78,7 +78,7 @@ When the process is ready, open an Indium connection on it."
       (indium-quit))
     (let ((websocket-url (format "ws://%s:%s/%s" host port path))
           (url (format "file://%s" default-directory)))
-      (indium-webkit--open-ws-connection url websocket-url nil t))))
+      (indium-v8--open-ws-connection url websocket-url nil t))))
 
 (defun indium-nodejs--add-flags (command)
   "Return COMMAND with the `--inspect' `--debug-brk' flags added."

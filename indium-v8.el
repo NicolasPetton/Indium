@@ -1,4 +1,4 @@
-;;; indium-webkit.el --- Webkit/Blink backend for indium  -*- lexical-binding: t; -*-
+;;; indium-v8.el --- V8/Blink backend for indium  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2017  Nicolas Petton
 
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; Indium backend implementation for Webkit and Blink.  Connection is handled in
+;; Indium backend implementation for V8 and Blink.  Connection is handled in
 ;; indium-chrome.el.  This backend currently supports the REPL, code completion,
 ;; object inspection and the debugger.
 ;;
@@ -42,12 +42,12 @@
 (require 'indium-workspace)
 (require 'indium-script)
 
-(defvar indium-webkit-cache-disabled nil
+(defvar indium-v8-cache-disabled nil
   "Network cache disabled state.  If non-nil disable cache when Indium starts.")
 
-(defvar indium-webkit-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
+(defvar indium-v8-completion-function "function getCompletions(type)\n{var object;if(type==='string')\nobject=new String('');else if(type==='number')\nobject=new Number(0);else if(type==='boolean')\nobject=new Boolean(false);else\nobject=this;var resultSet={};for(var o=object;o;o=o.__proto__){try{if(type==='array'&&o===object&&ArrayBuffer.isView(o)&&o.length>9999)\ncontinue;var names=Object.getOwnPropertyNames(o);for(var i=0;i<names.length;++i)\nresultSet[names[i]]=true;}catch(e){}}\nreturn resultSet;}")
 
-(indium-register-backend 'webkit)
+(indium-register-backend 'v8)
 
 (defun indium-connection-ws (connection)
   "Return the websocket associated to CONNECTION."
@@ -61,30 +61,30 @@
   (and connection
        (map-elt (indium-connection-props connection) 'nodejs)))
 
-(cl-defmethod indium-backend-active-connection-p ((_backend (eql webkit)))
+(cl-defmethod indium-backend-active-connection-p ((_backend (eql v8)))
   "Return non-nil if the current connection is active."
   (when-indium-connected
     (websocket-openp (indium-connection-ws indium-current-connection))))
 
-(cl-defmethod indium-backend-close-connection ((_backend (eql webkit)))
+(cl-defmethod indium-backend-close-connection ((_backend (eql v8)))
   "Close the websocket associated with the current connection."
   (websocket-close (indium-connection-ws indium-current-connection)))
 
-(cl-defmethod indium-backend-reconnect ((_backend (eql webkit)))
-  (indium-webkit--open-ws-connection
+(cl-defmethod indium-backend-reconnect ((_backend (eql v8)))
+  (indium-v8--open-ws-connection
    (indium-current-connection-url)
    (websocket-url (indium-connection-ws indium-current-connection))
    ;; close all buffers related to the closed
    ;; connection the first
    #'indium-quit))
 
-(cl-defmethod indium-backend-evaluate ((_backend (eql webkit)) string &optional callback)
+(cl-defmethod indium-backend-evaluate ((_backend (eql v8)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
 CALLBACK is called with two arguments, the value returned by the
 evaluation and non-nil if the evaluation threw an error."
   (let* ((current-frame (indium-current-connection-current-frame))
 	 (callFrameId (and current-frame (indium-frame-id current-frame))))
-    (indium-webkit--send-request
+    (indium-v8--send-request
      `((method . ,(if callFrameId
                       "Debugger.evaluateOnCallFrame"
                     "Runtime.evaluate"))
@@ -93,27 +93,27 @@ evaluation and non-nil if the evaluation threw an error."
                   (generatePreview . t))))
      (when callback
        (lambda (response)
-         (indium-webkit--handle-evaluation-response response callback))))))
+         (indium-v8--handle-evaluation-response response callback))))))
 
-(cl-defmethod indium-backend-get-completions ((_backend (eql webkit)) expression prefix callback)
+(cl-defmethod indium-backend-get-completions ((_backend (eql v8)) expression prefix callback)
   "Get the completion candidates for EXPRESSION that match PREFIX.
 Evaluate CALLBACK on the filtered candidates."
-  (let ((expression (indium-webkit--completion-expression expression)))
-    (indium-webkit--send-request
+  (let ((expression (indium-v8--completion-expression expression)))
+    (indium-v8--send-request
      `((method . "Runtime.evaluate")
        (params . ((expression . ,expression)
                   (objectGroup . "completion"))))
      (lambda (response)
-       (indium-webkit--handle-completions-response response prefix callback)))))
+       (indium-v8--handle-completions-response response prefix callback)))))
 
-(cl-defmethod indium-backend-add-breakpoint ((_backend (eql webkit)) breakpoint &optional callback)
+(cl-defmethod indium-backend-add-breakpoint ((_backend (eql v8)) breakpoint &optional callback)
   "Request the addition of BREAKPOINT."
   (let* ((location (indium-breakpoint-location breakpoint))
 	 (file (indium-location-file location))
 	 (url (indium-workspace-make-url file)))
     (unless url
       (user-error "No URL associated with the current buffer.  Setup an Indium workspace first"))
-    (indium-webkit--send-request
+    (indium-v8--send-request
      `((method . "Debugger.setBreakpointByUrl")
        (params . ((url . ,url)
                   (lineNumber . ,(indium-location-line location))
@@ -132,53 +132,53 @@ Evaluate CALLBACK on the filtered candidates."
 		 (funcall callback breakpoint)))
 	   (message "Cannot get breakpoint location")))))))
 
-(cl-defmethod indium-backend-remove-breakpoint ((_backend (eql webkit)) id)
+(cl-defmethod indium-backend-remove-breakpoint ((_backend (eql v8)) id)
   "Request the removal of the breakpoint with id ID."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (_response)
      (indium-current-connection-remove-breakpoint id))))
 
-(cl-defmethod indium-backend-deactivate-breakpoints ((_backend (eql webkit)))
+(cl-defmethod indium-backend-deactivate-breakpoints ((_backend (eql v8)))
   "Deactivate all breakpoints.
 The runtime will not pause on any breakpoint."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.setBreakpointsActive")
      (params . ((active . :json-false))))))
 
-(cl-defmethod indium-backend-activate-breakpoints ((_backend (eql webkit)))
+(cl-defmethod indium-backend-activate-breakpoints ((_backend (eql v8)))
   "Deactivate all breakpoints.
 The runtime will not pause on any breakpoint."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.setBreakpointsActive")
      (params . ((active . t))))))
 
-(cl-defmethod indium-backend-get-properties ((_backend (eql webkit)) reference &optional callback all-properties)
+(cl-defmethod indium-backend-get-properties ((_backend (eql v8)) reference &optional callback all-properties)
   "Get the properties of the remote object represented by REFERENCE.
 CALLBACK is evaluated with the list of properties.
 
 If ALL-PROPERTIES is non-nil, get all the properties from the
 prototype chain of the remote object."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Runtime.getProperties")
      (params . ((objectId . ,reference)
                 (generatePreview . t)
                 (ownProperties . ,(or all-properties :json-false)))))
    (lambda (response)
      (funcall callback
-              (indium-webkit--properties
+              (indium-v8--properties
                (map-nested-elt response '(result result)))))))
 
-(cl-defmethod indium-backend-set-script-source ((_backend (eql webkit)) url source &optional callback)
+(cl-defmethod indium-backend-set-script-source ((_backend (eql v8)) url source &optional callback)
   (when-let ((script (indium-script-find-from-url url)))
-    (indium-webkit--send-request
+    (indium-v8--send-request
      `((method . "Runtime.compileScript")
        (params . ((expression . ,source)
                   (sourceURL . ,url)
                   (persistScript . :json-false))))
      (lambda (_)
-       (indium-webkit--send-request
+       (indium-v8--send-request
         `((method . "Debugger.setScriptSource")
           (params . ((scriptId . ,(indium-script-id script))
                      (scriptSource . ,source))))
@@ -186,61 +186,61 @@ prototype chain of the remote object."
           (when callback
             (funcall callback))))))))
 
-(cl-defmethod indium-backend-get-script-source ((_backend (eql webkit)) frame callback)
+(cl-defmethod indium-backend-get-script-source ((_backend (eql v8)) frame callback)
   (let ((script (indium-frame-script frame)))
-   (indium-webkit--send-request
+   (indium-v8--send-request
     `((method . "Debugger.getScriptSource")
       (params . ((scriptId . ,(indium-script-id script)))))
     callback)))
 
-(cl-defmethod indium-backend-resume ((_backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-resume ((_backend (eql v8)) &optional callback)
   "Resume the debugger and evaluate CALLBACK if non-nil."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.resume"))
    callback))
 
-(cl-defmethod indium-backend-step-into ((_backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-step-into ((_backend (eql v8)) &optional callback)
   "Step into the current stack frame and evaluate CALLBACK if non-nil."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.stepInto"))
    callback))
 
-(cl-defmethod indium-backend-step-out ((_backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-step-out ((_backend (eql v8)) &optional callback)
   "Step out the current stack frame and evaluate CALLBACK if non-nil."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.stepOut"))
    callback))
 
-(cl-defmethod indium-backend-step-over ((_backend (eql webkit)) &optional callback)
+(cl-defmethod indium-backend-step-over ((_backend (eql v8)) &optional callback)
   "Step over the current stack frame and evaluate CALLBACK if non-nil."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.stepOver"))
    callback))
 
-(cl-defmethod indium-backend-continue-to-location ((_backend (eql webkit)) location &optional callback)
+(cl-defmethod indium-backend-continue-to-location ((_backend (eql v8)) location &optional callback)
   "Continue to LOCATION and evaluate CALLBACK if non-nil.
 
 Location should be an alist with a `limeNumber' and `scriptId' key."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Debugger.continueToLocation")
-     (params . ((location . ,(indium-webkit--convert-to-webkit-location location)))))
+     (params . ((location . ,(indium-v8--convert-to-v8-location location)))))
    callback))
 
-(defun indium-webkit-set-overlay-message (string)
+(defun indium-v8-set-overlay-message (string)
   "Set the debugger page overlay to STRING."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Page.configureOverlay")
      (params . ((suspended . :json-false)
                 (message . ,string))))
    #'ignore))
 
-(defun indium-webkit-remove-overlay-message ()
+(defun indium-v8-remove-overlay-message ()
   "Remove any overlay message displayed on the page."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Page.configureOverlay")
      (params . ((suspended . :json-false))))))
 
-(defun indium-webkit-set-pause-on-exceptions (state)
+(defun indium-v8-set-pause-on-exceptions (state)
   "Defines on which STATE to pause.
 
 Can be set to stop on all exceptions, uncaught exceptions or no
@@ -252,27 +252,27 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
                                       '("none" "uncaught" "all")
                                       nil
                                       t)))
-  (indium-webkit--send-request `((method . "Debugger.setPauseOnExceptions")
+  (indium-v8--send-request `((method . "Debugger.setPauseOnExceptions")
                                  (params . ((state . ,state))))))
 
-(defun indium-webkit--set-cache-disabled (disabled)
+(defun indium-v8--set-cache-disabled (disabled)
   "Toggle ignoring cache for each request.  If DISABLED, cache will not be used."
-  (indium-webkit--send-request `((method . "Network.setCacheDisabled")
+  (indium-v8--send-request `((method . "Network.setCacheDisabled")
                                  (params . ((cacheDisabled . ,(if disabled t :json-false)))))))
 
-(defun indium-webkit-enable-cache ()
+(defun indium-v8-enable-cache ()
   "Enabled network cache for each request."
   (interactive)
-  (setq indium-webkit-cache-disabled nil)
-  (indium-webkit--set-cache-disabled nil))
+  (setq indium-v8-cache-disabled nil)
+  (indium-v8--set-cache-disabled nil))
 
-(defun indium-webkit-disable-cache ()
+(defun indium-v8-disable-cache ()
   "Disable network cache for each request."
   (interactive)
-  (setq indium-webkit-cache-disabled t)
-  (indium-webkit--set-cache-disabled t))
+  (setq indium-v8-cache-disabled t)
+  (indium-v8--set-cache-disabled t))
 
-(defun indium-webkit--open-ws-connection (url websocket-url &optional on-open nodejs workspace)
+(defun indium-v8--open-ws-connection (url websocket-url &optional on-open nodejs workspace)
   "Open a websocket connection to URL using WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
@@ -292,39 +292,39 @@ connection."
                   :on-open (lambda (ws)
                              (when on-open
                                (funcall on-open))
-                             (indium-webkit--handle-ws-open ws url nodejs workspace))
-                  :on-message #'indium-webkit--handle-ws-message
-                  :on-close #'indium-webkit--handle-ws-closed
-                  :on-error #'indium-webkit--handle-ws-error))
+                             (indium-v8--handle-ws-open ws url nodejs workspace))
+                  :on-message #'indium-v8--handle-ws-message
+                  :on-close #'indium-v8--handle-ws-closed
+                  :on-error #'indium-v8--handle-ws-error))
 
-(defun indium-webkit--make-connection (ws url &optional nodejs)
+(defun indium-v8--make-connection (ws url &optional nodejs)
   "Return a new connection for WS and URL.
 If NODEJS is non-nil, add a `nodejs' extra property to the
 connection."
   (let ((conn (make-indium-connection
-	       :backend 'webkit
+	       :backend 'v8
 	       :url url)))
     (setf (indium-connection-ws conn) ws)
     (when nodejs
       (map-put (indium-connection-props conn) 'nodejs t))
     conn))
 
-(defun indium-webkit--handle-ws-open (ws url nodejs workspace)
+(defun indium-v8--handle-ws-open (ws url nodejs workspace)
   "Setup indium for a new connection for the websocket WS.
 URL points to the browser tab.
 
 If NODEJS is non-nil, set an extra property in the connection.
 If WORKSPACE is non-nil, make it the workspace used for the connection."
-  (setq indium-current-connection (indium-webkit--make-connection ws url nodejs))
-  (indium-webkit--enable-tools)
+  (setq indium-current-connection (indium-v8--make-connection ws url nodejs))
+  (indium-v8--enable-tools)
   (switch-to-buffer (indium-repl-buffer-create))
   (when workspace (cd workspace))
   (indium-breakpoint-restore-breakpoints)
   (run-hooks 'indium-connection-open-hook))
 
-(defun indium-webkit--handle-ws-message (_ws frame)
+(defun indium-v8--handle-ws-message (_ws frame)
   "Handle a websocket message FRAME."
-  (let* ((message (indium-webkit--read-ws-message frame))
+  (let* ((message (indium-v8--read-ws-message frame))
          (error (map-elt message 'error))
          (method (map-elt message 'method))
          (request-id (map-elt message 'id))
@@ -335,80 +335,80 @@ If WORKSPACE is non-nil, make it the workspace used for the connection."
      (request-id (when callback
                    (funcall callback message)))
      (t (pcase method
-          ("Inspector.detached" (indium-webkit--handle-inspector-detached message))
-          ("Log.entryAdded" (indium-webkit--handle-log-entry message))
-          ("Runtime.consoleAPICalled" (indium-webkit--handle-console-message message))
-          ("Runtime.exceptionThrown" (indium-webkit--handle-exception-thrown message))
-          ("Debugger.paused" (indium-webkit--handle-debugger-paused message))
-          ("Debugger.scriptParsed" (indium-webkit--handle-script-parsed message))
-          ("Debugger.resumed" (indium-webkit--handle-debugger-resumed message)))))))
+          ("Inspector.detached" (indium-v8--handle-inspector-detached message))
+          ("Log.entryAdded" (indium-v8--handle-log-entry message))
+          ("Runtime.consoleAPICalled" (indium-v8--handle-console-message message))
+          ("Runtime.exceptionThrown" (indium-v8--handle-exception-thrown message))
+          ("Debugger.paused" (indium-v8--handle-debugger-paused message))
+          ("Debugger.scriptParsed" (indium-v8--handle-script-parsed message))
+          ("Debugger.resumed" (indium-v8--handle-debugger-resumed message)))))))
 
-(defun indium-webkit--handle-inspector-detached (message)
+(defun indium-v8--handle-inspector-detached (message)
   "Handle a closed connection event.
 MESSAGE explains why the connection has been closed."
   (let ((msg (map-nested-elt message '(params reason))))
-    (indium-backend-close-connection 'webkit)
+    (indium-backend-close-connection 'v8)
     (message "Indium connection closed: %s" msg)))
 
-(defun indium-webkit--handle-log-entry (message)
+(defun indium-v8--handle-log-entry (message)
   "Handle a log entry event with MESSAGE."
   (let ((entry (map-nested-elt message '(params entry))))
     ;; unify console message and entry logs
     (map-put entry 'line (map-elt entry 'lineNumber))
     (indium-repl-emit-console-message entry)))
 
-(defun indium-webkit--handle-console-message (message)
+(defun indium-v8--handle-console-message (message)
   "Handle a console message event with MESSAGE."
   (let* ((msg (map-elt message 'params))
          (args (map-elt msg 'args)))
-    (setf (map-elt msg 'values) (seq-map #'indium-webkit--value args))
+    (setf (map-elt msg 'values) (seq-map #'indium-v8--value args))
     (indium-repl-emit-console-message msg)))
 
-(defun indium-webkit--handle-exception-thrown (message)
+(defun indium-v8--handle-exception-thrown (message)
   "Handle an exception event MESSAGE."
   (let ((exception (map-nested-elt message '(params exceptionDetails))))
-    (indium-repl-emit-console-message (indium-webkit--exception exception) t)))
+    (indium-repl-emit-console-message (indium-v8--exception exception) t)))
 
-(defun indium-webkit--handle-debugger-paused (message)
+(defun indium-v8--handle-debugger-paused (message)
   "Handle a debugger paused event with MESSAGE."
   (let* ((frames (map-nested-elt message '(params callFrames)))
          (exception (equal (map-nested-elt message '(params reason)) "exception"))
          (reason (if exception "Exception occured" "Breakpoint hit"))
          (description (map-nested-elt message '(params data description))))
     (unless (indium-connection-nodejs-p indium-current-connection)
-      (indium-webkit-set-overlay-message "Paused in Emacs debugger"))
-    (indium-debugger-paused (indium-webkit--frames frames) reason description)))
+      (indium-v8-set-overlay-message "Paused in Emacs debugger"))
+    (indium-debugger-paused (indium-v8--frames frames) reason description)))
 
-(defun indium-webkit--handle-debugger-resumed (_message)
+(defun indium-v8--handle-debugger-resumed (_message)
   "Handle a runtime execution resumed event."
   (unless (indium-connection-nodejs-p indium-current-connection)
-    (indium-webkit-remove-overlay-message))
+    (indium-v8-remove-overlay-message))
   (indium-debugger-resumed))
 
-(defun indium-webkit--handle-script-parsed (message)
+(defun indium-v8--handle-script-parsed (message)
   "Handle a script parsed event with MESSAGE."
   (let* ((id (map-nested-elt message '(params scriptId)))
          (url (map-nested-elt message '(params url)))
          (sourcemap-url (map-nested-elt message '(params sourceMapURL))))
     (indium-script-add-script-parsed id url sourcemap-url)))
 
-(defun indium-webkit--handle-ws-closed (_ws)
+(defun indium-v8--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."
   (run-hooks 'indium-connection-closed-hook)
   (indium-repl--handle-connection-closed))
 
-(defun indium-webkit--handle-ws-error (_ws _action error)
+(defun indium-v8--handle-ws-error (_ws _action error)
   "Display an error message for an exception in a websocket callback handling.
 ERROR should be a description of the exception."
   (message "Exception in websocket callback! %s" error))
 
-(defun indium-webkit--send-request (request &optional callback)
+(defun indium-v8--send-request (request &optional callback)
   "Send REQUEST to the current connection.
 Evaluate CALLBACK with the response.
 
 If the current connection is closed, display a message."
-  (if (indium-webkit--connected-p)
-      (let ((id (indium-webkit--next-request-id)))
+  (if (indium-v8--connected-p)
+      (let ((id (indium-v8--next-request-id)))
 	(when callback
 		(map-put (indium-current-connection-callbacks)
 			 id
@@ -417,100 +417,100 @@ If the current connection is closed, display a message."
 			     (json-encode (cons `(id . ,id) request))))
     (message "Socket connection closed")))
 
-(defun indium-webkit--read-ws-message (frame)
+(defun indium-v8--read-ws-message (frame)
   "Parse the payload from the websocket FRAME."
   (json-read-from-string (websocket-frame-payload frame)))
 
-(defun indium-webkit--enable-tools ()
+(defun indium-v8--enable-tools ()
   "Enable developer tools for the current tab.
 
 There is currently no support for the DOM inspector and network
 inspectors."
-  (indium-webkit--enable-runtime)
+  (indium-v8--enable-runtime)
   (unless (indium-connection-nodejs-p indium-current-connection)
-    (indium-webkit--enable-page)
-    (indium-webkit--enable-network)
-    (indium-webkit--enable-log))
-  (indium-webkit--enable-debugger))
+    (indium-v8--enable-page)
+    (indium-v8--enable-network)
+    (indium-v8--enable-log))
+  (indium-v8--enable-debugger))
 
-(defun indium-webkit--enable-log ()
+(defun indium-v8--enable-log ()
   "Enable the log on the current tab."
-  (indium-webkit--send-request '((method . "Log.enable"))))
+  (indium-v8--send-request '((method . "Log.enable"))))
 
-(defun indium-webkit--enable-page ()
+(defun indium-v8--enable-page ()
   "Enable the page API on the current tab."
-  (indium-webkit--send-request '((method . "Page.enable"))))
+  (indium-v8--send-request '((method . "Page.enable"))))
 
-(defun indium-webkit--enable-runtime ()
+(defun indium-v8--enable-runtime ()
   "Enable the runtime on the current tab."
-  (indium-webkit--send-request '((method . "Runtime.enable")))
-  (indium-webkit--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
+  (indium-v8--send-request '((method . "Runtime.enable")))
+  (indium-v8--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
 
-(defun indium-webkit--enable-network ()
+(defun indium-v8--enable-network ()
   "Enable the runtime on the current tab."
-  (indium-webkit--send-request '((method . "Network.enable"))
+  (indium-v8--send-request '((method . "Network.enable"))
                                (lambda (_)
-                                 (when indium-webkit-cache-disabled
-                                   (indium-webkit--set-cache-disabled t)))))
+                                 (when indium-v8-cache-disabled
+                                   (indium-v8--set-cache-disabled t)))))
 
-(defun indium-webkit--enable-debugger ()
+(defun indium-v8--enable-debugger ()
   "Enable the debugger on the current tab."
-  (indium-webkit--send-request '((method . "Debugger.enable"))
+  (indium-v8--send-request '((method . "Debugger.enable"))
                              (lambda (&rest _)
-                               (indium-webkit-set-pause-on-exceptions "uncaught"))))
+                               (indium-v8-set-pause-on-exceptions "uncaught"))))
 
-(defun indium-webkit--handle-evaluation-response (response callback)
+(defun indium-v8--handle-evaluation-response (response callback)
   "Get the result of an evaluation in RESPONSE and evaluate CALLBACK with it."
   (let* ((result (map-nested-elt response '(result result)))
          (error (eq (map-nested-elt response '(result wasThrown)) t)))
-    (funcall callback (indium-webkit--value result) error)))
+    (funcall callback (indium-v8--value result) error)))
 
-(defun indium-webkit--handle-completions-response (response prefix callback)
+(defun indium-v8--handle-completions-response (response prefix callback)
   "Request a completion list for the object in RESPONSE.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it."
   (let ((objectid (map-nested-elt response '(result result objectId)))
         (type (map-nested-elt response '(result result type))))
     (if objectid
-        (indium-webkit--get-completion-list-by-reference objectid prefix callback)
-      (indium-webkit--get-completion-list-by-type type prefix callback))))
+        (indium-v8--get-completion-list-by-reference objectid prefix callback)
+      (indium-v8--get-completion-list-by-type type prefix callback))))
 
-(defun indium-webkit--get-completion-list-by-reference (objectid prefix callback)
+(defun indium-v8--get-completion-list-by-reference (objectid prefix callback)
   "Request the completion list for a remote object referenced by OBJECTID.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it."
-  (indium-webkit--send-request
+  (indium-v8--send-request
    `((method . "Runtime.callFunctionOn")
      (params . ((objectId . ,objectid)
-                (functionDeclaration . ,indium-webkit-completion-function)
+                (functionDeclaration . ,indium-v8-completion-function)
                 (returnByValue . t))))
    (lambda (response)
-     (indium-webkit--handle-completion-list-response response prefix callback))))
+     (indium-v8--handle-completion-list-response response prefix callback))))
 
-(defun indium-webkit--get-completion-list-by-type (type prefix callback)
+(defun indium-v8--get-completion-list-by-type (type prefix callback)
   "Request the completion list for an object of type TYPE.
 The completion list is filtered using the PREFIX string, then
 CALLBACK is evaluated with it.
 
 This method is used for strings, numbers and booleans.  See
-`indium-webkit--get-completion-list-by-reference' for getting
+`indium-v8--get-completion-list-by-reference' for getting
 completions using references to remote objects (including
 arrays)."
-  (let ((expression (format "(%s)(\"%s\")" indium-webkit-completion-function type)))
-    (indium-webkit--send-request
+  (let ((expression (format "(%s)(\"%s\")" indium-v8-completion-function type)))
+    (indium-v8--send-request
      `((method . "Runtime.evaluate")
        (params . ((expression . ,expression)
                   (returnByValue . t))))
      (lambda (response)
-       (indium-webkit--handle-completion-list-response response prefix callback)))))
+       (indium-v8--handle-completion-list-response response prefix callback)))))
 
-(defun indium-webkit--completion-expression (string)
+(defun indium-v8--completion-expression (string)
   "Return the completion expression to be requested from STRING."
   (if (string-match-p "\\." string)
       (replace-regexp-in-string "\\.[^\\.]*$" "" string)
     "this"))
 
-(defun indium-webkit--handle-completion-list-response (response prefix callback)
+(defun indium-v8--handle-completion-list-response (response prefix callback)
   "Filter candidates from RESPONSE matching PREFIX.
 Evaluate CALLBACK on the result."
   (let ((candidates (map-nested-elt response '(result result value))))
@@ -520,11 +520,11 @@ Evaluate CALLBACK on the result."
                                              (symbol-name (car candidate)))
                                            candidates)))))
 
-(cl-defmethod indium-webkit--connected-p ()
+(cl-defmethod indium-v8--connected-p ()
   "Return non-nil if the current connection is open."
-  (indium-backend-active-connection-p 'webkit))
+  (indium-backend-active-connection-p 'v8))
 
-(defun indium-webkit--value (result)
+(defun indium-v8--value (result)
   "Return an alist representing the value of RESULT.
 
 The returned value can be a reference to a remote object, in
@@ -533,21 +533,21 @@ non-nil."
   (let* ((value (map-elt result 'value))
          (type (intern (map-elt result 'type)))
          (objectid (map-elt result 'objectId))
-         (preview (indium-webkit--preview result))
-         (description (indium-webkit--description result)))
+         (preview (indium-v8--preview result))
+         (description (indium-v8--description result)))
     `((objectid . ,objectid)
       (description . ,description)
       (type . ,type)
       (preview . ,preview)
       (value . ,value))))
 
-(defun indium-webkit--exception (result)
+(defun indium-v8--exception (result)
   "Return an exception built from RESULT."
   (setf (map-elt result 'values)
-        (list (indium-webkit--value
+        (list (indium-v8--value
                (map-elt result 'exception)))))
 
-(defun indium-webkit--description (result)
+(defun indium-v8--description (result)
   "Return a description string built from RESULT.
 RESULT should be a reference to a remote object."
   (let ((value (map-elt result 'value))
@@ -563,40 +563,40 @@ RESULT should be a reference to a remote object."
                       "false"))
           (_ (or value "null"))))))
 
-(defun indium-webkit--preview (result)
+(defun indium-v8--preview (result)
   "Return a preview string built from RESULT.
 RESULT should be a reference to a remote object."
   (let* ((preview (map-elt result 'preview))
          (subtype (map-elt preview 'subtype)))
     (if (string= subtype "array")
-        (indium-webkit--preview-array preview)
-      (indium-webkit--preview-object preview))))
+        (indium-v8--preview-array preview)
+      (indium-v8--preview-object preview))))
 
-(defun indium-webkit--preview-object (preview)
+(defun indium-v8--preview-object (preview)
   "Return a preview string from the properties of the object PREVIEW."
   (concat "{ "
           (mapconcat (lambda (prop)
                        (format "%s: %s"
                                (map-elt prop 'name)
-                               (indium-webkit--preview-property prop)))
+                               (indium-v8--preview-property prop)))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               ", … }"
             " }")))
 
-(defun indium-webkit--preview-array (preview)
+(defun indium-v8--preview-array (preview)
   "Return a preview string from the elements of the array PREVIEW."
   (concat "[ "
           (mapconcat (lambda (prop)
-                       (indium-webkit--preview-property prop))
+                       (indium-v8--preview-property prop))
                      (map-elt preview 'properties)
                      ", ")
           (if (eq (map-elt preview 'lossless) :json-false)
               "… ]"
             " ]")))
 
-(defun indium-webkit--preview-property (property)
+(defun indium-v8--preview-property (property)
   "Return the string for a single object or array PROPERTY preview."
   (if (equal (map-elt property 'type) "string")
       (format "\"%s\"" (map-elt property 'value))
@@ -605,22 +605,22 @@ RESULT should be a reference to a remote object."
           (map-elt property 'type)
         preview))))
 
-(defun indium-webkit--properties (result)
+(defun indium-v8--properties (result)
   "Return a list of object properties built from RESULT."
   (seq-map (lambda (prop)
              `((name . ,(map-elt prop 'name))
-               (value . ,(indium-webkit--value (or (map-elt prop 'value)
+               (value . ,(indium-v8--value (or (map-elt prop 'value)
                                                  (map-elt prop 'get))))))
            result))
 
-(defun indium-webkit--scope-chain (frame)
+(defun indium-v8--scope-chain (frame)
   "Return a scope chain for a FRAME."
   (let ((scope-chain (seq-map (lambda (scope)
-                                `((object . ,(indium-webkit--value (map-elt scope 'object)))
+                                `((object . ,(indium-v8--value (map-elt scope 'object)))
                                   (name . ,(map-elt scope 'name))
                                   (type . ,(map-elt scope 'type))))
                               (map-elt frame 'scopeChain)))
-        (this `((object . ,(indium-webkit--value (map-elt frame 'this)))
+        (this `((object . ,(indium-v8--value (map-elt frame 'this)))
                 (name . "this")
                 (type . "local"))))
     (cl-loop for scope in scope-chain
@@ -628,8 +628,8 @@ RESULT should be a reference to a remote object."
              when (string= (map-elt scope 'type) "local")
              collect this)))
 
-(defun indium-webkit--convert-to-webkit-location (location)
-  "Return an alist representing a Webkit location from LOCATION."
+(defun indium-v8--convert-to-v8-location (location)
+  "Return an alist representing a V8 location from LOCATION."
   (let ((result '()))
     (when-let ((line (indium-location-line location)))
       (map-put result 'lineNumber line))
@@ -640,28 +640,28 @@ RESULT should be a reference to a remote object."
       (map-put result 'scriptId (indium-script-id script)))
     result))
 
-(defun indium-webkit--convert-from-webkit-location (location)
-  "Return a location struct built from a webkit LOCATION."
+(defun indium-v8--convert-from-v8-location (location)
+  "Return a location struct built from a v8 LOCATION."
   (make-indium-location-from-script-id :line (map-elt location 'lineNumber)
 				       :column (map-elt location 'columnNumber)
 				       :script-id (map-elt location 'scriptId)))
 
-(defun indium-webkit--frames (list)
+(defun indium-v8--frames (list)
   "Return a list of frames built from LIST."
   (seq-map (lambda (frame)
 	     (make-indium-frame
-	      :scope-chain (indium-webkit--scope-chain frame)
-	      :location (indium-webkit--convert-from-webkit-location (map-elt frame 'location))
+	      :scope-chain (indium-v8--scope-chain frame)
+	      :location (indium-v8--convert-from-v8-location (map-elt frame 'location))
 	      :type (map-elt frame 'type)
 	      :script (indium-script-find-by-id (map-nested-elt frame '(location scriptId)))
 	      :function-name (map-elt frame 'functionName)
 	      :id (map-elt frame 'callFrameId)))
            list))
 
-(defvar indium-webkit--request-id 0)
-(defun indium-webkit--next-request-id ()
+(defvar indium-v8--request-id 0)
+(defun indium-v8--next-request-id ()
   "Return the next unique identifier to be used in a request."
-  (cl-incf indium-webkit--request-id))
+  (cl-incf indium-v8--request-id))
 
-(provide 'indium-webkit)
-;;; indium-webkit.el ends here
+(provide 'indium-v8)
+;;; indium-v8.el ends here
