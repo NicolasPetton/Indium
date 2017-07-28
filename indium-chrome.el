@@ -131,7 +131,10 @@ If there are more then one tab available ask the user which tab to connect."
                           (string= (map-elt tab 'url) url))
                         tabs))
          (websocket-url (map-elt tab 'webSocketDebuggerUrl))
-         (workspace (indium-workspace-read)))
+         (workspace))
+    ;; No need to setup a workspace when using the file protocol.
+    (unless (string= (url-type (url-generic-parse-url url)) "file")
+      (setq workspace (indium-workspace-read)))
     (indium-v8--open-ws-connection url websocket-url nil nil workspace)))
 
 (defun indium-chrome--read-tab-data ()
