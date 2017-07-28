@@ -102,8 +102,7 @@ Return non-nil if there is no current connection."
 			    (if (and nodejs process)
 				" and its process.  "
 			      ".  ")
-			    "Are you sure? "))
-	   kill-buffer-query-functions) ;; kill the process buffer silently
+			    "Are you sure? ")))
       (when (yes-or-no-p message)
 	(when (and nodejs process
 		   (memq (process-status process)
