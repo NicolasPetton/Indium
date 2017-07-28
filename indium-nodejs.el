@@ -105,8 +105,10 @@ Return non-nil if there is no current connection."
 			    "Are you sure? "))
 	   kill-buffer-query-functions) ;; kill the process buffer silently
       (when (yes-or-no-p message)
-	(when (and nodejs process)
-	  (ignore-errors (kill-process process)))
+	(when (and nodejs process
+		   (memq (process-status process)
+			 '(run stop open listen)))
+	  (kill-process process))
 	(indium-quit))))
   (null indium-current-connection))
 
