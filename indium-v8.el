@@ -71,12 +71,12 @@
   (websocket-close (indium-connection-ws indium-current-connection)))
 
 (cl-defmethod indium-backend-reconnect ((_backend (eql v8)))
-  (indium-v8--open-ws-connection
-   (indium-current-connection-url)
-   (websocket-url (indium-connection-ws indium-current-connection))
-   ;; close all buffers related to the closed
-   ;; connection the first
-   #'indium-quit))
+  (let ((url (indium-current-connection-url))
+	(ws-url (websocket-url (indium-connection-ws indium-current-connection))))
+     ;; close all buffers related to the closed
+     ;; connection the first
+    (indium-quit)
+    (indium-v8--open-ws-connection url ws-url)))
 
 (cl-defmethod indium-backend-evaluate ((_backend (eql v8)) string &optional callback)
   "Evaluate STRING then call CALLBACK.
@@ -290,9 +290,9 @@ connection."
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
                   :on-open (lambda (ws)
-                             (when on-open
-                               (funcall on-open))
-                             (indium-v8--handle-ws-open ws url nodejs workspace))
+			     (indium-v8--handle-ws-open ws url nodejs workspace)
+			     (when on-open
+                               (funcall on-open)))
                   :on-message #'indium-v8--handle-ws-message
                   :on-close #'indium-v8--handle-ws-closed
                   :on-error #'indium-v8--handle-ws-error))

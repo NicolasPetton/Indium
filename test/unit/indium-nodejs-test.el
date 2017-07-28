@@ -32,7 +32,40 @@
     (spy-on 'indium-nodejs--add-flags)
     (indium-run-node "node foo")
     (expect #'indium-nodejs--add-flags
-            :to-have-been-called-with "node foo")))
+            :to-have-been-called-with "node foo"))
+
+  (it "should kill the previous connection process when there is one"
+    (let ((indium-current-connection (make-indium-connection
+				      :process 'first-process)))
+      (map-put (indium-connection-props indium-current-connection)
+	       'nodejs t)
+      (spy-on 'make-process :and-return-value 'second-process)
+      (spy-on 'yes-or-no-p :and-return-value t)
+
+      (spy-on 'switch-to-buffer)
+      (spy-on 'kill-process)
+      (spy-on 'process-buffer)
+      (spy-on 'indium-backend-close-connection)
+
+      (indium-run-node "node foo")
+      (expect #'process-buffer :to-have-been-called-with 'first-process)
+      (expect #'kill-process :to-have-been-called)
+      (expect #'indium-backend-close-connection :to-have-been-called)))
+
+  (it "should not kill the previous connection process when not nodejs"
+    (let ((indium-current-connection (make-indium-connection
+				      :process 'first-process)))
+      (spy-on 'make-process :and-return-value 'second-process)
+      (spy-on 'yes-or-no-p :and-return-value t)
+
+      (spy-on 'switch-to-buffer)
+      (spy-on 'kill-process)
+      (spy-on 'process-buffer)
+      (spy-on 'indium-backend-close-connection)
+
+      (indium-run-node "node foo")
+      (expect #'kill-process :not :to-have-been-called)
+      (expect #'indium-backend-close-connection :to-have-been-called))))
 
 (describe "Setting NodeJS debug flags"
   (it "should set the `--append' and `--debug-brk' flags"
@@ -48,9 +81,9 @@
     (spy-on 'indium-nodejs--connect)
     (let ((output "To start debugging, open the following URL in Chrome:
     chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=127.0.0.1:9229/43c07a90-1aed-4753-961d-1d449b21e84f"))
-      (indium-nodejs--connect-to-process output)
+      (indium-nodejs--connect-to-process 'process output)
       (expect #'indium-nodejs--connect
-              :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f"))))
+              :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f" 'process))))
 
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here

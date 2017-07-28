@@ -60,9 +60,11 @@
 (defvar indium-current-connection nil
   "Current connection to the browser tab.")
 
-(cl-defstruct indium-connection
+(cl-defstruct (indium-connection)
   (backend nil :type symbol :read-only t)
   (url nil :type string :read-only t)
+  ;; Optional process attached to the connection (used by NodeJS)
+  (process nil :type process)
   (callbacks (make-hash-table) :type hash-table)
   (scripts (make-hash-table) :type hash-table)
   (breakpoints (make-hash-table) :type hash-table)
@@ -100,6 +102,15 @@ If no breakpoint with ID exist in CONNECTION, return nil."
   "Return the callbacks of the current connection if any."
   (when-indium-connected
     (indium-connection-callbacks indium-current-connection)))
+
+(defun indium-current-connection-process ()
+  "Return the process attached to the current connection if any."
+  (when-indium-connected
+    (indium-connection-process indium-current-connection)))
+
+(cl-defmethod (setf indium-current-connection-process) (process)
+  (when-indium-connected
+    (setf (indium-connection-process indium-current-connection) process)))
 
 (cl-defmethod (setf indium-current-connection-callbacks) (callbacks)
   (when-indium-connected

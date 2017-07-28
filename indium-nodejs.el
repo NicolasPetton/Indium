@@ -41,6 +41,7 @@
 (require 'json)
 (require 'map)
 (require 'seq)
+(require 'subr-x)
 
 (require 'indium-v8)
 
@@ -54,6 +55,7 @@ When the process is ready, open an Indium connection on it."
   (interactive (list (read-shell-command "Node command: "
                                          (or (car indium-nodejs-commands-history) "node ")
                                          'indium-nodejs-commands-history)))
+  (indium-nodejs--maybe-quit)
   (let ((process (make-process :name "indium-nodejs-process"
                                :buffer "*node process*"
                                :filter #'indium-nodejs--process-filter
@@ -70,15 +72,41 @@ When the process is ready, open an Indium connection on it."
         (path (read-from-minibuffer "Path: ")))
     (indium-nodejs--connect host port path)))
 
-(defun indium-nodejs--connect (host port path)
-  "Ask the user for a websocket url HOST:PORT/PATH and connects to it."
-  (when (or (null indium-current-connection)
-            (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
-    (when indium-current-connection
-      (indium-quit))
+(defun indium-nodejs--connect (host port path &optional process)
+  "Ask the user for a websocket url HOST:PORT/PATH and connects to it.
+When PROCESS is non-nil, attach it to the connection."
+  (indium-nodejs--maybe-quit)
+  (when (null indium-current-connection)
     (let ((websocket-url (format "ws://%s:%s/%s" host port path))
           (url (format "file://%s" default-directory)))
-      (indium-v8--open-ws-connection url websocket-url nil t))))
+      (indium-v8--open-ws-connection url
+				     websocket-url
+				     (when process
+				       (lambda ()
+					 (setf (indium-current-connection-process) process)))
+				     t))))
+
+(defun indium-nodejs--maybe-quit ()
+  "Close the current connection and kill its process if any.
+
+The process is killed so that another node process can be
+started, serving the devtools protocol on the same port.
+
+ If the current connection is not a NodeJS connection, do not
+attempt to kill its buffer."
+  (when indium-current-connection
+    (let* ((nodejs (map-elt (indium-current-connection-props) 'nodejs))
+	   (process (indium-current-connection-process))
+	   (message (concat "This requires closing the current connection"
+			    (if (and nodejs process)
+				" and its process.  "
+			      ".  ")
+			    "Are you sure? "))
+	   kill-buffer-query-functions) ;; kill the process buffer silently
+      (when (yes-or-no-p message)
+	(when (and nodejs process)
+	  (kill-process (process-buffer process)))
+	(indium-quit)))))
 
 (defun indium-nodejs--add-flags (command)
   "Return COMMAND with the `--inspect' `--debug-brk' flags added."
@@ -97,14 +125,14 @@ socket URL to connect to."
     (goto-char (point-max))
     (insert output))
   (ignore-errors
-    (indium-nodejs--connect-to-process output)))
+    (indium-nodejs--connect-to-process process output)))
 
-(defun indium-nodejs--connect-to-process (output)
-  "If OUTPUT contain the WS url, connect to it."
+(defun indium-nodejs--connect-to-process (process output)
+  "If PROCESS OUTPUT contain the WS url, connect to it."
   (save-match-data
     (string-match "://.*/\\(.*\\)$" output)
     (when-let ((path (match-string 1 output)))
-      (indium-nodejs--connect "127.0.0.1" "9229" path))))
+      (indium-nodejs--connect "127.0.0.1" "9229" path process))))
 
 (provide 'indium-nodejs)
 ;;; indium-nodejs.el ends here
