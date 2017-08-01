@@ -39,10 +39,6 @@ The inspector
 
 ![REPL](./screenshots/inspector.png)
 
-The stepping debugger, and an inspector on locals
-
-![REPL](./screenshots/debugger.png)
-
 ## Missing features
 
 Indium is young, here's a list of missing/wanted features
