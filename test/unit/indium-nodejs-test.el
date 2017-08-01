@@ -45,11 +45,13 @@
       (spy-on 'switch-to-buffer)
       (spy-on 'kill-process)
       (spy-on 'process-buffer)
+      (spy-on 'process-status :and-return-value 'run)
+
       (spy-on 'indium-backend-close-connection)
 
       (indium-run-node "node foo")
-      (expect #'process-buffer :to-have-been-called-with 'first-process)
-      (expect #'kill-process :to-have-been-called)
+
+      (expect #'kill-process :to-have-been-called-with 'first-process)
       (expect #'indium-backend-close-connection :to-have-been-called)))
 
   (it "should not kill the previous connection process when not nodejs"
@@ -61,9 +63,12 @@
       (spy-on 'switch-to-buffer)
       (spy-on 'kill-process)
       (spy-on 'process-buffer)
+      (spy-on 'process-status :and-return-value 'run)
+
       (spy-on 'indium-backend-close-connection)
 
       (indium-run-node "node foo")
+
       (expect #'kill-process :not :to-have-been-called)
       (expect #'indium-backend-close-connection :to-have-been-called))))
 
