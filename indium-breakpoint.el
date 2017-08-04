@@ -60,11 +60,11 @@ CONDITION is true."
 
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
-  (if-let ((brk (indium-breakpoint-at-point)))
-      (when-indium-connected
-        (indium-backend-remove-breakpoint (indium-current-connection-backend)
-					  (indium-breakpoint-id brk))))
-  (indium-breakpoint-remove-overlay))
+  (when-let ((brk (indium-breakpoint-at-point)))
+    (when-indium-connected
+      (indium-backend-remove-breakpoint (indium-current-connection-backend)
+					(indium-breakpoint-id brk)))
+    (indium-breakpoint-remove-overlay)))
 
 (defun indium-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
