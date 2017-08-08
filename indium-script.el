@@ -122,9 +122,7 @@ If SCRIPT has no sourcemap, return LOCATION."
           (make-indium-location :file file
 				:line (max 0 (1- (plist-get original-location :line)))
 				:column (plist-get original-location :column))
-	(progn
-	  (message "The sourcemap file does not exist!")
-          location))
+	location)
     location))
 
 (defun indium-script-generated-location (location)
