@@ -25,10 +25,38 @@
 (require 'assess)
 (require 'indium-breakpoint)
 
+(describe "Making markers (tests for issue #79)"
+  (it "should put breakpoint overlays on the entire line"
+    (with-js2-buffer "let a = true;"
+      (let ((ov (indium-breakpoint--ensure-overlay)))
+	(expect (overlay-start ov) :to-equal (point-at-bol))
+	(expect (overlay-end ov) :to-equal (point-at-eol)))))
+
+  (it "should be able to access breakpoints on empty lines"
+    (with-js2-buffer ""
+      (let ((ov (indium-breakpoint--ensure-overlay)))
+	(expect (indium-breakpoint-overlay-on-current-line)
+		:to-be ov))))
+
+  (it "should be able to remove overlays on empty lines"
+    (with-js2-buffer ""
+      (indium-breakpoint--ensure-overlay)
+      (expect (indium-breakpoint-overlay-on-current-line) :not :to-be nil)
+      (indium-breakpoint-remove-overlay)
+      (expect (indium-breakpoint-overlay-on-current-line) :to-be nil)))
+
+  (it "can get a breakpoint overlays on the current line when it changed"
+    (with-js2-buffer "let a = 1;"
+      (let ((ov (indium-breakpoint--ensure-overlay)))
+	(goto-char (point-min))
+	(insert "\n")
+	(forward-line 1)
+        (expect (indium-breakpoint-overlay-on-current-line) :to-be ov)))))
+
 (describe "Accessing breakpoints"
   (it "can get a breakpoint overlays on the current line"
     (with-js2-buffer "let a = 1;"
-      (let ((ov (make-overlay (point) (point))))
+      (let ((ov (indium-breakpoint--ensure-overlay)))
         (overlay-put ov 'indium-breakpoint t)
         (expect (indium-breakpoint-overlay-on-current-line) :to-be ov))))
 

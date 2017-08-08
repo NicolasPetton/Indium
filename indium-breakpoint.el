@@ -132,7 +132,7 @@ An icon is added to the left fringe."
 (defun indium-breakpoint-remove-overlay ()
   "Remove the breakpoint overlay from the current line."
   (remove-overlays (point-at-bol)
-                   (point-at-eol)
+                   (1+ (point-at-eol))
                    'indium-breakpoint-ov
 		   t))
 
@@ -145,8 +145,8 @@ An icon is added to the left fringe."
   "Return the breakpoint overlay on the current-line.
 If no overlay is present, return nil."
   (seq-find (lambda (ov)
-              (overlay-get ov 'indium-breakpoint))
-            (overlays-in (point-at-bol) (point-at-eol))))
+              (overlay-get ov 'indium-breakpoint-ov))
+            (overlays-in (point-at-bol) (1+ (point-at-eol)))))
 
 (defun indium-breakpoint--ensure-overlay ()
   "Return the breakpoint overlay on the current line.
