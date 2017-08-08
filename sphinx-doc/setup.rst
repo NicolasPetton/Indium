@@ -8,7 +8,7 @@ Getting up and running
 NodeJS
 ------
 
-Nodejs >= ``7.4`` is required for Indium to work. 
+Nodejs >= ``8.x`` is required for Indium to work. 
 
 Installing a recent version of NodeJS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,8 +21,8 @@ recent version using `nvm <https://github.com/creationix/nvm>`_: ::
 Once ``nvm`` is install, you can easily install and use the version of NodeJS
 you want: ::
   
-  $ nvm install v7
-  $ nvm alias default v7
+  $ nvm install v8
+  $ nvm alias default v8
   $ node --version
 
 If you install NodeJS using ``nvm``, chances are that Emacs won't have it in its
@@ -72,7 +72,7 @@ the application code if you passed the CLI argument ``--debug-brk``.
 Chrome/Chromium
 ---------------
 
-Chrome/Chromium >= ``54.0`` is required for Indium to properly work (debugging
+Chrome/Chromium >= ``60.0`` is required for Indium to properly work (debugging
 protocol ``v1.2``).
 
 Start Chrome/Chromium with the ``--remote-debugging-port`` flag like the following:

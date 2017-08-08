@@ -21,12 +21,18 @@
 ;;; Commentary:
 
 ;; Indium backend implementation for V8 and Blink.  Connection is handled in
-;; indium-chrome.el.  This backend currently supports the REPL, code completion,
-;; object inspection and the debugger.
+;; indium-chrome.el and indium-nodejs.el.  This backend currently supports the
+;; REPL, code completion, object inspection and the stepping debugger.
 ;;
-;; The protocol supports both Chrome/Chromium and Nodejs.
+;; Parts of the backend use the TOT (tip of tree) of the protocol, and may break
+;; in the future.  When using the TOT, functions are flagged with "experimental
+;; API".
+;;
+;; This backend supports both Chrome/Chromium 60 and Nodejs 8.x.
+;;
 ;; The protocol is documented at
 ;; https://chromedevtools.github.io/debugger-protocol-viewer/1-2/.
+;; https://chromedevtools.github.io/devtools-protocol/tot
 
 ;;; Code:
 
@@ -229,16 +235,13 @@ Location should be an alist with a `limeNumber' and `scriptId' key."
 (defun indium-v8-set-overlay-message (string)
   "Set the debugger page overlay to STRING."
   (indium-v8--send-request
-   `((method . "Page.configureOverlay")
-     (params . ((suspended . :json-false)
-                (message . ,string))))
-   #'ignore))
+   `((method . "Overlay.setPausedInDebuggerMessage")
+     (params . ((message . ,string))))))
 
 (defun indium-v8-remove-overlay-message ()
   "Remove any overlay message displayed on the page."
   (indium-v8--send-request
-   `((method . "Page.configureOverlay")
-     (params . ((suspended . :json-false))))))
+   `((method . "Overlay.setPausedInDebuggerMessage"))))
 
 (defun indium-v8-set-pause-on-exceptions (state)
   "Defines on which STATE to pause.
@@ -428,18 +431,20 @@ There is currently no support for the DOM inspector and network
 inspectors."
   (indium-v8--enable-runtime)
   (unless (indium-connection-nodejs-p indium-current-connection)
-    (indium-v8--enable-page)
+    (indium-v8--enable-overlay)
     (indium-v8--enable-network)
     (indium-v8--enable-log))
   (indium-v8--enable-debugger))
 
 (defun indium-v8--enable-log ()
   "Enable the log on the current tab."
+  ;; experimental API
   (indium-v8--send-request '((method . "Log.enable"))))
 
-(defun indium-v8--enable-page ()
+(defun indium-v8--enable-overlay ()
   "Enable the page API on the current tab."
-  (indium-v8--send-request '((method . "Page.enable"))))
+  ;; experimental API
+  (indium-v8--send-request '((method . "Overlay.enable"))))
 
 (defun indium-v8--enable-runtime ()
   "Enable the runtime on the current tab."
