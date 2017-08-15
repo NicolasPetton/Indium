@@ -23,7 +23,34 @@
 
 (require 'buttercup)
 (require 'assess)
+(require 'seq)
 (require 'indium-breakpoint)
+
+(describe "Breakpoint position when editing buffers (GH issue #82)"
+  (it "should keep the breakpoint on the original line when adding a line before"
+    (with-js2-buffer "let a = true;"
+      (let ((ov (indium-breakpoint--ensure-overlay)))
+	;; add a line before the current line with the breakpoint overlay
+	(goto-char (point-min))
+	(open-line 1)
+	(forward-line)
+	(expect (overlay-start ov) :to-equal (point-at-bol))
+	(expect (overlay-end ov) :to-equal (point-at-eol)))))
+
+  (it "should not add a brk on the next line"
+    ;; When inserting a line before, deleting a breakpoint resulted in an
+    ;; overlay being added on the next line.
+    (with-js2-buffer "let a = true;"
+      (let ((ov (indium-breakpoint--ensure-overlay)))
+	;; add a line before the current line with the breakpoint overlay
+	(goto-char (point-min))
+	(open-line 1)
+	(forward-line)
+	(indium-breakpoint-remove-overlay)
+	(let ((overlays (seq-find (lambda (ov)
+				    (overlay-get ov 'indium-breakpoint-ov))
+				  (overlays-in (point-min) (point-max)))))
+	  (expect overlays :to-equal nil))))))
 
 (describe "Making markers (tests for issue #79)"
   (it "should put breakpoint overlays on the entire line"

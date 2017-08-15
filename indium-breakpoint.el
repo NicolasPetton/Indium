@@ -152,7 +152,7 @@ If no overlay is present, return nil."
   "Return the breakpoint overlay on the current line.
 If there is no overlay, make one."
   (or (indium-breakpoint-overlay-on-current-line)
-      (let ((ov (make-overlay (point-at-bol) (point-at-eol))))
+      (let ((ov (make-overlay (point-at-bol) (point-at-eol) nil t)))
         (overlay-put ov 'indium-breakpoint-ov t)
         ov)))
 
