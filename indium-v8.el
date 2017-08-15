@@ -339,8 +339,6 @@ If WORKSPACE is non-nil, make it the workspace used for the connection."
          (request-id (map-elt message 'id))
          (callback (map-elt (indium-current-connection-callbacks)
 			    request-id)))
-    (message (format "handling indium message %s..." method))
-
     (cond
      (error (message (map-elt error 'message)))
      (request-id (when callback
