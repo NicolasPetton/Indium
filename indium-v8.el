@@ -260,8 +260,14 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
 
 (defun indium-v8--set-cache-disabled (disabled)
   "Toggle ignoring cache for each request.  If DISABLED, cache will not be used."
-  (indium-v8--send-request `((method . "Network.setCacheDisabled")
-                                 (params . ((cacheDisabled . ,(if disabled t :json-false)))))))
+  (indium-v8--send-request
+   '((method . "Network.enable"))
+   (lambda (_)
+     (indium-v8--send-request
+      `((method . "Network.setCacheDisabled")
+	(params . ((cacheDisabled . ,(if disabled t :json-false)))))
+      (lambda (_)
+	(indium-v8--send-request '((method . "Network.disable"))))))))
 
 (defun indium-v8-enable-cache ()
   "Enabled network cache for each request."
@@ -333,6 +339,8 @@ If WORKSPACE is non-nil, make it the workspace used for the connection."
          (request-id (map-elt message 'id))
          (callback (map-elt (indium-current-connection-callbacks)
 			    request-id)))
+    (message (format "handling indium message %s..." method))
+
     (cond
      (error (message (map-elt error 'message)))
      (request-id (when callback
@@ -432,8 +440,8 @@ inspectors."
   (indium-v8--enable-runtime)
   (unless (indium-connection-nodejs-p indium-current-connection)
     (indium-v8--enable-overlay)
-    (indium-v8--enable-network)
-    (indium-v8--enable-log))
+    (indium-v8--enable-log)
+    (indium-v8--set-cache-disabled indium-v8-cache-disabled))
   (indium-v8--enable-debugger))
 
 (defun indium-v8--enable-log ()
@@ -450,13 +458,6 @@ inspectors."
   "Enable the runtime on the current tab."
   (indium-v8--send-request '((method . "Runtime.enable")))
   (indium-v8--send-request '((method . "Runtime.runIfWaitingForDebugger"))))
-
-(defun indium-v8--enable-network ()
-  "Enable the runtime on the current tab."
-  (indium-v8--send-request '((method . "Network.enable"))
-                               (lambda (_)
-                                 (when indium-v8-cache-disabled
-                                   (indium-v8--set-cache-disabled t)))))
 
 (defun indium-v8--enable-debugger ()
   "Enable the debugger on the current tab."
