@@ -131,10 +131,11 @@ An icon is added to the left fringe."
 
 (defun indium-breakpoint-remove-overlay ()
   "Remove the breakpoint overlay from the current line."
-  (remove-overlays (point-at-bol)
-                   (1+ (point-at-eol))
-                   'indium-breakpoint-ov
-		   t))
+  (let ((ov (indium-breakpoint-overlay-on-current-line)))
+    (remove-overlays (overlay-start ov)
+		     (overlay-end ov)
+		     'indium-breakpoint-ov
+		     t)))
 
 (defun indium-breakpoint--fringe-icon ()
   "Return the fringe icon used for breakpoints."

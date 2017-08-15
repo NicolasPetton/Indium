@@ -50,6 +50,22 @@
 	(let ((overlays (seq-find (lambda (ov)
 				    (overlay-get ov 'indium-breakpoint-ov))
 				  (overlays-in (point-min) (point-max)))))
+	  (expect overlays :to-equal nil)))))
+
+  (it "should not add a brk on the next line when the line is split "
+    ;; When inserting a line before, deleting a breakpoint resulted in an
+    ;; overlay being added on the next line when the line where the breakpoint
+    ;; was added had been split.
+    (with-js2-buffer "let a = true;"
+      (let ((ov (indium-breakpoint--ensure-overlay)))
+	;; add a line before the current line with the breakpoint overlay
+	(goto-char 5)
+	(newline)
+	(forward-line -1)
+	(indium-breakpoint-remove-overlay)
+	(let ((overlays (seq-find (lambda (ov)
+				    (overlay-get ov 'indium-breakpoint-ov))
+				  (overlays-in (point-min) (point-max)))))
 	  (expect overlays :to-equal nil))))))
 
 (describe "Making markers (tests for issue #79)"
