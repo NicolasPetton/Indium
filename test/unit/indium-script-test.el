@@ -61,7 +61,7 @@
 	(indium-script-add-script-parsed "1" "http://localhost/js/foo.js" "foo.js.map")
 	(spy-on 'indium-repl-get-buffer :and-return-value (find-file-noselect (expand-file-name ".")))
 	(let ((script (indium-script-find-by-id "1")))
-	  (expect (indium-script-sourcemap-file script)
+	  (expect (indium-script--sourcemap-file script)
 		  :to-equal (expand-file-name "js/foo.js.map")))))))
 
 (describe "Adding scripts"

@@ -185,7 +185,10 @@ If LINE is not provided, return all breakpoints in FILE."
 (cl-defstruct indium-script
   (id nil :type string :read-only t)
   (url nil :type string :read-only t)
-  (sourcemap-url nil :type string :read-only t))
+  (sourcemap-url nil :type string :read-only t)
+  ;; Keep a cache of the parsed sourcemap for speed.  See
+  ;; `indium-script-sourcemap'.
+  (sourcemap-cache nil))
 
 (cl-defstruct
     (indium-location
