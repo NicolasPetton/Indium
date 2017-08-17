@@ -131,19 +131,22 @@ If there is already a breakpoint, signal an error."
     (user-error "Cannot place a breakpoint here")))
 
 (defun indium-add-conditional-breakpoint ()
-  "Add a conditional breakpoint at point."
+  "Add a conditional breakpoint at point.
+If there is already a breakpoint, signal an error."
   (interactive)
   (indium-interaction--guard-no-breakpoint-at-point)
   (indium-breakpoint-add (read-from-minibuffer "Breakpoint condition: ")))
 
 (defun indium-edit-breakpoint-condition ()
-  "Edit the condition of breakpoint at point."
+  "Edit the condition of breakpoint at point.
+Signal an error if there is no breakpoint."
   (interactive)
   (indium-interaction--guard-breakpoint-at-point)
   (indium-breakpoint-edit-condition))
 
 (defun indium-remove-breakpoint ()
-  "Remove the breakpoint at point."
+  "Remove the breakpoint at point.
+If there is no breakpoint, signal an error."
   (interactive)
   (indium-interaction--guard-breakpoint-at-point)
   (indium-breakpoint-remove))
