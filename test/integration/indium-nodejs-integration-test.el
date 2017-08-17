@@ -57,7 +57,8 @@
     (add-hook 'indium-connection-open-hook #'foo)
     (indium-run-node "node ../fixtures/test.js")
     (sleep-for 2)
-    (expect #'foo :to-have-been-called)))
+    (expect #'foo :to-have-been-called)
+    (remove-hook 'indium-connection-open-hook #'foo)))
 
 (provide 'indium-nodejs-integration-test)
 ;;; indium-nodejs-integration-test.el ends here
