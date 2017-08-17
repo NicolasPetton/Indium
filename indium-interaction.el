@@ -122,8 +122,10 @@ If PRINT is non-nil, print the output into the current buffer."
     (user-error "No REPL buffer open")))
 
 (defun indium-add-breakpoint ()
-  "Add a breakpoint at point."
+  "Add a breakpoint on the current line.
+If there is already a breakpoint, signal an error."
   (interactive)
+  (indium-interaction--guard-no-breakpoint-at-point)
   (if-let ((location (indium-script-generated-location-at-point)))
       (indium-breakpoint-add location)
     (user-error "Cannot place a breakpoint here")))
@@ -131,16 +133,19 @@ If PRINT is non-nil, print the output into the current buffer."
 (defun indium-add-conditional-breakpoint ()
   "Add a conditional breakpoint at point."
   (interactive)
+  (indium-interaction--guard-no-breakpoint-at-point)
   (indium-breakpoint-add (read-from-minibuffer "Breakpoint condition: ")))
 
 (defun indium-edit-breakpoint-condition ()
   "Edit the condition of breakpoint at point."
   (interactive)
+  (indium-interaction--guard-breakpoint-at-point)
   (indium-breakpoint-edit-condition))
 
 (defun indium-remove-breakpoint ()
   "Remove the breakpoint at point."
   (interactive)
+  (indium-interaction--guard-breakpoint-at-point)
   (indium-breakpoint-remove))
 
 (defun indium-remove-all-breakpoints-from-buffer ()
@@ -292,6 +297,16 @@ hitting a breakpoint."
                                       (buffer-string)
                                       (lambda ()
                                         (run-hook-with-args 'indium-update-script-source-hook url)))))
+
+(defun indium-interaction--guard-breakpoint-at-point ()
+  "Signal an error if there is no breakpoint on the current line."
+  (unless (indium-breakpoint-at-point)
+    (user-error "No breakpoint on the current line")))
+
+(defun indium-interaction--guard-no-breakpoint-at-point ()
+  "Signal an error if there is a breakpoint on the current line."
+    (when (indium-breakpoint-at-point)
+      (user-error "There is already a breakpoint on the current line")))
 
 (add-hook 'after-save-hook #'indium-interaction-update)
 

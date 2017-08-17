@@ -22,6 +22,8 @@
 ;;; Code:
 
 (require 'buttercup)
+(require 'assess)
+
 (require 'indium-interaction)
 
 (describe "Finding the AST node to evaluate"
@@ -118,6 +120,37 @@
       (goto-char (point-max))
       (expect (js2-node-string (indium-interaction-node-before-point))
               :to-equal "for (const x of [1, 2, 3]) {console.log(x);}"))))
+
+(describe "Adding/removing invalid breakpoints"
+  (it "should not try to add duplicate breakpoints"
+    (assess-with-filesystem '("app.js")
+      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
+	(with-current-buffer buf
+	  (insert "let a = 2;")
+	  (indium-add-breakpoint)
+	  (expect #'indium-add-breakpoint :to-throw 'user-error)))))
+
+  (it "should not try to remove non-existant breakpoints"
+    (assess-with-filesystem '("app.js")
+      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
+	(with-current-buffer buf
+	  (insert "let a = 2;")
+	  (expect #'indium-remove-breakpoint :to-throw 'user-error)))))
+
+  (it "should not try to edit non-existant breakpoints"
+    (assess-with-filesystem '("app.js")
+      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
+	(with-current-buffer buf
+	  (insert "let a = 2;")
+	  (expect #'indium-edit-breakpoint-condition :to-throw 'user-error)))))
+
+  (it "should not try to add conditional breakpoints twice"
+    (assess-with-filesystem '("app.js")
+      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
+	(with-current-buffer buf
+	  (insert "let a = 2;")
+	  (indium-add-breakpoint)
+	  (expect #'indium-add-conditional-breakpoint :to-throw 'user-error))))))
 
 (provide 'indium-interaction-test)
 ;;; indium-interaction-test.el ends here
