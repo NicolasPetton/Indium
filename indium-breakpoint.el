@@ -69,7 +69,7 @@ CONDITION is true."
 (defun indium-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
   (indium-breakpoint-remove-all-overlays)
-  (indium-breakpoint-remove-breakpoints-from-buffer (current-buffer)))
+  (indium-breakpoint-remove-breakpoints-from-backend))
 
 (defun indium-breakpoint-add-breakpoints-to-buffer ()
   "Add all breakpoints markers to the current buffer.
@@ -89,33 +89,37 @@ This function does no unset breakpoints."
                    'indium-breakpoint-ov
                    t))
 
-(defun indium-breakpoint-remove-breakpoints-from-buffer (buffer)
-  "Remove all breakpoints from BUFFER."
-  (with-current-buffer buffer
-    (seq-do (lambda (brk)
-              (indium-backend-remove-breakpoint (indium-current-connection-backend)
-                                                (indium-breakpoint-id brk)))
-            (indium-current-connection-get-breakpoints-in-file buffer-file-name))))
-
 (defun indium-breakpoint-update-breakpoints ()
   "Update all breakpoints for the current buffer in the backend."
   (when-indium-connected
-    (indium-breakpoint-remove-breakpoints-from-buffer (current-buffer))
+    (indium-breakpoint-remove-breakpoints-from-backend)
     (indium-breakpoint-restore-breakpoints)))
 
+(defun indium-breakpoint-remove-breakpoints-from-backend ()
+  "Remove all breakpoints from the current buffer.
+This function does not remove any breakpoint overlay."
+  (seq-do (lambda (brk)
+	    (indium-backend-remove-breakpoint (indium-current-connection-backend)
+					      (indium-breakpoint-id brk)))
+	  (indium-current-connection-get-breakpoints-in-file buffer-file-name)))
+
 (defun indium-breakpoint-restore-breakpoints ()
-  "Restore all breakpoints set to all buffers.
+  "Restore all breakpoints set in the current buffer.
 This function is used when reconnecting to a new connection."
+  (save-excursion
+    (let ((overlays (overlays-in (point-min) (point-max))))
+      (seq-doseq (ov overlays)
+	(when-let ((brk (overlay-get ov 'indium-breakpoint))
+		   (start (overlay-start ov)))
+	  (goto-char start)
+	  (indium-breakpoint-add (indium-script-generated-location-at-point)
+				 (indium-breakpoint-condition brk)))))))
+
+(defun indium-breakpoint-restore-breakpoints-in-all-buffers ()
+  "Restore breakpoints in all buffers."
   (seq-doseq (buf (buffer-list))
     (with-current-buffer buf
-      (save-excursion
-        (let ((overlays (overlays-in (point-min) (point-max))))
-          (seq-doseq (ov overlays)
-            (when-let ((brk (overlay-get ov 'indium-breakpoint))
-		       (start (overlay-start ov)))
-              (goto-char start)
-	      (indium-breakpoint-add (indium-script-generated-location-at-point)
-				     (indium-breakpoint-condition brk)))))))))
+      (indium-breakpoint-restore-breakpoints))))
 
 (defun indium-breakpoint-add-overlay (breakpoint)
   "Add an overlay for BREAKPOINT on the current line.

@@ -328,7 +328,7 @@ If WORKSPACE is non-nil, make it the workspace used for the connection."
   (indium-v8--enable-tools)
   (switch-to-buffer (indium-repl-buffer-create))
   (when workspace (cd workspace))
-  (indium-breakpoint-restore-breakpoints)
+  (indium-breakpoint-restore-breakpoints-in-all-buffers)
   (run-hooks 'indium-connection-open-hook))
 
 (defun indium-v8--handle-ws-message (_ws frame)
