@@ -43,11 +43,6 @@
 (declare-function indium-backend-deactivate-breakpoints "indium-backend.el")
 (declare-function indium-workspace-make-url "indium-workspace.el")
 
-(defcustom indium-update-script-on-save nil
-  "When non-nil, update (hotswap) the script source with the contents of the buffer."
-  :type 'boolean
-  :group 'indium)
-
 (defvar indium-update-script-source-hook nil
   "Hook run when script source is updated.")
 
@@ -287,19 +282,20 @@ hitting a breakpoint."
 (defun indium-interaction-update ()
   "Update breakpoints and script source of the current buffer."
   (when (and indium-interaction-mode indium-current-connection)
-    (indium-breakpoint-update-breakpoints)
-    (when indium-update-script-on-save
-      (indium-update-script-source))))
+    (indium-update-script-source)))
 
 (defun indium-update-script-source ()
-  "Update the script source of the backend based on the current buffer."
+  "Update the script source of the backend from the current buffer.
+update all breakpoints set in the current buffer as well."
   (interactive)
   (when-let ((url (indium-workspace-make-url buffer-file-name)))
-    (indium-backend-set-script-source (indium-current-connection-backend)
-                                      url
-                                      (buffer-string)
-                                      (lambda ()
-                                        (run-hook-with-args 'indium-update-script-source-hook url)))))
+    (indium-backend-set-script-source
+     (indium-current-connection-backend)
+     url
+     (buffer-string)
+     (lambda ()
+       (indium-breakpoint-update-breakpoints)
+       (run-hook-with-args 'indium-update-script-source-hook url)))))
 
 (defun indium-interaction--guard-breakpoint-at-point ()
   "Signal an error if there is no breakpoint on the current line."

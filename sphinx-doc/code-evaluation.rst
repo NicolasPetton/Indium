@@ -64,18 +64,11 @@ lexical closures.
 
 .. Note:: This feature currently in only available for Chrome & Chromium.
 
-.. Warning:: This feature is experimental and stability issues have been
-             reported.  If you experience issues with breakpoints when using
-             this feature, try disabling it.  Also, we strongly encourage you to
-             use Chrome >= 58 when using live code updates.
-
 To enable live updates, make sure Indium is set up to use local files (see
 :ref:`local-files`).
 
 - ``C-c C-k``: Updates the runtime JavaScript source with the contents of the
-  current buffer.
-- ``(setq indium-update-script-on-save t)``: Automatically update the runtime
-  script JavaScript source after each buffer save.
+  current buffer (this is also done automatically when a buffer is saved).
 
 You can setup a hook to be run after each script update. For example ::
 

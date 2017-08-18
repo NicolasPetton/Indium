@@ -179,15 +179,15 @@ prototype chain of the remote object."
 (cl-defmethod indium-backend-set-script-source ((_backend (eql v8)) url source &optional callback)
   (when-let ((script (indium-script-find-from-url url)))
     (indium-v8--send-request
-     `((method . "Runtime.compileScript")
-       (params . ((expression . ,source)
-                  (sourceURL . ,url)
-                  (persistScript . :json-false))))
+     `((method . "Debugger.setScriptSource")
+       (params . ((scriptId . ,(indium-script-id script))
+		  (scriptSource . ,source))))
      (lambda (_)
        (indium-v8--send-request
-        `((method . "Debugger.setScriptSource")
-          (params . ((scriptId . ,(indium-script-id script))
-                     (scriptSource . ,source))))
+	`((method . "Runtime.compileScript")
+	  (params . ((expression . ,source)
+		     (sourceURL . ,url)
+		     (persistScript . :json-false))))
         (lambda (_)
           (when callback
             (funcall callback))))))))

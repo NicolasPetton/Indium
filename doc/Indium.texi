@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 0.7.1, Aug 08, 2017
+Indium 0.7.1, Aug 18, 2017
 
 Nicolas Petton
 
@@ -149,7 +149,7 @@ The inspector
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -165,7 +165,7 @@ The inspector
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation doc}@anchor{3}@anchor{installation installation}@anchor{4}
+@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
 @section Installation
 
 
@@ -232,7 +232,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup up-and-running}@anchor{7}@anchor{setup doc}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
+@anchor{setup getting-up-and-running}@anchor{7}@anchor{setup up-and-running}@anchor{8}@anchor{setup doc}@anchor{9}
 @section Getting up and running
 
 
@@ -333,7 +333,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
+@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -424,7 +424,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{7,,Getting up and running}).
+connection is made (see @ref{8,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -558,7 +558,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{1c}@anchor{code-evaluation doc}@anchor{1d}@anchor{code-evaluation interaction}@anchor{1e}
+@anchor{code-evaluation doc}@anchor{1c}@anchor{code-evaluation interaction}@anchor{1d}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1e}
 @section Interaction in JS buffers
 
 
@@ -679,15 +679,6 @@ This feature currently in only available for Chrome & Chromium.
 @end quotation
 @end cartouche
 
-@cartouche
-@quotation Warning 
-This feature is experimental and stability issues have been
-reported.  If you experience issues with breakpoints when using
-this feature, try disabling it.  Also, we strongly encourage you to
-use Chrome >= 58 when using live code updates.
-@end quotation
-@end cartouche
-
 To enable live updates, make sure Indium is set up to use local files (see
 @ref{12,,Using local files when debugging}).
 
@@ -696,11 +687,7 @@ To enable live updates, make sure Indium is set up to use local files (see
 
 @item 
 @code{C-c C-k}: Updates the runtime JavaScript source with the contents of the
-current buffer.
-
-@item 
-@code{(setq indium-update-script-on-save t)}: Automatically update the runtime
-script JavaScript source after each buffer save.
+current buffer (this is also done automatically when a buffer is saved).
 @end itemize
 
 You can setup a hook to be run after each script update. For example
@@ -732,7 +719,7 @@ window.addEventListener("patch", (event) => @{
 @end menu
 
 @node Using sourcemaps,,,The stepping debugger
-@anchor{debugger sourcemaps}@anchor{23}@anchor{debugger using-sourcemaps}@anchor{27}
+@anchor{debugger using-sourcemaps}@anchor{27}@anchor{debugger sourcemaps}@anchor{23}
 @subsection Using sourcemaps
 
 
@@ -751,13 +738,13 @@ supported, inlined sourcemaps are not yet supported.
 @end cartouche
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector inspector}@anchor{17}@anchor{inspector doc}@anchor{28}@anchor{inspector the-inspector}@anchor{29}
+@anchor{inspector doc}@anchor{28}@anchor{inspector inspector}@anchor{17}@anchor{inspector the-inspector}@anchor{29}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
 from a REPL buffer (see @ref{15,,The REPL}), the debugger (see @ref{22,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1e,,Interaction in JS buffers}).
+the result of any evaluation of JavaScript code (see @ref{1d,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -831,7 +818,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,,The inspector,Table of contents
-@anchor{network network}@anchor{2b}@anchor{network doc}@anchor{2c}@anchor{network id1}@anchor{2d}
+@anchor{network id1}@anchor{2b}@anchor{network doc}@anchor{2c}@anchor{network network}@anchor{2d}
 @section Network
 
 
