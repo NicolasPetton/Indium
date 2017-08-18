@@ -103,9 +103,16 @@ If PRINT is non-nil, print the output into the current buffer."
   (indium-interaction--ensure-connection)
   (js2-mode-wait-for-parse
    (lambda ()
-     (indium-eval (js2-node-string (indium-interaction-node-before-point))
-                  (lambda (result _error)
-                    (indium-inspector-inspect result))))))
+     (indium-inspect-expression
+      (js2-node-string (indium-interaction-node-before-point))))))
+
+(defun indium-inspect-expression (expression)
+  "Prompt for EXPRESSION to be inspected."
+  (interactive "sInspect expression: ")
+  (indium-interaction--ensure-connection)
+  (indium-eval expression
+	       (lambda (result _error)
+		 (indium-inspector-inspect result))))
 
 (defun indium-switch-to-repl-buffer ()
   "Switch to the repl buffer if any."
@@ -230,6 +237,7 @@ hitting a breakpoint."
     (define-key map (kbd "C-x C-e") #'indium-eval-last-node)
     (define-key map (kbd "C-M-x") #'indium-eval-defun)
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
+    (define-key map (kbd "C-c M-:") #'indium-inspect-expression)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
     (define-key map (kbd "C-c C-k") #'indium-update-script-source)
     (define-key map (kbd "C-c b b") #'indium-add-breakpoint)
@@ -248,6 +256,7 @@ hitting a breakpoint."
         ("Evaluation"
          ["Evaluate last node" indium-eval-last-node]
          ["Inspect last node" indium-inspect-last-node]
+	 ["Inspect expression" indium-inspect-expression]
          ["Evaluate function" indium-eval-defun])
         "--"
         ("Breakpoints"
