@@ -26,6 +26,7 @@
 
 (require 'indium-faces)
 (require 'seq)
+(require 'indium-seq-fix)
 (require 'map)
 
 (declare-function indium-backend-object-reference-p "indium-backend.el")
