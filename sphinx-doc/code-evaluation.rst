@@ -22,6 +22,7 @@ Here's a list of available keybindings:
 - ``C-M-x``: Evaluate the innermost function enclosing the point.
 - ``C-c M-i``: Inspect the result of the evaluation of an expression (see
   :ref:`inspector`).
+- ``C-c M-:``: Prompt for an expression to evaluate and inspect.
 - ``M-x indium-eval-buffer``: Evaluate the entire buffer.
 
 Switching to the REPL buffer
