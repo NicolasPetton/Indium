@@ -64,5 +64,13 @@
 	  (expect (indium-script-sourcemap-file script)
 		  :to-equal (expand-file-name "js/foo.js.map")))))))
 
+(describe "Adding scripts"
+  (it "should not multiple scripts with the same url"
+    (with-fake-indium-connection
+      (indium-script-add-script-parsed "1" 'url)
+      (indium-script-add-script-parsed "2" 'url)
+      (expect (indium-script-id (indium-script-find-from-url 'url))
+	      :to-equal "2"))))
+
 (provide 'indium-script-test)
 ;;; indium-script-test.el ends here
