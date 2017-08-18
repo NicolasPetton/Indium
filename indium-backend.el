@@ -59,6 +59,7 @@ BACKEND should be a symbol."
 
 (defun indium-quit ()
   "Close the current connection and kill its REPL buffer if any.
+If a process is attached to the connection, kill it as well.
 When called interactively, prompt for a confirmation first."
   (interactive)
   (unless-indium-connected
@@ -66,9 +67,22 @@ When called interactively, prompt for a confirmation first."
   (when (or (not (called-interactively-p 'interactive))
             (y-or-n-p (format "Do you really want to close the connection to %s ? "
                               (indium-current-connection-url))))
-    (indium-backend-close-connection (indium-current-connection-backend))
-    (indium-backend-cleanup-buffers)
-    (setq indium-current-connection nil)))
+    (let ((process (indium-current-connection-process)))
+      (indium-backend-close-connection (indium-current-connection-backend))
+      (indium-backend-cleanup-buffers)
+      (when (and process
+		 (memq (process-status process)
+		       '(run stop open listen)))
+	(kill-process process))
+      (setq indium-current-connection nil))))
+
+(defun indium-maybe-quit ()
+  "Close the current connection.
+
+Unlike `indium-quit', do not signal an error when there is no
+active connection."
+  (when-indium-connected
+    (call-interactively #'indium-quit)))
 
 (defun indium-reconnect ()
   "Try to re-establish a connection.

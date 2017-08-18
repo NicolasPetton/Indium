@@ -37,8 +37,6 @@
   (it "should kill the previous connection process when there is one"
     (let ((indium-current-connection (make-indium-connection
 				      :process 'first-process)))
-      (map-put (indium-connection-props indium-current-connection)
-	       'nodejs t)
       (spy-on 'make-process :and-return-value ''second-process)
       (spy-on 'yes-or-no-p :and-return-value t)
 
@@ -51,24 +49,6 @@
       (indium-run-node "node foo")
 
       (expect #'kill-process :to-have-been-called-with 'first-process)
-      (expect #'indium-backend-close-connection :to-have-been-called)))
-
-  (it "should not kill the previous connection process when not nodejs"
-    (let ((indium-current-connection (make-indium-connection
-				      :process 'first-process)))
-      (spy-on 'make-process :and-return-value ''second-process)
-      (spy-on 'yes-or-no-p :and-return-value t)
-
-      (spy-on 'switch-to-buffer)
-      (spy-on 'kill-process)
-      (spy-on 'process-buffer)
-      (spy-on 'process-status :and-return-value ''run)
-
-      (spy-on 'indium-backend-close-connection)
-
-      (indium-run-node "node foo")
-
-      (expect #'kill-process :not :to-have-been-called)
       (expect #'indium-backend-close-connection :to-have-been-called))))
 
 (describe "Setting NodeJS debug flags"

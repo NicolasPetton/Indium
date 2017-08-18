@@ -45,17 +45,22 @@
 
 (require 'indium-v8)
 
+(declare-function indium-repl-get-buffer "indium-repl.el")
+
 (defvar indium-nodejs-commands-history nil
   "Nodejs commands history.")
 
-(defun indium-run-node (command)
+(defun indium-run-node (command &optional no-switch)
   "Start a NodeJS process.
 Execute COMMAND, adding the `--inspect' and `--debug-brk' flags.
-When the process is ready, open an Indium connection on it."
+When the process is ready, open an Indium connection on it.
+
+Unless NO-SWITCH is non-nil, switch to the process buffer."
   (interactive (list (read-shell-command "Node command: "
                                          (or (car indium-nodejs-commands-history) "node ")
                                          'indium-nodejs-commands-history)))
-  (when (indium-nodejs--maybe-quit)
+  (indium-maybe-quit)
+  (unless indium-current-connection
     (let ((process (make-process :name "indium-nodejs-process"
 				 :buffer "*node process*"
 				 :filter #'indium-nodejs--process-filter
@@ -63,6 +68,23 @@ When the process is ready, open an Indium connection on it."
 						shell-command-switch
 						(indium-nodejs--add-flags command)))))
       (switch-to-buffer (process-buffer process)))))
+
+(defun indium-restart-node ()
+  "Restart the current nodejs process, and connect to it.
+
+If no process has been started, or if it was not started using
+`indium-run-node', do nothing."
+  (interactive)
+  (when-let ((connection indium-current-connection)
+	     (nodejs (map-elt (indium-current-connection-props) 'nodejs))
+	     (process (indium-current-connection-process)))
+    (let ((process )
+	  (directory ()))
+      (when (memq (process-status process)
+		  '(run stop open listen))
+	(kill-process process))
+
+      (indium-quit))))
 
 (defun indium-connect-to-nodejs ()
   "Open a connection to host:port/path."
@@ -75,7 +97,8 @@ When the process is ready, open an Indium connection on it."
 (defun indium-nodejs--connect (host port path &optional process)
   "Ask the user for a websocket url HOST:PORT/PATH and connects to it.
 When PROCESS is non-nil, attach it to the connection."
-  (when (indium-nodejs--maybe-quit)
+  (indium-maybe-quit)
+  (unless indium-current-connection
     (let ((websocket-url (format "ws://%s:%s/%s" host port path))
           (url (format "file://%s" default-directory)))
       (indium-v8--open-ws-connection url
@@ -84,32 +107,6 @@ When PROCESS is non-nil, attach it to the connection."
 				       (lambda ()
 					 (setf (indium-current-connection-process) process)))
 				     t))))
-
-(defun indium-nodejs--maybe-quit ()
-  "Close the current connection and kill its process if any.
-
-The process is killed so that another node process can be
-started, serving the devtools protocol on the same port.
-
-If the current connection is not a NodeJS connection, do not
-attempt to kill its buffer.
-
-Return non-nil if there is no current connection."
-  (when indium-current-connection
-    (let* ((nodejs (map-elt (indium-current-connection-props) 'nodejs))
-	   (process (indium-current-connection-process))
-	   (message (concat "This requires closing the current connection"
-			    (if (and nodejs process)
-				" and its process.  "
-			      ".  ")
-			    "Are you sure? ")))
-      (when (yes-or-no-p message)
-	(when (and nodejs process
-		   (memq (process-status process)
-			 '(run stop open listen)))
-	  (kill-process process))
-	(indium-quit))))
-  (null indium-current-connection))
 
 (defun indium-nodejs--add-flags (command)
   "Return COMMAND with the `--inspect' `--debug-brk' flags added."
