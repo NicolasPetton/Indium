@@ -173,14 +173,17 @@ Otherwise, insert a newline."
   (let ((function (get-text-property (point) 'indium-action)))
     (funcall function)))
 
+(defun indium-fontify-js (args)
+  "Fontify ARGS as JavaScript."
+  (with-temp-buffer
+    (js-mode)
+    (insert (apply #'format args))
+    (font-lock-fontify-region (point-min) (point-max))
+    (buffer-string)))
+
 (defun indium-message (&rest args)
   "Display ARGS like `message', but fontified as JavaScript."
-  (let ((string (with-temp-buffer
-                  (js-mode)
-                  (insert (apply #'format args))
-                  (font-lock-fontify-region (point-min) (point-max))
-                  (buffer-string))))
-    (message "%s" string)))
+  (message "%s" (apply #'indium-fontify-js args)))
 
 (defun indium-render--truncate-string-to-newline (string)
   "Return STRING truncated before the first newline.
