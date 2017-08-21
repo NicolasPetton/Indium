@@ -22,8 +22,6 @@
 
 ;; Setup a workspace for using local files when debugging JavaScript.
 ;;
-;; TODO: make it work with nodejs
-;;
 ;; Files are looked up using a special `.indium' file placed in the root directory
 ;; of the files served.
 ;;
