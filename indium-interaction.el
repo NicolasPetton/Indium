@@ -77,6 +77,10 @@ the current buffer."
       (indium-interaction--eval-node node)
     (user-error "No function at point")))
 
+(defvar indium-interaction-eval-node-hook nil
+  "Hooks to run after evaluating node before the point.")
+(add-hook 'indium-interaction-eval-node-hook #'indium-message)
+
 (defun indium-interaction--eval-node (node &optional print)
   "Evaluate the AST node NODE.
 If PRINT is non-nil, print the output into the current buffer."
@@ -89,7 +93,7 @@ If PRINT is non-nil, print the output into the current buffer."
                       (if print
                           (save-excursion
                             (insert description))
-                        (indium-message "%s" description))))))))
+                        (run-hook-with-args 'indium-interaction-eval-node-hook description))))))))
 
 (defun indium-reload ()
   "Reload the page."
