@@ -47,14 +47,25 @@
 
 (declare-function indium-repl-get-buffer "indium-repl.el")
 
+(defgroup indium-nodejs nil
+  "Indium NodeJS."
+  :prefix "indium-nodejs-"
+  :group 'indium)
+
+(defcustom indium-nodejs-inspect-brk nil
+  "When non-nil, break the execution at the first statement.")
+
 (defvar indium-nodejs-commands-history nil
   "Nodejs commands history.")
 
 (defun indium-run-node (command &optional no-switch)
   "Start a NodeJS process.
 
-Execute COMMAND, adding the `--inspect' and `--debug-brk' flags.
-When the process is ready, open an Indium connection on it.
+Execute COMMAND, adding the `--inspect' flag.  When the process
+is ready, open an Indium connection on it.
+
+If `indium-nodejs-inspect-brk' is set to non-nil, break the
+execution at the first statement.
 
 If a connection is already open, close it.
 
@@ -114,11 +125,14 @@ When PROCESS is non-nil, attach it to the connection."
 				     t))))
 
 (defun indium-nodejs--add-flags (command)
-  "Return COMMAND with the `--inspect' `--debug-brk' flags added."
+  "Return COMMAND with the `--inspect' or `--inspect-brk' flag added."
   (let* ((tokens (split-string command))
          (program (car tokens))
          (arguments (cdr tokens))
-         (result `(,program "--inspect" "--debug-brk" ,@arguments)))
+	 (inspect-flag (if indium-nodejs-inspect-brk
+			   "--inspect-brk"
+			 "--inspect"))
+         (result `(,program ,inspect-flag ,@arguments)))
   (mapconcat #'identity result " ")))
 
 (defun indium-nodejs--process-filter (process output)

@@ -40,10 +40,15 @@ will connect to it and open a REPL buffer.
 
 The output from the NodeJS process is appended to the ``*nodejs process*`` buffer.
 
-.. NOTE:: Indium will append the ``--inspect`` and ``--debug-brk`` flags to the
-          command-line arguments automatically, so you do not need to provide
-          them.
+When a nodejs process has been started with ``indium-run-node``, it can be
+restarted with ``indium-restart-node``.
 
+.. NOTE:: Indium will append the ``--inspect`` flag to the command-line
+          arguments automatically, so you do not need to provide them.
+
+If you wish to break the execution at the first statement, set
+``indium-nodejs-inspect-break`` to ``t``.
+   
 Connecting to a Nodejs process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
