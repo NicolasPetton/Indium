@@ -173,11 +173,11 @@ Otherwise, insert a newline."
   (let ((function (get-text-property (point) 'indium-action)))
     (funcall function)))
 
-(defun indium-fontify-js (args)
+(defun indium-fontify-js (&rest args)
   "Fontify ARGS as JavaScript."
   (with-temp-buffer
     (js-mode)
-    (insert (apply #'format args))
+    (apply #'insert args)
     (font-lock-fontify-region (point-min) (point-max))
     (buffer-string)))
 
