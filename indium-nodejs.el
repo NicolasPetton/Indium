@@ -78,16 +78,18 @@ Unless NO-SWITCH is non-nil, switch to the process buffer."
 If no process has been started, or if it was not started using
 `indium-run-node', do nothing."
   (interactive)
-  (when-let ((connection indium-current-connection)
-	     (nodejs (map-elt (indium-current-connection-props) 'nodejs))
-	     (process (indium-current-connection-process)))
-    (let ((process )
-	  (directory ()))
-      (when (memq (process-status process)
-		  '(run stop open listen))
-	(kill-process process))
-
-      (indium-quit))))
+  (if-let ((connection indium-current-connection)
+	   (command (car indium-nodejs-commands-history))
+	   ;; Don't do anything when not a nodejs connection
+	   (nodejs (map-elt (indium-current-connection-props) 'nodejs))
+	   (process (indium-current-connection-process)))
+      ;; Make sure we are in the same directory as the current connection.
+      ;; TODO: set the directory in the connection directly instead
+      ;; of relying on the REPL buffer
+      (with-current-buffer (indium-repl-get-buffer)
+	(indium-quit)
+	(indium-run-node command t))
+    (user-error "Start a NodeJS connection with `indium-run-node' first")))
 
 (defun indium-connect-to-nodejs ()
   "Open a connection to host:port/path."
