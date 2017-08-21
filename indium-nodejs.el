@@ -52,8 +52,11 @@
 
 (defun indium-run-node (command &optional no-switch)
   "Start a NodeJS process.
+
 Execute COMMAND, adding the `--inspect' and `--debug-brk' flags.
 When the process is ready, open an Indium connection on it.
+
+If a connection is already open, close it.
 
 Unless NO-SWITCH is non-nil, switch to the process buffer."
   (interactive (list (read-shell-command "Node command: "
