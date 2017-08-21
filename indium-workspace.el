@@ -120,6 +120,9 @@ If no file is found, return nil."
   "Return a local file matching URL using the current Indium workspace."
   ;; Make sure we are in the correct directory so that indium can find a
   ;; ".indium" file.
+  ;;
+  ;; TODO: set the directory in the connection directly instead of relying on
+  ;; the REPL buffer
   (with-current-buffer (indium-repl-get-buffer)
       (if-let ((root (indium-workspace-root)))
           (let* ((path (seq-drop (car (url-path-and-query
