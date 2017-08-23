@@ -97,7 +97,8 @@ If no process has been started, or if it was not started using
       ;; Make sure we are in the same directory as the current connection.
       ;; TODO: set the directory in the connection directly instead
       ;; of relying on the REPL buffer
-      (with-current-buffer (indium-repl-get-buffer)
+      (let ((default-directory (with-current-buffer (indium-repl-get-buffer)
+				 default-directory)))
 	(indium-quit)
 	(indium-run-node command t))
     (user-error "Start a NodeJS connection with `indium-run-node' first")))
