@@ -52,13 +52,25 @@
       (expect #'indium-backend-close-connection :to-have-been-called))))
 
 (describe "Setting NodeJS debug flags"
-  (it "should set the `--append' and `--debug-brk' flags"
-    (expect (indium-nodejs--add-flags "node")
-            :to-equal "node --inspect --debug-brk"))
+  (it "should set the `--inspect' flag when `indium-nodejs-inspect-brk' is nil"
+    (let (indium-nodejs-inspect-brk)
+     (expect (indium-nodejs--add-flags "node")
+	     :to-equal "node --inspect")))
 
-  (it "should insert the debug flags after the program name and before the arguments"
-    (expect (indium-nodejs--add-flags "node app.js")
-            :to-equal "node --inspect --debug-brk app.js")))
+  (it "should set the `--inspect-brk' flag when `indium-nodejs-inspect-brk' is non-nil"
+    (let ((indium-nodejs-inspect-brk t))
+     (expect (indium-nodejs--add-flags "node")
+	     :to-equal "node --inspect-brk")))
+
+  (it "should insert the `--inspect' flag after the program name and before the arguments"
+    (let (indium-nodejs-inspect-brk)
+     (expect (indium-nodejs--add-flags "node app.js")
+	     :to-equal "node --inspect app.js")))
+
+  (it "should insert the `--inspect-brk' flag after the program name and before the arguments"
+    (let ((indium-nodejs-inspect-brk t))
+     (expect (indium-nodejs--add-flags "node app.js")
+	     :to-equal "node --inspect-brk app.js"))))
 
 (describe "Connecting to a NodeJS process"
   (it "should find the websocket URL from the process output"

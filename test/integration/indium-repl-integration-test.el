@@ -48,7 +48,7 @@
       (press "C-c C-o")
       (expect (buffer-string) :to-match "^js> $")))
 
-  (it "should be able eval and print results"
+  (it "should be able to eval and print results"
     (with-repl-buffer
       (repl-eval "true")
       (expect (buffer-string) :to-match "js> true\ntrue\njs> $")))
