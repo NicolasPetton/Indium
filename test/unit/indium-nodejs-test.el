@@ -81,5 +81,65 @@
       (expect #'indium-nodejs--connect
               :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f" 'process))))
 
+(describe "Restarting NodeJS processes"
+  (it "should signal an error when no connection"
+    (let (indium-current-connection)
+      (expect #'indium-restart-node :to-throw 'user-error)))
+
+  (it "should signal an error when not a nodejs connection"
+    (with-fake-indium-connection
+      (expect #'indium-restart-node :to-throw 'user-error)))
+
+  (it "should signal an error when no process is associated to the connection"
+    (with-fake-indium-connection
+      (map-put (indium-current-connection-props) 'nodejs t)
+      (setf (indium-current-connection-process) 'process)
+      (expect #'indium-restart-node :to-throw 'user-error)))
+
+  (it "should signal an error when no node command history"
+    ;; If the nodejs command history is empty, the user has never started a
+    ;; nodejs process through `indium-run-node', in which case we cannot know
+    ;; what command to restart.
+    (with-fake-indium-connection
+      (map-put (indium-current-connection-props) 'nodejs t)
+      (setf (indium-current-connection-process) 'process)
+      (let (indium-nodejs-commands-history)
+	(expect #'indium-restart-node :to-throw 'user-error))))
+
+  (it "should kill the current connection"
+    (with-fake-indium-connection
+      (map-put (indium-current-connection-props) 'nodejs t)
+      (setf (indium-current-connection-process) 'process)
+      (spy-on 'indium-run-node)
+      (spy-on 'indium-quit)
+      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
+      (let ((indium-nodejs-commands-history '("node foobar")))
+	(indium-restart-node)
+	(expect #'indium-quit :to-have-been-called))))
+
+  (it "should use the REPL buffer as the current buffer"
+    ;; when restarting the process, make sure to be in the current REPL buffer,
+    ;; so that the new process is started from the same current directory.
+    (with-fake-indium-connection
+      (map-put (indium-current-connection-props) 'nodejs t)
+      (setf (indium-current-connection-process) 'process)
+      (spy-on 'indium-run-node)
+      (spy-on 'indium-quit)
+      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
+      (let ((indium-nodejs-commands-history '("node foobar")))
+	(indium-restart-node)
+	(expect #'indium-repl-get-buffer :to-have-been-called))))
+
+  (it "should start call the first command in the history"
+    (with-fake-indium-connection
+      (map-put (indium-current-connection-props) 'nodejs t)
+      (setf (indium-current-connection-process) 'process)
+      (spy-on 'indium-run-node)
+      (spy-on 'indium-quit)
+      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
+      (let ((indium-nodejs-commands-history '("node foobar")))
+	(indium-restart-node)
+	(expect #'indium-run-node :to-have-been-called-with "node foobar" t)))))
+
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here
