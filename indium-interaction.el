@@ -127,21 +127,23 @@ If PRINT is non-nil, print the output into the current buffer."
         (pop-to-buffer buf t))
     (user-error "No REPL buffer open")))
 
-(defun indium-add-breakpoint ()
+(defun indium-add-breakpoint (&optional condition)
   "Add a breakpoint on the current line.
-If there is already a breakpoint, signal an error."
+If there is already a breakpoint, signal an error.
+
+When CONDITION is non-nil, add a conditional breakpoint with
+CONDITION."
   (interactive)
   (indium-interaction--guard-no-breakpoint-at-point)
   (if-let ((location (indium-script-generated-location-at-point)))
-      (indium-breakpoint-add location)
+      (indium-breakpoint-add location condition)
     (user-error "Cannot place a breakpoint here")))
 
-(defun indium-add-conditional-breakpoint ()
-  "Add a conditional breakpoint at point.
+(defun indium-add-conditional-breakpoint (condition)
+  "Add a breakpoint with CONDITION at point.
 If there is already a breakpoint, signal an error."
-  (interactive)
-  (indium-interaction--guard-no-breakpoint-at-point)
-  (indium-breakpoint-add (read-from-minibuffer "Breakpoint condition: ")))
+  (interactive "sBreakpoint condition: ")
+  (indium-add-breakpoint condition))
 
 (defun indium-edit-breakpoint-condition ()
   "Edit the condition of breakpoint at point.

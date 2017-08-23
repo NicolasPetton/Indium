@@ -150,7 +150,17 @@
 	(with-current-buffer buf
 	  (insert "let a = 2;")
 	  (indium-add-breakpoint)
-	  (expect #'indium-add-conditional-breakpoint :to-throw 'user-error))))))
+	  (expect (lambda () (indium-add-conditional-breakpoint "true")) :to-throw 'user-error))))))
+
+(describe "Adding conditional breakpoints"
+  (it "should call `indium-add-breakpoint' with a condition (GH issue #92)"
+    (spy-on 'indium-add-breakpoint)
+    (assess-with-filesystem '("app.js")
+      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
+	(with-current-buffer buf
+	  (insert "let a = 2;")
+	  (indium-add-conditional-breakpoint "foo")
+	  (expect #'indium-add-breakpoint :to-have-been-called-with "foo"))))))
 
 (provide 'indium-interaction-test)
 ;;; indium-interaction-test.el ends here
