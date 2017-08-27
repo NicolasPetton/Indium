@@ -27,6 +27,8 @@
 (require 'seq)
 (require 'map)
 
+(require 'thingatpt)
+
 (require 'easymenu)
 
 (require 'indium-structs)
@@ -49,6 +51,10 @@
   "Major mode used in debugger buffers."
   :group 'indium-debugger
   :type 'function)
+
+(defcustom indium-debugger-inspect-when-eval nil
+  "When non-nil, use inspect as a default eval when debugging."
+  :type 'boolean)
 
 (defvar indium-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
 
@@ -304,12 +310,20 @@ When the position of the point is reached, pause the execution."
 
 (defun indium-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
-Evaluation happens in the context of the current call frame."
-  (interactive "sEvaluate on frame: ")
+Evaluation happens in the context of the current call frame.
+If `indium-debugger-inspect-when-eval' is non-nil, use inspector if possible."
+  (interactive (list
+                (let ((default (if (region-active-p)
+                                   (buffer-substring-no-properties (mark) (point))
+                                 (thing-at-point 'symbol))))
+                  (read-string (format "Evaluate on frame: (%s): " default)
+                               nil nil default))))
   (indium-backend-evaluate (indium-current-connection-backend)
 			   expression
 			   (lambda (value _error)
-			     (message "%s" (indium-render-value-to-string value)))))
+                             (if (and indium-debugger-inspect-when-eval (map-elt value 'objectid))
+                                 (indium-inspector-inspect value)
+                               (message "%s" (indium-render-value-to-string value))))))
 
 ;; Debugging context
 
