@@ -437,6 +437,7 @@ There is currently no support for the DOM inspector and network
 inspectors."
   (indium-v8--enable-runtime)
   (unless (indium-connection-nodejs-p indium-current-connection)
+    (indium-v8--enable-dom)
     (indium-v8--enable-overlay)
     (indium-v8--enable-log)
     (indium-v8--set-cache-disabled indium-v8-cache-disabled))
@@ -451,6 +452,10 @@ inspectors."
   "Enable the page API on the current tab."
   ;; experimental API
   (indium-v8--send-request '((method . "Overlay.enable"))))
+
+(defun indium-v8--enable-dom ()
+  "Enable the DOM API on the current tab."
+  (indium-v8--send-request '((method . "DOM.enable"))))
 
 (defun indium-v8--enable-runtime ()
   "Enable the runtime on the current tab."
