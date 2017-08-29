@@ -32,7 +32,7 @@
 (describe "Switching from and to the REPL buffer"
   (it "should throw an error if there's no REPL buffer"
     (spy-on 'indium-repl-get-buffer :and-return-value nil)
-    (expect #'indium-switch-to-repl-buffer :to-throw 'user-error))
+    (expect (indium-switch-to-repl-buffer) :to-throw 'user-error))
 
   (it "should be able to switch to the REPL buffer"
     (spy-on 'indium-repl-get-buffer :and-return-value 'repl)

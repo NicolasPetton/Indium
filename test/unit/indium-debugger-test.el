@@ -71,14 +71,14 @@
     (with-fake-indium-connection
       (let ((frames '(first second)))
         (indium-debugger-set-frames frames)
-        (expect #'indium-debugger-next-frame :to-throw 'user-error))))
+        (expect (indium-debugger-next-frame) :to-throw 'user-error))))
 
   (it "should throw when selecting the previous frame if it does not exist"
     (with-fake-indium-connection
       (let ((frames '(first second)))
         (indium-debugger-set-frames frames)
         (indium-debugger-set-current-frame 'second)
-        (expect #'indium-debugger-previous-frame :to-throw 'user-error)))))
+        (expect (indium-debugger-previous-frame) :to-throw 'user-error)))))
 
 (describe "Regression test for GitHub issue 53"
   (before-each

@@ -84,17 +84,17 @@
 (describe "Restarting NodeJS processes"
   (it "should signal an error when no connection"
     (let (indium-current-connection)
-      (expect #'indium-restart-node :to-throw 'user-error)))
+      (expect (indium-restart-node) :to-throw 'user-error)))
 
   (it "should signal an error when not a nodejs connection"
     (with-fake-indium-connection
-      (expect #'indium-restart-node :to-throw 'user-error)))
+      (expect (indium-restart-node) :to-throw 'user-error)))
 
   (it "should signal an error when no process is associated to the connection"
     (with-fake-indium-connection
       (map-put (indium-current-connection-props) 'nodejs t)
       (setf (indium-current-connection-process) 'process)
-      (expect #'indium-restart-node :to-throw 'user-error)))
+      (expect (indium-restart-node) :to-throw 'user-error)))
 
   (it "should signal an error when no node command history"
     ;; If the nodejs command history is empty, the user has never started a
@@ -104,7 +104,7 @@
       (map-put (indium-current-connection-props) 'nodejs t)
       (setf (indium-current-connection-process) 'process)
       (let (indium-nodejs-commands-history)
-	(expect #'indium-restart-node :to-throw 'user-error))))
+	(expect (indium-restart-node) :to-throw 'user-error))))
 
   (it "should kill the current connection"
     (with-fake-indium-connection
