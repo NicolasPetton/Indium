@@ -150,7 +150,7 @@
 	(with-current-buffer buf
 	  (insert "let a = 2;")
 	  (indium-add-breakpoint)
-	  (expect (lambda () (indium-add-conditional-breakpoint "true")) :to-throw 'user-error))))))
+	  (expect (indium-add-conditional-breakpoint "true") :to-throw 'user-error))))))
 
 (describe "Adding conditional breakpoints"
   (it "should call `indium-add-breakpoint' with a condition (GH issue #92)"
@@ -160,7 +160,7 @@
 	(with-current-buffer buf
 	  (insert "let a = 2;")
 	  (indium-add-conditional-breakpoint "foo")
-	  (expect (indium-add-breakpoint) :to-have-been-called-with "foo"))))))
+	  (expect #'indium-add-breakpoint :to-have-been-called-with "foo"))))))
 
 (provide 'indium-interaction-test)
 ;;; indium-interaction-test.el ends here
