@@ -93,7 +93,7 @@ a temporary file, which is removed afterwards."
      (indium-run-node "node fixtures/test.js")
      (wait-for-repl-buffer)
      ,@body
-     (kill-nodejs-process)))
+     (indium-quit)))
 
 (defun wait-for-repl-buffer (&optional retry)
   (unless retry (setq retry 10))
@@ -102,15 +102,6 @@ a temporary file, which is removed afterwards."
               (= retry 0))
     (wait-for-repl-buffer (1- retry)))
   (sleep-for 0.2))
-
-(defun kill-nodejs-process ()
-  "Kill the nodejs process if any."
-  (when-let ((buf (get-buffer "*node process*")))
-    (when-let ((process (get-buffer-process buf)))
-      (set-process-query-on-exit-flag process nil))
-    (kill-buffer buf))
-  (ignore-errors
-    (indium-quit)))
 
 (defmacro with-repl-buffer (&rest body)
   "Execute BODY within a REPL buffer with a NodeJS connection."

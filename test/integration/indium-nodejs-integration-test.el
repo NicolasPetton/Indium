@@ -35,10 +35,12 @@
 
 (describe "NodeJS connection"
   (before-each
-    (kill-nodejs-process))
+   (when-indium-connected
+     (indium-quit)))
 
   (after-each
-    (kill-nodejs-process))
+   (when-indium-connected
+     (indium-quit)))
 
   (it "should be able to start a node process and connect to it"
     (expect indium-current-connection :to-be nil)
