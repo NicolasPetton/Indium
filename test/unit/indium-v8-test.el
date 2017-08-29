@@ -76,7 +76,7 @@
   (it "should send requests if the connection is active"
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
-    (spy-on 'indium-v8--next-request-id :and-return-value ''id)
+    (spy-on 'indium-v8--next-request-id :and-return-value 'id)
     (with-indium-connection (make-indium-connection :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
       (indium-v8--send-request '((message . "message")))
@@ -86,7 +86,7 @@
   (it "should register callbacks when sending requests"
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
-    (spy-on 'indium-v8--next-request-id :and-return-value ''id)
+    (spy-on 'indium-v8--next-request-id :and-return-value 'id)
     (with-indium-connection (make-indium-connection :backend 'v8)
       (indium-v8--send-request '((message . "message")) 'callback)
       (expect (map-elt (indium-current-connection-callbacks) 'id) :to-equal 'callback))))

@@ -37,13 +37,13 @@
   (it "should kill the previous connection process when there is one"
     (let ((indium-current-connection (make-indium-connection
 				      :process 'first-process)))
-      (spy-on 'make-process :and-return-value ''second-process)
+      (spy-on 'make-process :and-return-value 'second-process)
       (spy-on 'yes-or-no-p :and-return-value t)
 
       (spy-on 'switch-to-buffer)
       (spy-on 'kill-process)
       (spy-on 'process-buffer)
-      (spy-on 'process-status :and-return-value ''run)
+      (spy-on 'process-status :and-return-value 'run)
       (spy-on 'indium-backend-close-connection)
 
       (indium-run-node "node foo")

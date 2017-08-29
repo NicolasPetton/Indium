@@ -35,7 +35,7 @@
     (expect #'indium-switch-to-repl-buffer :to-throw 'user-error))
 
   (it "should be able to switch to the REPL buffer"
-    (spy-on 'indium-repl-get-buffer :and-return-value ''repl)
+    (spy-on 'indium-repl-get-buffer :and-return-value 'repl)
     (spy-on 'pop-to-buffer)
     (indium-switch-to-repl-buffer)
     (expect #'pop-to-buffer :to-have-been-called-with 'repl t))
