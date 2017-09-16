@@ -126,5 +126,4 @@ give time for the runtime to send a response."
   (press keybinding)
   (sleep-for seconds))
 
-(provide 'test-helper)
 ;;; test-helper.el ends here
