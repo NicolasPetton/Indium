@@ -169,7 +169,8 @@ If the sourcemap file cannot be downloaded either, return nil."
       (setf (indium-script-sourcemap-cache script)
 	    (if-let ((file (indium-script--sourcemap-file script)))
 		(sourcemap-from-file file)
-	      (when-let ((str (indium-script--download-sourcemap script)))
+	      (when-let ((str (indium-script--download
+			       (indium-script--absolute-sourcemap-url script))))
 		(sourcemap-from-string str)))))
     (indium-script-sourcemap-cache script)))
 
@@ -181,18 +182,25 @@ If no sourcemap file can be found, return nil."
      (expand-file-name (indium-script-sourcemap-url script)
 		       (file-name-directory script-file)))))
 
-(defun indium-script--download-sourcemap (script)
-  "Download and return the sourcemap for SCRIPT.
-If the request fails or has no data, return nil."
+(defun indium-script--download (url &optional fix-address)
+  "Download and return the content of URL.
+If the request fails or has no data, return nil.
+
+Because of debbugs#17976 in Emacs <= 25.3, when the first call
+fails, the function is called again with FIX-ADDRESS, in which
+case 'localhost' is replaced with '127.0.0.1' in URL."
   (message "Downloading sourcemap file...")
-  (let ((buf (url-retrieve-synchronously
-	      (indium-script--absolute-sourcemap-url script) t)))
+  (let ((buf (url-retrieve-synchronously url t)))
     (with-current-buffer buf
       (message "Downloading sourcemap file...done")
       (goto-char (point-min))
-      (when (re-search-forward "^HTTP/.+ 200 OK$" nil (line-end-position))
-	(when (search-forward "\n\n" nil t)
-	  (buffer-substring (point) (point-max)))))))
+      (if (re-search-forward "^HTTP/.+ 200 OK$" nil (line-end-position))
+	  (when (search-forward "\n\n" nil t)
+	    (buffer-substring (point) (point-max)))
+	;; Fix for bug#17976
+	(unless fix-address
+	  (let ((url (replace-regexp-in-string "localhost" "127.0.0.1" url)))
+	    (indium-script--download url t)))))))
 
 (defun indium-script--absolute-sourcemap-url (script)
   "Return the absolute URL for the sourcemap associated with SCRIPT.
