@@ -186,6 +186,7 @@ If LINE is not provided, return all breakpoints in FILE."
   (id nil :type string :read-only t)
   (url nil :type string :read-only t)
   (sourcemap-url nil :type string :read-only t)
+  (parsed-time (current-time) :read-only t)
   ;; Keep a cache of the parsed sourcemap for speed.  See
   ;; `indium-script-sourcemap'.
   (sourcemap-cache nil))

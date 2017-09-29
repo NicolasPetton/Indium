@@ -92,9 +92,14 @@ Return nil if no script can be found."
     (not (seq-empty-p sourcemap-url))))
 
 (defun indium-script-all-scripts-with-sourcemap ()
-  "Return all parsed scripts that contain a sourcemap."
-  (seq-filter #'indium-script-has-sourcemap-p
-	      (map-values (indium-current-connection-scripts))))
+  "Return all parsed scripts that contain a sourcemap.
+The scripts are sorted by parsed time, to ensure the newest
+script is picked up first when using sourcemaps."
+  (seq-sort (lambda (a b)
+	      (not (time-less-p (indium-script-parsed-time a)
+				(indium-script-parsed-time b))))
+	    (seq-filter #'indium-script-has-sourcemap-p
+			(map-values (indium-current-connection-scripts)))))
 
 (defun indium-script-get-frame-original-location (frame)
   "Return the location stack FRAME, possibly using sourcemaps."
