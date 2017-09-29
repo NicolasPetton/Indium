@@ -25,6 +25,7 @@
 (require 'buttercup)
 (require 'assess)
 (require 'indium-script)
+(require 'indium-workspace)
 
 (defvar indium-script--test-fs
   '(".indium"
@@ -71,6 +72,25 @@
       (indium-script-add-script-parsed "2" 'url)
       (expect (indium-script-id (indium-script-find-from-url 'url))
 	      :to-equal "2"))))
+
+(describe "Handling sourcemap files"
+  (it "should convert all sourcemap entry paths to absolute paths"
+    (spy-on 'indium-workspace-lookup-file :and-return-value "/foo/bar/script.js")
+    (let* ((script (make-indium-script :url "/bar/script.js"))
+	   (entry (make-sourcemap-entry :source "./baz.js"))
+	   (map (make-vector 1 entry)))
+      (indium-script--absolute-sourcemap-sources map script)
+      (expect (sourcemap-entry-source (seq-elt map 0))
+	      :to-equal "/foo/bar/baz.js")))
+
+  (it "should not convert sourcemap entries paths that are absolute"
+    (spy-on 'indium-workspace-lookup-file :and-return-value "/foo/bar/script.js")
+    (let* ((script (make-indium-script :url "/bar/script.js"))
+	   (entry (make-sourcemap-entry :source "/baz.js"))
+	   (map (make-vector 1 entry)))
+      (indium-script--absolute-sourcemap-sources map script)
+      (expect (sourcemap-entry-source (seq-elt map 0))
+	      :to-equal "/baz.js"))))
 
 (provide 'indium-script-test)
 ;;; indium-script-test.el ends here

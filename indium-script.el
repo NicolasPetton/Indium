@@ -67,10 +67,10 @@ parsed scripts with the same URL."
 If not such script was parsed, return nil."
   (map-elt (indium-current-connection-scripts) (intern id)))
 
-(defun indium-script-get-file (script)
+(defun indium-script-get-file (script &optional ignore-existence)
   "Lookup the local file associated with SCRIPT.
-If no local file can be found, return nil."
-  (indium-workspace-lookup-file (indium-script-url script)))
+If no local file can be found and IGNORE-EXISTENCE is nil, return nil."
+  (indium-workspace-lookup-file (indium-script-url script) ignore-existence))
 
 (defun indium-script-find-from-url (url)
   "Lookup a script for URL.
@@ -100,9 +100,8 @@ Return nil if no script can be found."
   "Return the location stack FRAME, possibly using sourcemaps."
   (let* ((script (indium-frame-script frame))
          (location (indium-frame-location frame)))
-    (if (indium-location-file location)
-	(progn
-	  (indium-script-original-location script location))
+    (if (indium-script-has-sourcemap-p script)
+	(indium-script-original-location script location)
       location)))
 
 (defun indium-script-original-location (script location)
@@ -111,12 +110,11 @@ If SCRIPT has no sourcemap, return LOCATION."
   (if indium-script-enable-sourcemaps
       (if-let ((sourcemap (indium-script-sourcemap script))
 	       (original-location (indium-script--sourcemap-original-position-for
-				     sourcemap
-				     :line (1+ (indium-location-line location))
-				     :column (1+ (indium-location-column location))
-				     :nearest t))
-	       (file (expand-file-name (plist-get original-location :source)
-				       (file-name-directory (indium-script-get-file script)))))
+				   sourcemap
+				   :line (1+ (indium-location-line location))
+				   :column (1+ (indium-location-column location))
+				   :nearest t))
+	       (file (plist-get original-location :source)))
           (make-indium-location :file file
 				:line (max 0 (1- (plist-get original-location :line)))
 				:column (plist-get original-location :column))
@@ -135,12 +133,10 @@ sourcemap."
       (if indium-script-enable-sourcemaps
 	  (or (seq-some (lambda (script)
 			  (if-let ((sourcemap (indium-script-sourcemap script))
-				   (script-file (indium-script-get-file script))
+				   (script-file (indium-script-get-file script t))
 				   (generated-location (sourcemap-generated-position-for
 							sourcemap
-							:source (file-relative-name
-								 (indium-location-file location)
-								 (file-name-directory script-file))
+							:source (indium-location-file location)
 							:line (1+ (indium-location-line location))
 							:column 0
 							:nearest t)))
@@ -171,8 +167,25 @@ If the sourcemap file cannot be downloaded either, return nil."
 		(sourcemap-from-file file)
 	      (when-let ((str (indium-script--download
 			       (indium-script--absolute-sourcemap-url script))))
-		(sourcemap-from-string str)))))
+		(sourcemap-from-string str))))
+      (when-let (sourcemap (indium-script-sourcemap-cache script))
+	(indium-script--absolute-sourcemap-sources sourcemap script)))
     (indium-script-sourcemap-cache script)))
+
+(defun indium-script--absolute-sourcemap-sources (sourcemap script)
+  "Convert all relative source paths in SOURCEMAP to absolute ones.
+
+Paths might be either absolute, or relative to the SCRIPT's
+directory.  To make things simpler with sourcemaps manipulation,
+make all source paths absolute."
+  (seq-do (lambda (entry)
+	    (when-let ((path (sourcemap-entry-source entry)))
+	      (unless (file-name-absolute-p path)
+		(setf (sourcemap-entry-source entry)
+		      (expand-file-name path
+					(file-name-directory
+					 (indium-script-get-file script t)))))))
+	  sourcemap))
 
 (defun indium-script--sourcemap-file (script)
   "Return the local sourcemap file associated with SCRIPT.
@@ -210,7 +223,7 @@ For instance, for a script located at
 \"bar.js.map\", return \"http://localhost/foo/bar.js.ap\"."
   (let* ((url (indium-script-url script))
 	 (sourcemap-url (indium-script-sourcemap-url script)))
-  (url-expand-file-name sourcemap-url url)))
+    (url-expand-file-name sourcemap-url url)))
 
 ;; TODO: wait for https://github.com/syohex/emacs-sourcemap/pull/6 to be merged
 (defun indium-script--sourcemap-original-position-for (sourcemap &rest props)

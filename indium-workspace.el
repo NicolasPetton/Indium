@@ -97,12 +97,13 @@ The selected workspace directory is added to the list of workspaces."
       (indium-workspace--save-workspaces-file)
       workspace)))
 
-(defun indium-workspace-lookup-file (url)
+(defun indium-workspace-lookup-file (url &optional ignore-existence)
   "Return a local file matching URL for the current connection.
-If no file is found, return nil."
+If no file is found, and IGNORE-EXISTENCE is nil, return nil,
+otherwise return the path of a file that does not exist."
   (when url
     (or (indium-workspace--lookup-using-file-protocol url)
-        (indium-workspace--lookup-using-workspace url))))
+        (indium-workspace--lookup-using-workspace url ignore-existence))))
 
 (defun indium-workspace-lookup-file-safe (url)
   "Find a local file for URL, or return URL is no file can be found."
@@ -116,21 +117,23 @@ If no file is found, return nil."
       (when (file-regular-p path)
         path))))
 
-(defun indium-workspace--lookup-using-workspace (url)
-  "Return a local file matching URL using the current Indium workspace."
+(defun indium-workspace--lookup-using-workspace (url &optional ignore-existence)
+  "Return a local file matching URL using the current Indium workspace.
+When IGNORE-EXISTENCE is non-nil, also match file paths that are
+not on disk."
   ;; Make sure we are in the correct directory so that indium can find a
   ;; ".indium" file.
   ;;
   ;; TODO: set the directory in the connection directly instead of relying on
   ;; the REPL buffer
   (with-current-buffer (indium-repl-get-buffer)
-      (if-let ((root (indium-workspace-root)))
-          (let* ((path (seq-drop (car (url-path-and-query
-                                       (url-generic-parse-url url)))
-                                 1))
-                 (file (expand-file-name path root)))
-            (when (file-regular-p file)
-              file)))))
+    (if-let ((root (indium-workspace-root)))
+	(let* ((path (seq-drop (car (url-path-and-query
+				     (url-generic-parse-url url)))
+			       1))
+	       (file (expand-file-name path root)))
+	  (when (or ignore-existence (file-regular-p file))
+	    file)))))
 
 (defun indium-workspace-make-url (file)
   "Return the url associated with the local FILE."
