@@ -180,12 +180,14 @@ remote source for that frame."
   (indium-debugger-litable-setup-buffer)
   (if buffer-file-name
       (indium-debugger-setup-buffer-with-file)
+    (message "Downloading script source for debugging...")
     (indium-backend-get-script-source
        (indium-current-connection-backend)
        frame
        (lambda (source)
          (indium-debugger-setup-buffer-with-source
-          (map-nested-elt source '(result scriptSource)))))))
+          (map-nested-elt source '(result scriptSource)))
+	 (message "Downloading script source for debugging...done!")))))
 
 (defun indium-debugger-setup-buffer-with-file ()
   "Setup the current buffer for debugging."
