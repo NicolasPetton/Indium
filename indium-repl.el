@@ -95,7 +95,7 @@
   "Return the welcome message displayed in new REPL buffers."
   (format
    (substitute-command-keys
-    "Welcome to Indium!
+    "/* Welcome to Indium!
 Connected to %s @ %s
 
 Getting started:
@@ -110,7 +110,7 @@ To disconnect from the JavaScript process, press <\\[indium-quit]>.
 Doing this will also close all inspectors and debugger buffers
 connected to the process.
 
-")
+*/")
    (indium-current-connection-backend)
    (indium-current-connection-url)))
 
