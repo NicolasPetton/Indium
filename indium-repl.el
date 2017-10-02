@@ -411,17 +411,27 @@ Evaluate CALLBACK with the completion candidates."
         ["Quit" indium-quit]))
     map))
 
-(define-derived-mode indium-repl-mode fundamental-mode "JS-REPL"
+;; Taken from cider-repl.el
+(defun indium-repl-wrap-fontify-function (func)
+  "Return a function that will call FUNC narrowed to input region."
+  (lambda (beg end &rest rest)
+    (when (and indium-repl-input-start-marker
+	       (> end indium-repl-input-start-marker))
+      (save-restriction
+	(narrow-to-region indium-repl-input-start-marker (point-max))
+	(let ((font-lock-dont-widen t))
+	  (apply func (max beg indium-repl-input-start-marker) end rest))))))
+
+(define-derived-mode indium-repl-mode js-mode "JS-REPL"
   "Major mode for indium REPL interactions.
 
 \\{indium-repl-mode-map}"
-  (setq-local font-lock-defaults (list js--font-lock-keywords))
-  (setq-local syntax-propertize-function #'js-syntax-propertize)
-  (font-lock-ensure)
+  (setq-local font-lock-fontify-region-function
+	      (indium-repl-wrap-fontify-function font-lock-fontify-region-function))
+  (setq-local font-lock-unfontify-region-function
+	      (indium-repl-wrap-fontify-function font-lock-unfontify-region-function))
   (setq-local company-backends '(company-indium-repl))
-  (company-mode 1)
-  (setq-local comment-start "// ")
-  (setq-local comment-end ""))
+  (company-mode 1))
 
 (provide 'indium-repl)
 ;;; indium-repl.el ends here
