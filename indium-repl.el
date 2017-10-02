@@ -411,27 +411,37 @@ Evaluate CALLBACK with the completion candidates."
         ["Quit" indium-quit]))
     map))
 
-;; Taken from cider-repl.el
-(defun indium-repl-wrap-fontify-function (func)
-  "Return a function that will call FUNC narrowed to input region."
-  (lambda (beg end &rest rest)
-    (when (and indium-repl-input-start-marker
-	       (> end indium-repl-input-start-marker))
-      (save-restriction
-	(narrow-to-region indium-repl-input-start-marker (point-max))
-	(let ((font-lock-dont-widen t))
-	  (apply func (max beg indium-repl-input-start-marker) end rest))))))
-
-(define-derived-mode indium-repl-mode js-mode "JS-REPL"
+(define-derived-mode indium-repl-mode fundamental-mode "JS-REPL"
   "Major mode for indium REPL interactions.
 
 \\{indium-repl-mode-map}"
-  (setq-local font-lock-fontify-region-function
-	      (indium-repl-wrap-fontify-function font-lock-fontify-region-function))
-  (setq-local font-lock-unfontify-region-function
-	      (indium-repl-wrap-fontify-function font-lock-unfontify-region-function))
+  (font-lock-add-keywords nil '(indium-repl--fontify-output))
   (setq-local company-backends '(company-indium-repl))
   (company-mode 1))
+
+(defun indium-repl--fontify-output (&rest _)
+  "Fontify JS code output."
+  (let* ((start indium-repl-input-start-marker)
+	 (end (point-max))
+	 (repl-buffer (current-buffer))
+	 (string (buffer-substring-no-properties start end)))
+    (with-current-buffer
+	(get-buffer-create "*indium-fontification*")
+      (let ((inhibit-modification-hooks nil))
+	(js-mode)
+	(erase-buffer)
+	(insert string " ")
+	(font-lock-ensure)
+	(let ((pos (point-min)) next)
+	  (while (setq next (next-property-change pos))
+	    ;; Handle additional properties from font-lock, so as to
+	    ;; preserve, e.g., composition.
+	    (dolist (prop (cons 'face font-lock-extra-managed-props))
+	      (let ((new-prop (get-text-property pos prop)))
+		(put-text-property
+		 (+ start (1- pos)) (1- (+ start next)) prop new-prop
+		 repl-buffer)))
+	    (setq pos next)))))))
 
 (provide 'indium-repl)
 ;;; indium-repl.el ends here
