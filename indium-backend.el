@@ -142,7 +142,7 @@ Concrete implementations should call
 `indium-current-connection-add-breakpoint' once the addition has
 been performed.")
 
-(cl-defgeneric indium-backend-remove-breakpoint (backend id)
+(cl-defgeneric indium-backend-remove-breakpoint (backend id &optional callback)
   "Request the removal of the breakpoint with id ID.
 
 Concrete implementations should call

@@ -138,13 +138,15 @@ Evaluate CALLBACK on the filtered candidates."
 		 (funcall callback breakpoint)))
 	   (message "Cannot get breakpoint location")))))))
 
-(cl-defmethod indium-backend-remove-breakpoint ((_backend (eql v8)) id)
-  "Request the removal of the breakpoint with id ID."
+(cl-defmethod indium-backend-remove-breakpoint ((_backend (eql v8)) id &optional callback)
+  "Request the removal of the breakpoint with id ID.
+Evaluate CALLBACK on success"
   (indium-v8--send-request
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (_response)
-     (indium-current-connection-remove-breakpoint id))))
+     (indium-current-connection-remove-breakpoint id)
+     (when callback (funcall callback)))))
 
 (cl-defmethod indium-backend-deactivate-breakpoints ((_backend (eql v8)))
   "Deactivate all breakpoints.
