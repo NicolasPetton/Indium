@@ -143,9 +143,18 @@ An icon is added to the left fringe."
 
 (defun indium-breakpoint--update-breakpoints-in-current-buffer ()
   "Update the breakpoints for the current buffer in the backend."
-  (when-indium-connected
-    (indium-breakpoint-remove-breakpoints-from-backend)
-    (indium-breakpoint--restore-breakpoints-in-current-buffer)))
+  (let ((overlays (overlays-in (point-min) (point-max))))
+    (seq-doseq (ov overlays)
+      (when-let ((brk (overlay-get ov 'indium-breakpoint))
+		 (start (overlay-start ov)))
+	(indium-backend-remove-breakpoint
+	 (indium-current-connection-backend)
+	 (indium-breakpoint-id brk)
+	 (lambda ()
+	   (save-excursion
+	     (goto-char start)
+	     (indium-breakpoint-add (indium-script-generated-location-at-point)
+				    (indium-breakpoint-condition brk)))))))))
 
 (defun indium-breakpoint--restore-breakpoints-in-current-buffer ()
   "Restore all breakpoints set in the current buffer.
