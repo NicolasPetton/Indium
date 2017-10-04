@@ -90,7 +90,7 @@ a temporary file, which is removed afterwards."
   (declare (indent 0))
   `(progn
      (ignore-errors (exec-path-from-shell-initialize))
-     (indium-run-node "node fixtures/test.js")
+     (indium-run-node "node")
      (wait-for-repl-buffer)
      ,@body
      (indium-quit)))
