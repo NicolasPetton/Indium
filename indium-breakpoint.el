@@ -113,13 +113,6 @@ This function does not remove any breakpoint overlay."
     (with-current-buffer buf
       (indium-breakpoint--restore-breakpoints-in-current-buffer))))
 
-(defun indium-breakpoint--update-breakpoints-in-all-buffers ()
-  "Update all breakpoints in all buffers."
-    (seq-doseq (buf (buffer-list))
-    (with-current-buffer buf
-      (indium-breakpoint--update-breakpoints-in-current-buffer))))
-
-
 
 (defun indium-breakpoint--add-overlay (breakpoint)
   "Add an overlay for BREAKPOINT on the current line.
@@ -188,9 +181,24 @@ If there is no overlay, make one."
         (overlay-put ov 'indium-breakpoint-ov t)
         ov)))
 
-(defun indium-breakpoint--update-after-script-parsed (&rest _)
-  "Update all breakpoints each time a script has been parsed by the runtime."
-  (indium-breakpoint--update-breakpoints-in-all-buffers))
+(defun indium-breakpoint--update-after-script-parsed (script)
+  "Update all breakpoints in SCRIPT when is has been (re)parsed.
+
+When a script has an associated sourcemap, the breakpoints set
+its source files might be outdated."
+  (when (indium-script-has-sourcemap-p script)
+    (let* ((breakpoints (seq-filter
+			 (lambda (brk)
+			   (string= (indium-script-get-file script t)
+				    (indium-breakpoint-file brk)))
+			 (map-values (indium-current-connection-breakpoints))))
+	   (buffers (seq-remove #'null
+				(seq-map (lambda (brk)
+					   (get-file-buffer (indium-breakpoint-file brk)))
+					 breakpoints))))
+      (seq-doseq (buf buffers)
+    	(with-current-buffer buf
+    	  (indium-breakpoint--update-breakpoints-in-current-buffer))))))
 
 (defun indium-breakpoint--update-after-script-source-set (&rest _)
   "Update the breakpoints in the current buffer each time its source is set."
