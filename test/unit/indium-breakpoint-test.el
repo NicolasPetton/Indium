@@ -46,7 +46,7 @@
 	(goto-char (point-min))
 	(open-line 1)
 	(forward-line)
-	(indium-breakpoint-remove-overlay)
+	(indium-breakpoint--remove-overlay)
 	(let ((overlays (seq-find (lambda (ov)
 				    (overlay-get ov 'indium-breakpoint-ov))
 				  (overlays-in (point-min) (point-max)))))
@@ -62,7 +62,7 @@
 	(goto-char 5)
 	(newline)
 	(forward-line -1)
-	(indium-breakpoint-remove-overlay)
+	(indium-breakpoint--remove-overlay)
 	(let ((overlays (seq-find (lambda (ov)
 				    (overlay-get ov 'indium-breakpoint-ov))
 				  (overlays-in (point-min) (point-max)))))
@@ -78,15 +78,15 @@
   (it "should be able to access breakpoints on empty lines"
     (with-js2-buffer ""
       (let ((ov (indium-breakpoint--ensure-overlay)))
-	(expect (indium-breakpoint-overlay-on-current-line)
+	(expect (indium-breakpoint--overlay-on-current-line)
 		:to-be ov))))
 
   (it "should be able to remove overlays on empty lines"
     (with-js2-buffer ""
       (indium-breakpoint--ensure-overlay)
-      (expect (indium-breakpoint-overlay-on-current-line) :not :to-be nil)
-      (indium-breakpoint-remove-overlay)
-      (expect (indium-breakpoint-overlay-on-current-line) :to-be nil)))
+      (expect (indium-breakpoint--overlay-on-current-line) :not :to-be nil)
+      (indium-breakpoint--remove-overlay)
+      (expect (indium-breakpoint--overlay-on-current-line) :to-be nil)))
 
   (it "can get a breakpoint overlays on the current line when it changed"
     (with-js2-buffer "let a = 1;"
@@ -94,14 +94,14 @@
 	(goto-char (point-min))
 	(insert "\n")
 	(forward-line 1)
-        (expect (indium-breakpoint-overlay-on-current-line) :to-be ov)))))
+        (expect (indium-breakpoint--overlay-on-current-line) :to-be ov)))))
 
 (describe "Accessing breakpoints"
   (it "can get a breakpoint overlays on the current line"
     (with-js2-buffer "let a = 1;"
       (let ((ov (indium-breakpoint--ensure-overlay)))
         (overlay-put ov 'indium-breakpoint t)
-        (expect (indium-breakpoint-overlay-on-current-line) :to-be ov))))
+        (expect (indium-breakpoint--overlay-on-current-line) :to-be ov))))
 
   (it "can put a breakpoint on the current line"
     (with-js2-buffer "let a = 1;"
@@ -144,7 +144,7 @@
 	;; simulate getting the breakpoint ID from a backend
 	(setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'id)
 	(with-fake-indium-connection
-	  (indium-breakpoint-restore-breakpoints)
+	  (indium-breakpoint--restore-breakpoints-in-current-buffer)
 	  (expect #'indium-backend-add-breakpoint :to-have-been-called)
 	  (expect #'indium-breakpoint-add :to-have-been-called-with loc condition))))))
 

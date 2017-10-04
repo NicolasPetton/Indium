@@ -91,6 +91,18 @@
       (indium-v8--send-request '((message . "message")) 'callback)
       (expect (map-elt (indium-current-connection-callbacks) 'id) :to-equal 'callback))))
 
+(describe "Receiving responses"
+  (it "should evaluate `indium-script-parsed-hook' when a script gets parsed"
+    (spy-on 'indium-script-add-script-parsed :and-return-value 'script)
+    ;; Don't actually update breakpoints
+    (spy-on 'indium-breakpoint--update-after-script-parsed)
+    (spy-on 'test-hook-run)
+    (add-hook 'indium-script-parsed-hook 'test-hook-run)
+    (with-indium-connection (make-indium-connection :backend 'v8)
+      (indium-v8--handle-script-parsed '(params))
+      (remove-hook 'indium-script-parsed-hook 'test-hook-run)
+      (expect #'test-hook-run :to-have-been-called-with 'script))))
+
 (describe "Making completion expressions"
   (it "should return \"this\" if there is no property to complete"
     (expect (indium-v8--completion-expression "foo")
