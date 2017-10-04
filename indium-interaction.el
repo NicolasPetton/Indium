@@ -309,7 +309,6 @@ update all breakpoints set in the current buffer as well."
      url
      (buffer-string)
      (lambda ()
-       (indium-breakpoint-update-breakpoints)
        (run-hook-with-args 'indium-update-script-source-hook url)))))
 
 (defun indium-interaction--guard-breakpoint-at-point ()
@@ -322,7 +321,7 @@ update all breakpoints set in the current buffer as well."
     (when (indium-breakpoint-at-point)
       (user-error "There is already a breakpoint on the current line")))
 
-(add-hook 'after-save-hook #'indium-interaction-update)
+(add-hook 'before-save-hook #'indium-interaction-update)
 
 (provide 'indium-interaction)
 ;;; indium-interaction.el ends here
