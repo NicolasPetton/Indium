@@ -150,8 +150,7 @@ If no such breakpoint exist, return nil."
 If LINE is not provided, return all breakpoints in FILE."
   (let ((breakpoints (map-values (indium-current-connection-breakpoints))))
     (seq-filter (lambda (brk)
-                  (and (string= (indium-location-file
-				 (indium-breakpoint-location brk))
+                  (and (string= (indium-breakpoint-local-file brk)
 				file)
                        (or (not line)
                            (= (indium-location-line
@@ -216,12 +215,14 @@ If LINE is not provided, return all breakpoints in FILE."
 	       (:constructor make-indium-breakpoint
 			     (&key id
 				   line
+				   local-file
 				   file
 				   condition
 				   &aux (location (make-indium-location
 						   :line line
 						   :file file)))))
   (id nil :type string)
+  (local-file buffer-file-name :type string)
   (location nil :type indium-location :read-only t)
   (condition "" :type string))
 
