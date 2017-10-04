@@ -113,7 +113,7 @@ This function does not remove any breakpoint overlay."
     (with-current-buffer buf
       (indium-breakpoint--restore-breakpoints-in-current-buffer))))
 
-(defun indium-breakpoint-update-breakpoints-in-all-buffers ()
+(defun indium-breakpoint--update-breakpoints-in-all-buffers ()
   "Update all breakpoints in all buffers."
     (seq-doseq (buf (buffer-list))
     (with-current-buffer buf
@@ -181,7 +181,7 @@ If there is no overlay, make one."
 
 (defun indium-breakpoint--update-after-script-parsed (&rest _)
   "Update all breakpoints each time a script has been parsed by the runtime."
-  (indium-breakpoint-update-breakpoints-in-all-buffers))
+  (indium-breakpoint--update-breakpoints-in-all-buffers))
 
 (defun indium-breakpoint--update-after-script-source-set (&rest _)
   "Update the breakpoints in the current buffer each time its source is set."
