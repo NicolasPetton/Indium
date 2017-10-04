@@ -50,17 +50,21 @@
   "Add a parsed script from the runtime with ID at URL.
 If SOURCEMAP-URL is non-nil, add it to the parsed script.
 
+Return the new parsed script.
+
 If an existing script has the same URL, remove that script first,
 so that the new script overrides it, as we cannot have multiple
 parsed scripts with the same URL."
   (when-let ((script (indium-script-find-from-url url)))
     (map-delete (indium-current-connection-scripts)
   		(intern (indium-script-id script))))
-  (map-put (indium-current-connection-scripts)
-           (intern id)
-	   (make-indium-script :id id
-			       :url url
-			       :sourcemap-url sourcemap-url)))
+  (let ((script (make-indium-script :id id
+				    :url url
+				    :sourcemap-url sourcemap-url)))
+    (map-put (indium-current-connection-scripts)
+	     (intern id)
+	     script)
+    script))
 
 (defun indium-script-find-by-id (id)
   "Return the parsed script with id ID in the current connection.

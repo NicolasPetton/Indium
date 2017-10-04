@@ -399,7 +399,8 @@ MESSAGE explains why the connection has been closed."
   (let* ((id (map-nested-elt message '(params scriptId)))
          (url (map-nested-elt message '(params url)))
          (sourcemap-url (map-nested-elt message '(params sourceMapURL))))
-    (indium-script-add-script-parsed id url sourcemap-url)))
+    (let ((script (indium-script-add-script-parsed id url sourcemap-url)))
+      (run-hook-with-args 'indium-script-parsed-hook script))))
 
 (defun indium-v8--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."

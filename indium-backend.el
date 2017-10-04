@@ -52,6 +52,8 @@
 
 (defvar indium-backends nil "List of registered backends.")
 
+(defvar indium-script-parsed-hook nil "Hook run when a new script is parsed.")
+
 (defun indium-register-backend (backend)
   "Register a new BACKEND.
 BACKEND should be a symbol."
