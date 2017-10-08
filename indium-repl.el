@@ -81,6 +81,18 @@
   "Return the name of the REPL buffer."
   "*JS REPL*")
 
+(defmacro indium-with-repl-buffer (&rest body)
+  (declare (indent defun))
+  (let ((buf (make-symbol "buf")))
+    `(when-let ((,buf (indium-repl-get-buffer)))
+       (with-current-buffer ,buf
+         ,@body))))
+
+(defun indium-repl-buffer-directory ()
+  "Return the directory of the REPL buffer."
+  (indium-with-repl-buffer
+    default-directory))
+
 (defun indium-repl-setup-buffer (buffer)
   "Setup the REPL BUFFER."
   (with-current-buffer buffer

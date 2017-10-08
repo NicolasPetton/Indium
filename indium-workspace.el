@@ -63,6 +63,7 @@
 (require 'indium-backend)
 
 (declare-function indium-repl-get-buffer "indium-repl.el")
+(declare-function indium-repl-buffer-directory "indium-repl.el")
 
 (defgroup indium-workspace nil
   "Indium workspace"
@@ -210,7 +211,8 @@ The path and query string of URL are stripped."
 
 (defun indium-workspace-root ()
   "Lookup the root workspace directory from the current buffer."
-  (indium-workspace-locate-dominating-file default-directory ".indium"))
+  (or (indium-repl-buffer-directory)
+      (indium-workspace-locate-dominating-file default-directory ".indium")))
 
 (defun indium-workspace-locate-dominating-file (file name)
   "Look up the directory hierarchy from FILE for a directory containing NAME.
