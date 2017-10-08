@@ -80,6 +80,31 @@
 (defvar indium-workspaces nil
   "List of previously used workspace directories.")
 
+(defun indium-workspace--dirname (path)
+  (when path
+    (file-name-directory
+     (if (directory-name-p path)
+         (directory-file-name path)
+       path))))
+
+(defun indium-workspace-suggestions ()
+  (let ((workspaces indium-workspaces)
+        (dir (indium-workspace--dirname (buffer-file-name))))
+    (when (and dir (file-directory-p dir))
+      (let ((parent (indium-workspace--dirname dir))
+            (n 0)
+            (front (list dir))
+            back)
+        (while (not (string= parent dir))
+          (if (> n 2)
+              (setq back (append (list parent) back))
+            (setq front (append (list parent) front)))
+          (setq n (+ n 1)
+                dir parent
+                parent (indium-workspace--dirname dir)))
+        (setq workspaces (append (reverse front) workspaces (reverse back)))))
+    workspaces))
+
 (defun indium-workspace-read ()
   "Ask the user to select a workspace directory.
 If the current directory is within a workspace, simply return it
@@ -91,7 +116,7 @@ The selected workspace directory is added to the list of workspaces."
   (let ((workspace (or (indium-workspace-root)
                        (when (and indium-workspaces
                                   (y-or-n-p "No workspace found.  Select one? "))
-                         (completing-read "Choose a workspace: " indium-workspaces)))))
+                         (completing-read "Choose a workspace: " (indium-workspace-suggestions))))))
     (when (and workspace indium-workspace-use-workspace-file)
       (indium-workspace--add-directory workspace)
       (indium-workspace--save-workspaces-file)
