@@ -155,11 +155,9 @@ sourcemap."
 (defun indium-script-generated-location-at-point ()
   "Return a location for the position of POINT.
 If no location can be found, return nil."
-  (when-let ((file (buffer-file-name))
-             (path (file-truename file)))
-    (indium-script-generated-location
-     (make-indium-location :file path
-                           :line (1- (line-number-at-pos))))))
+  (indium-script-generated-location
+   (make-indium-location :file (buffer-file-name)
+                         :line (1- (line-number-at-pos)))))
 
 (defun indium-script-sourcemap (script)
   "Return the sourcemap object associated with SCRIPT.
@@ -208,8 +206,8 @@ If the sourcemap file cannot be downloaded either, return nil."
 Paths might be either absolute, or relative to the SCRIPT's
 directory.  To make things simpler with sourcemaps manipulation,
 make all source paths absolute."
-  (let ((sourcemap-root (file-truename (indium-script-root script)))
-        (webpack-root (file-truename (indium-workspace-root))))
+  (let ((sourcemap-root (indium-script-root script))
+        (webpack-root (indium-workspace-root)))
     (seq-do (lambda (entry)
               (when-let ((path (sourcemap-entry-source entry))
                          (expansion (indium-script--sourcemap-path path sourcemap-root webpack-root)))
