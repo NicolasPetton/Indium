@@ -400,6 +400,8 @@ Evaluate CALLBACK with the completion candidates."
     (define-key map (kbd "C-c C-q") #'indium-quit)
     (define-key map (kbd "M-p") #'indium-repl-previous-input)
     (define-key map (kbd "M-n") #'indium-repl-next-input)
+    (define-key map (kbd "C-<up>") #'indium-repl-previous-input)
+    (define-key map (kbd "C-<down>") #'indium-repl-next-input)
     (easy-menu-define indium-repl-mode-menu map
       "Menu for Indium REPL"
       '("Indium REPL"
