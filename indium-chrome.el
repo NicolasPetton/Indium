@@ -43,8 +43,14 @@
   :prefix "indium-chrome-"
   :group 'indium)
 
+(defun indium-chrome--default-executable ()
+  "Return a default executable based on the OS."
+  (if (string-equal system-type "darwin")
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    "chromium"))
+
 (defcustom indium-chrome-executable
-  "chromium"
+  (indium-chrome--default-executable)
   "Chrome executable."
   :type '(file))
 
