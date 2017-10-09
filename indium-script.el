@@ -160,8 +160,8 @@ sourcemap."
   "Return a location for the position of POINT.
 If no location can be found, return nil."
   (indium-script-generated-location
-   (make-indium-location :file buffer-file-name
-			 :line (1- (line-number-at-pos)))))
+   (make-indium-location :file (buffer-file-name)
+                         :line (1- (line-number-at-pos)))))
 
 (defun indium-script-sourcemap (script)
   "Return the sourcemap object associated with SCRIPT.
@@ -181,20 +181,43 @@ If the sourcemap file cannot be downloaded either, return nil."
 	(indium-script--absolute-sourcemap-sources sourcemap script)))
     (indium-script-sourcemap-cache script)))
 
+(defconst indium-script--webpack-regexp "^webpack:///\\([^?]*\\)\\([?].*\\)?$")
+
+(defun indium-script--webpack-path-p (path)
+  (string-match-p indium-script--webpack-regexp path))
+
+(defun indium-script--webpack-path (path)
+  (replace-regexp-in-string indium-script--webpack-regexp
+                            "\\1"
+                            path))
+
+(defun indium-script--sourcemap-path (path sourcemap-root webpack-root)
+  (when path
+    (cond ((file-name-absolute-p path) path)
+          ((indium-script--webpack-path-p path)
+           (let ((path (indium-script--webpack-path path)))
+             (expand-file-name path webpack-root)))
+          (t (expand-file-name path sourcemap-root)))))
+
+(defun indium-script-root (script)
+  (or (when-let ((path (indium-script-get-file script t)))
+        (file-name-directory path))
+      (indium-workspace-root)))
+
 (defun indium-script--absolute-sourcemap-sources (sourcemap script)
   "Convert all relative source paths in SOURCEMAP to absolute ones.
 
 Paths might be either absolute, or relative to the SCRIPT's
 directory.  To make things simpler with sourcemaps manipulation,
 make all source paths absolute."
-  (seq-do (lambda (entry)
-	    (when-let ((path (sourcemap-entry-source entry)))
-	      (unless (file-name-absolute-p path)
-		(setf (sourcemap-entry-source entry)
-		      (expand-file-name path
-					(file-name-directory
-					 (indium-script-get-file script t)))))))
-	  sourcemap))
+  (let ((sourcemap-root (indium-script-root script))
+        (webpack-root (indium-workspace-root)))
+    (seq-do (lambda (entry)
+              (when-let ((path (sourcemap-entry-source entry))
+                         (expansion (indium-script--sourcemap-path path sourcemap-root webpack-root)))
+                (unless (string= path expansion)
+                  (setf (sourcemap-entry-source entry) expansion))))
+            sourcemap)))
 
 (defun indium-script--sourcemap-file (script)
   "Return the local sourcemap file associated with SCRIPT.

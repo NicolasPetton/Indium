@@ -106,11 +106,14 @@ Try a maximum of NUM-TRIES."
 
 (defun indium-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
-  (url-retrieve (format "http://%s:%s/json" host port)
-                (lambda (status)
-                  (funcall callback (if (eq :error (car status))
-                                        nil
-                                      (indium-chrome--read-tab-data))))))
+  (let ((buf (current-buffer)))
+    (url-retrieve (format "http://%s:%s/json" host port)
+                  (lambda (status)
+                    (let ((tabs (if (eq :error (car status))
+                                    nil
+                                  (indium-chrome--read-tab-data))))
+                      (setf (current-buffer) buf)
+                      (funcall callback tabs))))))
 
 (defun indium-chrome--connect-to-tab (tabs)
   "Connects to a tab in the list TABS.
