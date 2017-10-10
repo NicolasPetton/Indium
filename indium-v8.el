@@ -176,7 +176,8 @@ prototype chain of the remote object."
    (lambda (response)
      (funcall callback
               (indium-v8--properties
-               (map-nested-elt response '(result result)))))))
+               (map-nested-elt response '(result result))
+	       (map-nested-elt response '(result internalProperties)))))))
 
 (cl-defmethod indium-backend-set-script-source ((_backend (eql v8)) url source &optional callback)
   (when-let ((script (indium-script-find-from-url url)))
@@ -616,13 +617,17 @@ RESULT should be a reference to a remote object."
           (map-elt property 'type)
         preview))))
 
-(defun indium-v8--properties (result)
-  "Return a list of object properties built from RESULT."
-  (seq-map (lambda (prop)
-             `((name . ,(map-elt prop 'name))
-               (value . ,(indium-v8--value (or (map-elt prop 'value)
-                                                 (map-elt prop 'get))))))
-           result))
+(defun indium-v8--properties (properties &optional internal-properties)
+  "Return a list of object properties built from PROPERTIES.
+If INTERNAL-PROPERTIES is non-nil, also add them."
+  (let ((properties (seq-map (lambda (prop)
+			       `((name . ,(map-elt prop 'name))
+				 (value . ,(indium-v8--value (or (map-elt prop 'value)
+								 (map-elt prop 'get))))))
+			     properties)))
+    (if internal-properties
+	(seq-concatenate 'list properties (indium-v8--properties internal-properties))
+      properties)))
 
 (defun indium-v8--scope-chain (frame)
   "Return a scope chain for a FRAME."
