@@ -29,7 +29,7 @@
 (require 'indium-structs)
 (require 'indium-workspace)
 (require 'indium-backend)
-(require 'sourcemap)
+(require 'indium-sourcemap)
 (require 'url)
 (require 'subr-x)
 
@@ -118,11 +118,10 @@ script is picked up first when using sourcemaps."
 If SCRIPT has no sourcemap, return LOCATION."
   (if indium-script-enable-sourcemaps
       (if-let ((sourcemap (indium-script-sourcemap script))
-	       (original-location (indium-script--sourcemap-original-position-for
+	       (original-location (indium-sourcemap-original-position-for
 				   sourcemap
-				   :line (1+ (indium-location-line location))
-				   :column (1+ (indium-location-column location))
-				   :nearest t))
+				   (1+ (indium-location-line location))
+				   (1+ (indium-location-column location))))
 	       (file (plist-get original-location :source)))
           (make-indium-location :file file
 				:line (max 0 (1- (plist-get original-location :line)))
@@ -143,12 +142,11 @@ sourcemap."
 	  (or (seq-some (lambda (script)
 			  (if-let ((sourcemap (indium-script-sourcemap script))
 				   (script-file (indium-script-get-file script t))
-				   (generated-location (sourcemap-generated-position-for
+				   (generated-location (indium-sourcemap-generated-position-for
 							sourcemap
-							:source (indium-location-file location)
-							:line (1+ (indium-location-line location))
-							:column 0
-							:nearest t)))
+							(indium-location-file location)
+							(1+ (indium-location-line location))
+							 0)))
 			      (make-indium-location :file script-file
 						    :line (max 0 (1- (plist-get generated-location :line)))
 						    :column (plist-get generated-location :column))))
@@ -173,10 +171,10 @@ If the sourcemap file cannot be downloaded either, return nil."
     (unless (indium-script-sourcemap-cache script)
       (setf (indium-script-sourcemap-cache script)
 	    (if-let ((file (indium-script--sourcemap-file script)))
-		(sourcemap-from-file file)
+		(indium-sourcemap-from-file file)
 	      (when-let ((str (indium-script--download
 			       (indium-script--absolute-sourcemap-url script))))
-		(sourcemap-from-string str))))
+		(indium-sourcemap-from-string str))))
       (when-let (sourcemap (indium-script-sourcemap-cache script))
 	(indium-script--absolute-sourcemap-sources sourcemap script)))
     (indium-script-sourcemap-cache script)))
@@ -187,14 +185,14 @@ If the sourcemap file cannot be downloaded either, return nil."
 Paths might be either absolute, or relative to the SCRIPT's
 directory.  To make things simpler with sourcemaps manipulation,
 make all source paths absolute."
-  (seq-do (lambda (entry)
-	    (when-let ((path (sourcemap-entry-source entry)))
-	      (unless (file-name-absolute-p path)
-		(setf (sourcemap-entry-source entry)
-		      (expand-file-name path
+  (seq-do (lambda (mapping)
+	    (when-let ((source (indium-source-mapping-source mapping)))
+	      (unless (file-name-absolute-p source)
+		(setf (indium-source-mapping-source mapping)
+		      (expand-file-name source
 					(file-name-directory
 					 (indium-script-get-file script t)))))))
-	  sourcemap))
+	  (indium-sourcemap-generated-mappings sourcemap)))
 
 (defun indium-script--sourcemap-file (script)
   "Return the local sourcemap file associated with SCRIPT.
@@ -233,19 +231,6 @@ For instance, for a script located at
   (let* ((url (indium-script-url script))
 	 (sourcemap-url (indium-script-sourcemap-url script)))
     (url-expand-file-name sourcemap-url url)))
-
-;; TODO: wait for https://github.com/syohex/emacs-sourcemap/pull/6 to be merged
-(defun indium-script--sourcemap-original-position-for (sourcemap &rest props)
-  "Lookup a position in SOURCEMAP based on PROPS.
-PROPS should be a plist with a `:line' and `:column' key."
-  (let ((here (make-sourcemap-entry :generated-line (plist-get props :line)
-                                    :generated-column (plist-get props :column))))
-    (let ((ret (sourcemap--binary-search sourcemap here 'generated
-					 (plist-get props :nearest))))
-      (when ret
-        (list :source (sourcemap-entry-source ret)
-              :line (sourcemap-entry-original-line ret)
-              :column (sourcemap-entry-original-column ret))))))
 
 (provide 'indium-script)
 ;;; indium-script.el ends here
