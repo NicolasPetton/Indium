@@ -207,7 +207,17 @@ its source files might be outdated."
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
 (add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
-(add-hook 'indium-connection-open-hook #'indium-breakpoint-restore-breakpoints-in-all-buffers)
+(add-hook 'indium-connection-open-hook #'indium-breakpoint--restore-for-new-connection)
+
+(defun indium-breakpoint--restore-for-new-connection ()
+  "Restore all breakpoints set in all buffers in the runtime."
+  ;; TODO: This is quite hackish but does the trick for now.  The problem is
+  ;; that when a new connection is open, no script is parsed yet, so adding the
+  ;; breakpoints straight away will not work.
+  ;;
+  ;; This gives some time for the runtime to parse scripts before trying to add
+  ;; back breakpoints.
+  (run-at-time 2 nil #'indium-breakpoint-restore-breakpoints-in-all-buffers))
 
 (and (display-images-p)
      (define-fringe-bitmap 'indium-breakpoint
