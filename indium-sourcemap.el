@@ -310,7 +310,7 @@ very start of a region."
 	(setq line-fn #'indium-source-mapping-generated-line)
 	(setq column-fn #'indium-source-mapping-generated-column)))
 
-    (when (> (length sourcemap) 0)
+    (when (> (length haystack) 0)
 
       ;; This terminates when one of the following is true:
       ;;
