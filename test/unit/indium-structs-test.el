@@ -57,6 +57,7 @@
     (let ((brk (make-indium-breakpoint
 		:id 'id
 		:line 5
+		:column 2
 		:file "foo.js")))
       (expect (indium-breakpoint-id brk) :to-be 'id)
       (expect (indium-location-file (indium-breakpoint-location brk))
@@ -64,7 +65,7 @@
       (expect (indium-location-line (indium-breakpoint-location brk))
 	      :to-equal 5)
       (expect (indium-location-column (indium-breakpoint-location brk))
-	      :to-equal 0))))
+	      :to-equal 2))))
 
 (describe "Manipulating breakpoints"
   (it "can register breakpoints"

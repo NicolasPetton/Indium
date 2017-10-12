@@ -216,11 +216,13 @@ If LINE is not provided, return all breakpoints in FILE."
 	       (:constructor make-indium-breakpoint
 			     (&key id
 				   line
+				   column
 				   file
 				   condition
 				   overlay
 				   &aux (location (make-indium-location
 						   :line line
+						   :column column
 						   :file file)))))
   (id nil :type string)
   (overlay nil)

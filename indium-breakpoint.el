@@ -41,6 +41,7 @@ When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
   (let* ((brk (make-indium-breakpoint :file (indium-location-file location)
 				      :line (indium-location-line location)
+				      :column (indium-location-column location)
 				      :condition (or condition ""))))
     (indium-breakpoint--add-overlay brk)
     (when-indium-connected
