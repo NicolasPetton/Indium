@@ -183,32 +183,12 @@ If there is no overlay, make one."
         (overlay-put ov 'indium-breakpoint-ov t)
         ov)))
 
-(defun indium-breakpoint--update-after-script-parsed (script)
-  "Update all breakpoints in SCRIPT when is has been (re)parsed.
-
-When a script has an associated sourcemap, the breakpoints set
-its source files might be outdated."
-  (when (indium-script-has-sourcemap-p script)
-    (let* ((breakpoints (seq-filter
-			 (lambda (brk)
-			   (string= (indium-script-get-file script t)
-				    (indium-breakpoint-file brk)))
-			 (map-values (indium-current-connection-breakpoints))))
-	   (buffers (seq-remove #'null
-				(seq-map (lambda (brk)
-					   (get-file-buffer (indium-breakpoint-file brk)))
-					 breakpoints))))
-      (seq-doseq (buf buffers)
-    	(with-current-buffer buf
-    	  (indium-breakpoint--update-breakpoints-in-current-buffer))))))
-
 (defun indium-breakpoint--update-after-script-source-set (&rest _)
   "Update the breakpoints in the current buffer each time its source is set."
   (indium-breakpoint--update-breakpoints-in-current-buffer))
 
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
-(add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
 (add-hook 'indium-connection-open-hook #'indium-breakpoint-restore-breakpoints-in-all-buffers)
 
 (and (display-images-p)
