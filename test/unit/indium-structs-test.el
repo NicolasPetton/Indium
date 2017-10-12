@@ -114,7 +114,7 @@
 
   (it "can know if a breakpoint is resolved"
     (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint)) :to-be-truthy)
-    (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint :id 'fake)) :to-be-falsy))
+    (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint :id 'fake)) :not :to-be-truthy))
 
   (it "gets nil when no breakpoint found for ID"
     (with-indium-connection (make-indium-connection)

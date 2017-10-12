@@ -171,16 +171,28 @@ An icon is added to the left fringe."
 	     (goto-char start)
 	     (indium-breakpoint-add (indium-breakpoint-condition brk)))))))))
 
-(defun indium-breakpoint--restore-breakpoints-in-current-buffer ()
-  "Restore all breakpoints set in the current buffer.
-This function is used when reconnecting to a new connection."
+(defun indium-breakpoint--resolve-breakpoints-in-all-buffers (&optional pred)
+  "Resolve breakpoints from all buffers.
+
+When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
+  (seq-doseq (buf (buffer-list))
+    (with-current-buffer buf
+      (indium-breakpoint--resolve-breakpoints pred))))
+
+(defun indium-breakpoint--resolve-breakpoints (&optional pred)
+  "Resolve breakpoints from the current buffer.
+
+When PRED is non-nil, only resolve breakpoints which
+satisfy (PRED brk)."
   (save-excursion
     (let ((overlays (overlays-in (point-min) (point-max))))
       (seq-doseq (ov overlays)
 	(when-let ((brk (overlay-get ov 'indium-breakpoint))
 		   (start (overlay-start ov)))
-	  (goto-char start)
-	  (indium-breakpoint-add (indium-breakpoint-condition brk)))))))
+	  (when (or (null pred)
+		    (funcall pred brk))
+	    (goto-char start)
+	    (indium-breakpoint-add (indium-breakpoint-condition brk))))))))
 
 (defun indium-breakpoint--fringe-icon ()
   "Return the fringe icon used for breakpoints."
@@ -206,8 +218,18 @@ If there is no overlay, make one."
   "Update the breakpoints in the current buffer each time its source is set."
   (indium-breakpoint--update-breakpoints-in-current-buffer))
 
+(defun indium-breakpoint--update-after-script-parsed (script)
+  "Attempt to resolve unresolved breakpoints for SCRIPT."
+  (indium-breakpoint--resolve-breakpoints-in-all-buffers
+   (lambda (brk)
+     (eq script
+	 (indium-script-find-from-file (indium-location-file
+					(indium-script-generated-location
+					 (indium-breakpoint-location brk))))))))
+
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
+(add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
 
 (and (display-images-p)
      (define-fringe-bitmap 'indium-breakpoint

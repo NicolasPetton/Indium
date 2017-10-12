@@ -138,21 +138,6 @@
         (indium-breakpoint-add)
         (expect (seq-length (overlays-in (point-min) (point-max))) :to-equal number-of-overlays)))))
 
-(describe "Restoring breakpoints"
-  (it "can restore breakpoints from buffers when opening a new connection"
-    (spy-on 'indium-backend-add-breakpoint)
-    (spy-on 'indium-breakpoint-add :and-call-through)
-    (with-js2-buffer "let a = 2;"
-      (goto-char (point-min))
-      (let ((condition "condition"))
-	(indium-breakpoint-add condition)
-	;; simulate getting the breakpoint ID from a backend
-	(setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'id)
-	(with-fake-indium-connection
-	  (indium-breakpoint--restore-breakpoints-in-current-buffer)
-	  (expect #'indium-backend-add-breakpoint :to-have-been-called)
-	  (expect #'indium-breakpoint-add :to-have-been-called-with condition))))))
-
 (describe "Handling overlays in breakpoints"
   (it "adding overlays should store the overlay in the breakpoint"
     (with-js2-buffer "let a = 2;"
