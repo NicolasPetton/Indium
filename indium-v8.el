@@ -47,6 +47,7 @@
 (require 'indium-debugger)
 (require 'indium-workspace)
 (require 'indium-script)
+(require 'indium-breakpoint)
 
 (defvar indium-v8-cache-disabled nil
   "Network cache disabled state.  If non-nil disable cache when Indium starts.")
@@ -129,11 +130,16 @@ Evaluate CALLBACK on the filtered candidates."
        (let* ((result (map-elt response 'result))
               (id (map-elt result 'breakpointId))
               (locations (map-elt result 'locations))
-              (line (map-elt (seq--elt-safe locations 0) 'lineNumber)))
-         (if line
+	      (location (seq--elt-safe locations 0))
+              (line (map-elt location 'lineNumber)))
+	 (if line
 	     (progn
 	       (setf (indium-breakpoint-id breakpoint) id)
 	       (indium-current-connection-add-breakpoint breakpoint)
+	       (let ((script (indium-script-find-by-id
+			      (map-elt location 'scriptId)))
+		     (location (indium-v8--convert-from-v8-location location)))
+		 (indium-breakpoint-resolve id script location))
 	       (when callback
 		 (funcall callback breakpoint)))
 	   (message "Cannot get breakpoint location")))))))
@@ -350,9 +356,20 @@ If WORKSPACE is non-nil, make it the workspace used for the connection."
           ("Log.entryAdded" (indium-v8--handle-log-entry message))
           ("Runtime.consoleAPICalled" (indium-v8--handle-console-message message))
           ("Runtime.exceptionThrown" (indium-v8--handle-exception-thrown message))
+	  ("Debugger.breakpointResolved" (indium-v8--handle-breakpoint-resolved message))
           ("Debugger.paused" (indium-v8--handle-debugger-paused message))
           ("Debugger.scriptParsed" (indium-v8--handle-script-parsed message))
           ("Debugger.resumed" (indium-v8--handle-debugger-resumed message)))))))
+
+(defun indium-v8--handle-breakpoint-resolved (message)
+  "Handle a breakpoint resolution.
+MESSAGE contains the breakpoint id and location."
+  (let ((id (map-nested-elt message '(params breakpointId)))
+	(script (indium-script-find-by-id
+		 (map-nested-elt message '(params location scriptId))))
+	(location (indium-v8--convert-from-v8-location
+		   (map-nested-elt message '(params location)))))
+    (indium-breakpoint-resolve id script location)))
 
 (defun indium-v8--handle-inspector-detached (message)
   "Handle a closed connection event.

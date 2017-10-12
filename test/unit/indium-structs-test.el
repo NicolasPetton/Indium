@@ -25,7 +25,9 @@
 ;;; Code:
 
 (require 'buttercup)
+(require 'assess)
 (require 'indium-structs)
+(require 'cl-lib)
 
 (describe "Setting current connection slots"
   (it "should be able to set the frames"
@@ -55,6 +57,7 @@
     (let ((brk (make-indium-breakpoint
 		:id 'id
 		:line 5
+		:column 2
 		:file "foo.js")))
       (expect (indium-breakpoint-id brk) :to-be 'id)
       (expect (indium-location-file (indium-breakpoint-location brk))
@@ -62,7 +65,7 @@
       (expect (indium-location-line (indium-breakpoint-location brk))
 	      :to-equal 5)
       (expect (indium-location-column (indium-breakpoint-location brk))
-	      :to-equal 0))))
+	      :to-equal 2))))
 
 (describe "Manipulating breakpoints"
   (it "can register breakpoints"
@@ -74,35 +77,44 @@
 
   (it "can get breakpoints in a file"
     (with-indium-connection (make-indium-connection)
-      (let ((brks (seq-map (lambda (data)
-			     (apply #'make-indium-breakpoint data))
-			   '((:id a :line 12 :local-file "foo.js" :file "foo.js" :condition "cond1")
-			     (:id b :line 25 :local-file "foo.js" :file "foo.js" :condition "cond2")
-			     (:id c :line 3 :local-file "bar.js" :file "bar.js" :condition "cond3")))))
-	(seq-do #'indium-current-connection-add-breakpoint brks)
-	(expect (indium-current-connection-get-breakpoints-in-file "foo.js") :to-equal
-		(list (car brks) (cadr brks))))))
+      (assess-with-filesystem '("foo.js" "bar.js")
+	(let* ((bufs (seq-map #'find-file-noselect (seq-map #'expand-file-name '("foo.js" "bar.js"))))
+	       (brks (seq-map (lambda (buf)
+				(with-current-buffer buf
+				  (make-indium-breakpoint :id (symbol-name (cl-gensym))
+							  :overlay (make-overlay (point) (point)))))
+			      bufs)))
+	  (seq-map #'indium-current-connection-add-breakpoint brks)
+	  (message "%s" bufs)
+	  (message "%s" (indium-current-connection-breakpoints))
+	  (expect (indium-current-connection-get-breakpoints-in-file (expand-file-name "foo.js"))
+		  :to-equal (list (car brks)))))))
 
   (it "can get breakpoints in a file with line"
     (with-indium-connection (make-indium-connection)
-      (let ((brks (seq-map (lambda (data)
-			     (apply #'make-indium-breakpoint data))
-			   '((:id a :line 12 :local-file "foo.js" :file "foo.js" :condition "cond1")
-			     (:id b :line 25 :local-file "foo.js" :file "foo.js" :condition "cond2")
-			     (:id c :line 3 :local-file "bar.js" :file "bar.js" :condition "cond3")))))
-	(seq-do #'indium-current-connection-add-breakpoint brks)
-	(expect (indium-current-connection-get-breakpoints-in-file "foo.js" 25) :to-equal
-		(list (cadr brks))))))
-
-  (it "can get the file associated with a breakpoint"
-    (let ((brk (make-indium-breakpoint :file "foo.js")))
-      (expect (indium-breakpoint-file brk) :to-equal "foo.js")))
+      (assess-with-filesystem '("foo.js")
+	(let ((buf (find-file-noselect (expand-file-name "foo.js")))
+	      (brks (list (make-indium-breakpoint :id 'a :file "foo.js" :line 5)
+			  (make-indium-breakpoint :id 'a :file "foo.js" :line 6))))
+	  (seq-do (lambda (brk)
+		    (with-current-buffer buf
+		      (goto-char (point-min))
+		      (forward-line (1- (indium-location-line (indium-breakpoint-location brk))))
+		      (indium-breakpoint--add-overlay brk)
+		      (indium-current-connection-add-breakpoint brk)))
+		  brks)
+	  (expect (indium-current-connection-get-breakpoints-in-file (expand-file-name "foo.js") 6)
+		  :to-equal (list (cadr brks)))))))
 
   (it "can get breakpoint from ID"
     (with-indium-connection (make-indium-connection)
       (let ((brk (make-indium-breakpoint :id 'a :line 12 :file "foo.js" :condition "cond")))
 	(indium-current-connection-add-breakpoint brk)
 	(expect (indium-current-connection-get-breakpoint 'a) :to-be brk))))
+
+  (it "can know if a breakpoint is resolved"
+    (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint)) :to-be-truthy)
+    (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint :id 'fake)) :not :to-be-truthy))
 
   (it "gets nil when no breakpoint found for ID"
     (with-indium-connection (make-indium-connection)

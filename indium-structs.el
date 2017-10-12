@@ -41,6 +41,7 @@
 ;;; Code:
 
 (require 'map)
+(require 'subr-x)
 
 (declare-function indium-script-get-file "indium-script.el")
 (declare-function indium-script-find-by-id "indium-script.el")
@@ -67,7 +68,7 @@
   (process nil :type process)
   (callbacks (make-hash-table) :type hash-table)
   (scripts (make-hash-table) :type hash-table)
-  (breakpoints (make-hash-table) :type hash-table)
+  (breakpoints (make-hash-table :test #'equal) :type hash-table)
   (frames nil :type list)
   (current-frame nil :type indium-frame)
   ;; extra properties that can be added by the backend
@@ -150,7 +151,7 @@ If no such breakpoint exist, return nil."
 If LINE is not provided, return all breakpoints in FILE."
   (let ((breakpoints (map-values (indium-current-connection-breakpoints))))
     (seq-filter (lambda (brk)
-                  (and (string= (indium-breakpoint-local-file brk)
+                  (and (string= (buffer-file-name (indium-breakpoint-buffer brk))
 				file)
                        (or (not line)
                            (= (indium-location-line
@@ -215,20 +216,28 @@ If LINE is not provided, return all breakpoints in FILE."
 	       (:constructor make-indium-breakpoint
 			     (&key id
 				   line
-				   local-file
+				   column
 				   file
 				   condition
+				   overlay
 				   &aux (location (make-indium-location
 						   :line line
+						   :column column
 						   :file file)))))
   (id nil :type string)
+  (overlay nil)
   (local-file buffer-file-name :type string)
   (location nil :type indium-location :read-only t)
   (condition "" :type string))
 
-(defun indium-breakpoint-file (breakpoint)
-  "Return the file for which BREAKPOINT is set."
-  (indium-location-file (indium-breakpoint-location breakpoint)))
+(defun indium-breakpoint-buffer (breakpoint)
+  "Return the buffer in which BREAKPOINT is set, or nil."
+  (when-let ((ov (indium-breakpoint-overlay breakpoint)))
+    (overlay-buffer ov)))
+
+(defun indium-breakpoint-unresolved-p (breakpoint)
+  "Return non-nil if BREAKPOINT is not yet resolved in the runtime."
+  (null (indium-breakpoint-id breakpoint)))
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here

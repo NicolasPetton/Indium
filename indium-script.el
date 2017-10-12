@@ -159,7 +159,8 @@ sourcemap."
 If no location can be found, return nil."
   (indium-script-generated-location
    (make-indium-location :file buffer-file-name
-			 :line (1- (line-number-at-pos)))))
+			 :line (1- (line-number-at-pos))
+			 :column (current-column))))
 
 (defun indium-script-sourcemap (script)
   "Return the sourcemap object associated with SCRIPT.
