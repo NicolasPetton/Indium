@@ -71,6 +71,16 @@ CONDITION is true."
   (indium-breakpoint-remove-all-overlays)
   (indium-breakpoint-remove-breakpoints-from-backend))
 
+(defun indium-breakpoint-resolve (id script location)
+  "Update the breakpoint with ID for SCRIPT at LOCATION.
+
+This function should be called upon breakpoint resolution by the
+backend, or when a breakpoint location gets updated from the
+backend."
+  (let ((original-location (indium-script-original-location script location))
+	(brk (indium-current-connection-get-breakpoint id)))
+    (indium-breakpoint--update-overlay brk original-location)))
+
 (defun indium-breakpoint-at-point ()
   "Return the breakpoint on the current line.
 If there is no breakpoint set on the line, return nil."
@@ -135,6 +145,21 @@ An icon is added to the left fringe."
 		     (overlay-end ov)
 		     'indium-breakpoint-ov
 		     t)))
+
+(defun indium-breakpoint--update-overlay (breakpoint location)
+  "Set the overlay for BREAKPOINT at LOCATION."
+  (when-let ((buf (indium-breakpoint-buffer breakpoint)))
+    (with-current-buffer buf
+      (save-excursion
+	(goto-char (overlay-start (indium-breakpoint-overlay breakpoint)))
+	(indium-breakpoint--remove-overlay))))
+  (when-let ((file (indium-location-file location))
+	     (line (indium-location-line location)))
+    (with-current-buffer (find-file-noselect file)
+      (save-excursion
+	(goto-char (point-min))
+	(forward-line line)
+	(indium-breakpoint--add-overlay breakpoint)))))
 
 (defun indium-breakpoint--update-breakpoints-in-current-buffer ()
   "Update the breakpoints for the current buffer in the backend."
