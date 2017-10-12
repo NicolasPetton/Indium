@@ -29,7 +29,8 @@
 (describe "Breakpoint position when editing buffers (GH issue #82)"
   (it "should keep the breakpoint on the original line when adding a line before"
     (with-js2-buffer "let a = true;"
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
 	;; add a line before the current line with the breakpoint overlay
 	(goto-char (point-min))
 	(open-line 1)
@@ -41,7 +42,8 @@
     ;; When inserting a line before, deleting a breakpoint resulted in an
     ;; overlay being added on the next line.
     (with-js2-buffer "let a = true;"
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
 	;; add a line before the current line with the breakpoint overlay
 	(goto-char (point-min))
 	(open-line 1)
@@ -57,7 +59,8 @@
     ;; overlay being added on the next line when the line where the breakpoint
     ;; was added had been split.
     (with-js2-buffer "let a = true;"
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
 	;; add a line before the current line with the breakpoint overlay
 	(goto-char 5)
 	(newline)
@@ -71,26 +74,30 @@
 (describe "Making markers (tests for issue #79)"
   (it "should put breakpoint overlays on the entire line"
     (with-js2-buffer "let a = true;"
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
 	(expect (overlay-start ov) :to-equal (point-at-bol))
 	(expect (overlay-end ov) :to-equal (point-at-eol)))))
 
   (it "should be able to access breakpoints on empty lines"
     (with-js2-buffer ""
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
 	(expect (indium-breakpoint--overlay-on-current-line)
 		:to-be ov))))
 
   (it "should be able to remove overlays on empty lines"
     (with-js2-buffer ""
-      (indium-breakpoint--ensure-overlay)
+      (let ((brk (make-indium-breakpoint)))
+	(indium-breakpoint--add-overlay brk))
       (expect (indium-breakpoint--overlay-on-current-line) :not :to-be nil)
       (indium-breakpoint--remove-overlay)
       (expect (indium-breakpoint--overlay-on-current-line) :to-be nil)))
 
   (it "can get a breakpoint overlays on the current line when it changed"
     (with-js2-buffer "let a = 1;"
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
 	(goto-char (point-min))
 	(insert "\n")
 	(forward-line 1)
@@ -99,7 +106,8 @@
 (describe "Accessing breakpoints"
   (it "can get a breakpoint overlays on the current line"
     (with-js2-buffer "let a = 1;"
-      (let ((ov (indium-breakpoint--ensure-overlay)))
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
         (overlay-put ov 'indium-breakpoint t)
         (expect (indium-breakpoint--overlay-on-current-line) :to-be ov))))
 
@@ -147,6 +155,28 @@
 	  (indium-breakpoint--restore-breakpoints-in-current-buffer)
 	  (expect #'indium-backend-add-breakpoint :to-have-been-called)
 	  (expect #'indium-breakpoint-add :to-have-been-called-with loc condition))))))
+
+(describe "Handling overlays in breakpoints"
+  (it "adding overlays should store the overlay in the breakpoint"
+    (with-js2-buffer "let a = 2;"
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
+	(expect (indium-breakpoint-overlay brk) :to-be ov))))
+
+  (it "removing overlays should remove them from breakpoints"
+    (with-js2-buffer "let a = 2;"
+      (let* ((brk (make-indium-breakpoint))
+	     (ov (indium-breakpoint--add-overlay brk)))
+	(indium-breakpoint--remove-overlay)
+	(expect (indium-breakpoint-overlay brk) :to-be nil))))
+
+  (it "should access breakpoint buffers"
+    (with-js2-buffer "let a = 2;"
+      (let* ((brk (make-indium-breakpoint)))
+	(indium-breakpoint--add-overlay brk)
+	(expect (indium-breakpoint-buffer brk) :to-be (current-buffer))
+	(indium-breakpoint--remove-overlay)
+	(expect (indium-breakpoint-buffer brk) :to-be nil)))))
 
 (provide 'indium-breakpoint-test)
 ;;; indium-breakpoint-test.el ends here
