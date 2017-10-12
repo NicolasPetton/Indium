@@ -119,12 +119,6 @@ This function does not remove any breakpoint overlay."
 					      (indium-breakpoint-id brk)))
 	  (indium-current-connection-get-breakpoints-in-file buffer-file-name)))
 
-(defun indium-breakpoint-restore-breakpoints-in-all-buffers ()
-  "Restore breakpoints in all buffers."
-  (seq-doseq (buf (buffer-list))
-    (with-current-buffer buf
-      (indium-breakpoint--restore-breakpoints-in-current-buffer))))
-
 
 (defun indium-breakpoint--add-overlay (breakpoint)
   "Add an overlay for BREAKPOINT on the current line.
@@ -214,7 +208,6 @@ If there is no overlay, make one."
 
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
-(add-hook 'indium-connection-open-hook #'indium-breakpoint-restore-breakpoints-in-all-buffers)
 
 (and (display-images-p)
      (define-fringe-bitmap 'indium-breakpoint
