@@ -68,7 +68,7 @@
   (process nil :type process)
   (callbacks (make-hash-table) :type hash-table)
   (scripts (make-hash-table) :type hash-table)
-  (breakpoints (make-hash-table) :type hash-table)
+  (breakpoints (make-hash-table :test #'equal) :type hash-table)
   (frames nil :type list)
   (current-frame nil :type indium-frame)
   ;; extra properties that can be added by the backend
