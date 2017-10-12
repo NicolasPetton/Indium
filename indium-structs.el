@@ -235,6 +235,9 @@ If LINE is not provided, return all breakpoints in FILE."
   (when-let ((ov (indium-breakpoint-overlay breakpoint)))
     (overlay-buffer ov)))
 
+(defun indium-breakpoint-unresolved-p (breakpoint)
+  "Return non-nil if BREAKPOINT is not yet resolved in the runtime."
+  (null (indium-breakpoint-id breakpoint)))
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here

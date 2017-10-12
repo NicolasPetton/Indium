@@ -112,6 +112,10 @@
 	(indium-current-connection-add-breakpoint brk)
 	(expect (indium-current-connection-get-breakpoint 'a) :to-be brk))))
 
+  (it "can know if a breakpoint is resolved"
+    (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint)) :to-be-truthy)
+    (expect (indium-breakpoint-unresolved-p (make-indium-breakpoint :id 'fake)) :to-be-falsy))
+
   (it "gets nil when no breakpoint found for ID"
     (with-indium-connection (make-indium-connection)
       (let ((brk (make-indium-breakpoint :id 'a :line 12 :file "foo.js" :condition "cond")))
