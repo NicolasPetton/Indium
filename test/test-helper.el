@@ -61,6 +61,7 @@ buffer in `js2-mode' with CONTENTS."
      (goto-char (point-max))
      (js2-mode)
      (js2-parse)
+     (indium-interaction-mode 1)
      ,@body))
 
 (defmacro with-temp-workspace-file (&rest body)

@@ -299,6 +299,11 @@ hitting a breakpoint."
   (when (and indium-interaction-mode indium-current-connection)
     (indium-update-script-source)))
 
+(defun indium-interaction-kill-buffer ()
+  "Remove all breakpoints prior to killing the current buffer."
+  (when indium-interaction-mode
+    (indium-breakpoint-remove-all)))
+
 (defun indium-update-script-source ()
   "Update the script source of the backend from the current buffer.
 update all breakpoints set in the current buffer as well."
@@ -322,6 +327,7 @@ update all breakpoints set in the current buffer as well."
       (user-error "There is already a breakpoint on the current line")))
 
 (add-hook 'before-save-hook #'indium-interaction-update)
+(add-hook 'kill-buffer-hook #'indium-interaction-kill-buffer)
 
 (provide 'indium-interaction)
 ;;; indium-interaction.el ends here
