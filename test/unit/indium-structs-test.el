@@ -106,10 +106,6 @@
 	  (expect (indium-current-connection-get-breakpoints-in-file (expand-file-name "foo.js") 6)
 		  :to-equal (list (cadr brks)))))))
 
-  (it "can get the file associated with a breakpoint"
-    (let ((brk (make-indium-breakpoint :file "foo.js")))
-      (expect (indium-breakpoint-file brk) :to-equal "foo.js")))
-
   (it "can get breakpoint from ID"
     (with-indium-connection (make-indium-connection)
       (let ((brk (make-indium-breakpoint :id 'a :line 12 :file "foo.js" :condition "cond")))

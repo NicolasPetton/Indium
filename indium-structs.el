@@ -235,9 +235,6 @@ If LINE is not provided, return all breakpoints in FILE."
   (when-let ((ov (indium-breakpoint-overlay breakpoint)))
     (overlay-buffer ov)))
 
-(defun indium-breakpoint-file (breakpoint)
-  "Return the file for which BREAKPOINT is set."
-  (indium-location-file (indium-breakpoint-location breakpoint)))
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here
