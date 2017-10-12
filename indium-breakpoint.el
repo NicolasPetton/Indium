@@ -34,19 +34,21 @@
 (eval-and-compile
   (require 'indium-script))
 
-(defun indium-breakpoint-add (location &optional condition)
-  "Add a breakpoint at LOCATION.
+(defun indium-breakpoint-add (&optional condition)
+  "Add a breakpoint at point.
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (let* ((brk (make-indium-breakpoint :file (indium-location-file location)
-				      :line (indium-location-line location)
-				      :column (indium-location-column location)
-				      :condition (or condition ""))))
-    (indium-breakpoint--add-overlay brk)
-    (when-indium-connected
-      (indium-backend-add-breakpoint (indium-current-connection-backend)
-				     brk))))
+  (if-let ((location (indium-script-generated-location-at-point)))
+      (let* ((brk (make-indium-breakpoint :file (indium-location-file location)
+					  :line (indium-location-line location)
+					  :column (indium-location-column location)
+					  :condition (or condition ""))))
+	(indium-breakpoint--add-overlay brk)
+	(when-indium-connected
+	  (indium-backend-add-breakpoint (indium-current-connection-backend)
+					 brk)))
+    (user-error "Cannot place a breakpoint here")))
 
 (defun indium-breakpoint-edit-condition ()
   "Edit condition of breakpoint at point."
@@ -56,8 +58,7 @@ CONDITION is true."
 			   old-condition nil nil nil old-condition)))
       (setf (indium-breakpoint-condition breakpoint) new-condition)
       (indium-breakpoint-remove)
-      (indium-breakpoint-add (indium-script-generated-location-at-point)
-			     new-condition))))
+      (indium-breakpoint-add new-condition))))
 
 (defun indium-breakpoint-remove ()
   "Remove the breakpoint from the current line."
@@ -174,8 +175,7 @@ An icon is added to the left fringe."
 	 (lambda ()
 	   (save-excursion
 	     (goto-char start)
-	     (indium-breakpoint-add (indium-script-generated-location-at-point)
-				    (indium-breakpoint-condition brk)))))))))
+	     (indium-breakpoint-add (indium-breakpoint-condition brk)))))))))
 
 (defun indium-breakpoint--restore-breakpoints-in-current-buffer ()
   "Restore all breakpoints set in the current buffer.
@@ -186,8 +186,7 @@ This function is used when reconnecting to a new connection."
 	(when-let ((brk (overlay-get ov 'indium-breakpoint))
 		   (start (overlay-start ov)))
 	  (goto-char start)
-	  (indium-breakpoint-add (indium-script-generated-location-at-point)
-				 (indium-breakpoint-condition brk)))))))
+	  (indium-breakpoint-add (indium-breakpoint-condition brk)))))))
 
 (defun indium-breakpoint--fringe-icon ()
   "Return the fringe icon used for breakpoints."

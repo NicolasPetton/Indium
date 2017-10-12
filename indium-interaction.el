@@ -37,7 +37,6 @@
 (require 'indium-breakpoint)
 (require 'indium-repl)
 (require 'indium-render)
-(require 'indium-script)
 
 (declare-function indium-backend-activate-breakpoints "indium-backend.el")
 (declare-function indium-backend-deactivate-breakpoints "indium-backend.el")
@@ -135,9 +134,7 @@ When CONDITION is non-nil, add a conditional breakpoint with
 CONDITION."
   (interactive)
   (indium-interaction--guard-no-breakpoint-at-point)
-  (if-let ((location (indium-script-generated-location-at-point)))
-      (indium-breakpoint-add location condition)
-    (user-error "Cannot place a breakpoint here")))
+  (indium-breakpoint-add condition))
 
 (defun indium-add-conditional-breakpoint (condition)
   "Add a breakpoint with CONDITION at point.

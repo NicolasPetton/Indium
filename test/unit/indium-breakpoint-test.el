@@ -115,7 +115,7 @@
     (with-js2-buffer "let a = 1;"
       (goto-char (point-min))
       (expect (indium-breakpoint-on-current-line-p) :to-be nil)
-      (indium-breakpoint-add (make-indium-location))
+      (indium-breakpoint-add)
       (expect (indium-breakpoint-on-current-line-p) :to-be-truthy)))
 
   (it "can edit a breakpoint on the current line"
@@ -124,20 +124,18 @@
     (spy-on #'indium-breakpoint-add :and-call-through)
     (with-js2-buffer "let a = 1;"
       (goto-char (point-min))
-      (let ((location (make-indium-location :file buffer-file-name
-					    :line 0)))
-	(indium-breakpoint-add location "old condition")
-	(indium-breakpoint-edit-condition)
-	(expect #'read-from-minibuffer :to-have-been-called)
-	(expect #'indium-breakpoint-remove :to-have-been-called)
-	(expect #'indium-breakpoint-add :to-have-been-called-with location "new condition")))))
+      (indium-breakpoint-add "old condition")
+      (indium-breakpoint-edit-condition)
+      (expect #'read-from-minibuffer :to-have-been-called)
+      (expect #'indium-breakpoint-remove :to-have-been-called)
+      (expect #'indium-breakpoint-add :to-have-been-called-with "new condition"))))
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"
     (with-temp-buffer
-      (indium-breakpoint-add (make-indium-location))
+      (indium-breakpoint-add)
       (let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
-        (indium-breakpoint-add (make-indium-location))
+        (indium-breakpoint-add)
         (expect (seq-length (overlays-in (point-min) (point-max))) :to-equal number-of-overlays)))))
 
 (describe "Restoring breakpoints"
@@ -146,15 +144,14 @@
     (spy-on 'indium-breakpoint-add :and-call-through)
     (with-js2-buffer "let a = 2;"
       (goto-char (point-min))
-      (let ((loc (make-indium-location))
-	    (condition "condition"))
-	(indium-breakpoint-add loc condition)
+      (let ((condition "condition"))
+	(indium-breakpoint-add condition)
 	;; simulate getting the breakpoint ID from a backend
 	(setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'id)
 	(with-fake-indium-connection
 	  (indium-breakpoint--restore-breakpoints-in-current-buffer)
 	  (expect #'indium-backend-add-breakpoint :to-have-been-called)
-	  (expect #'indium-breakpoint-add :to-have-been-called-with loc condition))))))
+	  (expect #'indium-breakpoint-add :to-have-been-called-with condition))))))
 
 (describe "Handling overlays in breakpoints"
   (it "adding overlays should store the overlay in the breakpoint"
