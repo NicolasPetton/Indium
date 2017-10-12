@@ -83,7 +83,7 @@ If there is no breakpoint set on the line, return nil."
 
 (defun indium-breakpoint-add-breakpoints-to-buffer ()
   "Add all breakpoints markers to the current buffer.
-This function does not add breakpoints."
+This function does not register breakpoints."
   (seq-do (lambda (brk)
             (save-excursion
 	      (goto-char (point-min))
