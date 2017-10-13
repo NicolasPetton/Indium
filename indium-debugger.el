@@ -313,7 +313,10 @@ When the position of the point is reached, pause the execution."
 (defun indium-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
 Evaluation happens in the context of the current call frame.
-If `indium-debugger-inspect-when-eval' is non-nil, use inspector if possible."
+
+When called with a prefix argument, or when
+`indium-debugger-inspect-when-eval' is non-nil, inspect the
+result of the evaluation if possible."
   (interactive (list
                 (let ((default (if (region-active-p)
                                    (buffer-substring-no-properties (mark) (point))
@@ -323,9 +326,12 @@ If `indium-debugger-inspect-when-eval' is non-nil, use inspector if possible."
   (indium-backend-evaluate (indium-current-connection-backend)
 			   expression
 			   (lambda (value _error)
-                             (if (and indium-debugger-inspect-when-eval (map-elt value 'objectid))
-                                 (indium-inspector-inspect value)
-                               (message "%s" (indium-render-value-to-string value))))))
+			     (let ((inspect (and (or indium-debugger-inspect-when-eval
+						     current-prefix-arg)
+						 (map-elt value 'objectid))))
+			       (if inspect
+				   (indium-inspector-inspect value)
+				 (message "%s" (indium-render-value-to-string value)))))))
 
 ;; Debugging context
 
