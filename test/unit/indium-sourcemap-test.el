@@ -38,6 +38,27 @@ EAAA;EACV,MAAA,GAAS,GAAG,IAAH,CAAQ,SAAA,CAAA,IAAA,CAAA;WAAU,IAAA,CAAA,\
 CAAA,CAAO;GAAzB;EAET,OAAO,IAAP,CAAY,MAAZ")))
 
 (describe "Decoding sourcemaps"
+  (it "should read files as JSON when decoding then"
+    (spy-on 'indium-sourcemap--decode :and-call-through)
+    (spy-on 'json-read-file :and-return-value indium-test-sourcemap-json)
+    (indium-sourcemap-from-file "foo.js")
+    (expect #'indium-sourcemap--decode
+	    :to-have-been-called-with indium-test-sourcemap-json))
+
+  (it "should read strings as JSON when decoding then"
+    (spy-on 'indium-sourcemap--decode :and-call-through)
+    (spy-on 'json-read-from-string :and-return-value indium-test-sourcemap-json)
+    (indium-sourcemap-from-string "test")
+    (expect #'indium-sourcemap--decode
+	    :to-have-been-called-with indium-test-sourcemap-json))
+
+  (it "should fail if there is no sourcemap version"
+    (expect (indium-sourcemap--decode '((sources . ["foo.js"])
+					(file . "bar.js")
+					(names . [])
+					(mappings . "")))
+	    :to-throw))
+
   (it "Should decode Base64"
     (expect (indium--base64-decode ?A) :to-equal 0)
     (expect (indium--base64-decode ?Z) :to-equal 25)
