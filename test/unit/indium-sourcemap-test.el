@@ -27,9 +27,9 @@
 
 (defconst indium-test-sourcemap-json
   '((version . 3)
-    (file . "test.coffee")
+    (file . "test.coffee.map")
     (sources . ["test.coffee"])
-    (names . [])
+    (names . ["foo" "bar"])
     (mappings . "\
 AAAC;;;EAAA,eAAK,IAAL,GAAa,SAAA,CAAA,QAAA,CAAA;;;MACV,2BAAmB,YAAnB,aAAA,\
 CAAA,KAAA,CAAA;QAAI,OAAe;QAAT;oBACR,QAAQ,KAAR,CAAc,IAAd,EAAoB,KAApB;;;;;\
@@ -38,6 +38,27 @@ EAAA;EACV,MAAA,GAAS,GAAG,IAAH,CAAQ,SAAA,CAAA,IAAA,CAAA;WAAU,IAAA,CAAA,\
 CAAA,CAAO;GAAzB;EAET,OAAO,IAAP,CAAY,MAAZ")))
 
 (describe "Decoding sourcemaps"
+  (it "should read files as JSON when decoding then"
+    (spy-on 'indium-sourcemap--decode :and-call-through)
+    (spy-on 'json-read-file :and-return-value indium-test-sourcemap-json)
+    (indium-sourcemap-from-file "foo.js")
+    (expect #'indium-sourcemap--decode
+	    :to-have-been-called-with indium-test-sourcemap-json))
+
+  (it "should read strings as JSON when decoding then"
+    (spy-on 'indium-sourcemap--decode :and-call-through)
+    (spy-on 'json-read-from-string :and-return-value indium-test-sourcemap-json)
+    (indium-sourcemap-from-string "test")
+    (expect #'indium-sourcemap--decode
+	    :to-have-been-called-with indium-test-sourcemap-json))
+
+  (it "should fail if there is no sourcemap version"
+    (expect (indium-sourcemap--decode '((sources . ["foo.js"])
+					(file . "bar.js")
+					(names . [])
+					(mappings . "")))
+	    :to-throw))
+
   (it "Should decode Base64"
     (expect (indium--base64-decode ?A) :to-equal 0)
     (expect (indium--base64-decode ?Z) :to-equal 25)
@@ -71,7 +92,7 @@ CAAA,CAAO;GAAzB;EAET,OAAO,IAAP,CAAY,MAAZ")))
   (it "Should decode sourcemaps"
     (let ((sourcemap (indium-sourcemap--decode indium-test-sourcemap-json)))
       (expect (indium-sourcemap-sources sourcemap) :to-equal '["test.coffee"])
-      (expect (indium-sourcemap-names sourcemap) :to-equal '[])
+      (expect (indium-sourcemap-names sourcemap) :to-equal '["foo" "bar"])
       (expect (length (indium-sourcemap-generated-mappings sourcemap)) :to-equal 62)
       (let ((mapping (elt (indium-sourcemap-generated-mappings sourcemap) 20)))
 	(expect (indium-source-mapping-p mapping) :to-be-truthy)
