@@ -67,9 +67,9 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
-(defun indium-repl-buffer-create ()
+(defun indium-repl-get-buffer-create ()
   "Return a new REPL buffer."
-  (let* ((buf (generate-new-buffer (indium-repl-buffer-name))))
+  (let* ((buf (get-buffer-create (indium-repl-buffer-name))))
     (indium-repl-setup-buffer buf)
     buf))
 
