@@ -222,10 +222,11 @@ If there is no overlay, make one."
   "Attempt to resolve unresolved breakpoints for SCRIPT."
   (indium-breakpoint--resolve-breakpoints-in-all-buffers
    (lambda (brk)
-     (eq script
-	 (indium-script-find-from-file (indium-location-file
-					(indium-script-generated-location
-					 (indium-breakpoint-location brk))))))))
+     (and (indium-breakpoint-unresolved-p brk)
+	  (eq script
+	      (indium-script-find-from-file (indium-location-file
+					     (indium-script-generated-location
+					      (indium-breakpoint-location brk)))))))))
 
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
