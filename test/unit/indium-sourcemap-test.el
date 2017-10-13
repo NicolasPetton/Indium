@@ -27,9 +27,9 @@
 
 (defconst indium-test-sourcemap-json
   '((version . 3)
-    (file . "test.coffee")
+    (file . "test.coffee.map")
     (sources . ["test.coffee"])
-    (names . [])
+    (names . ["foo" "bar"])
     (mappings . "\
 AAAC;;;EAAA,eAAK,IAAL,GAAa,SAAA,CAAA,QAAA,CAAA;;;MACV,2BAAmB,YAAnB,aAAA,\
 CAAA,KAAA,CAAA;QAAI,OAAe;QAAT;oBACR,QAAQ,KAAR,CAAc,IAAd,EAAoB,KAApB;;;;;\
@@ -92,7 +92,7 @@ CAAA,CAAO;GAAzB;EAET,OAAO,IAAP,CAAY,MAAZ")))
   (it "Should decode sourcemaps"
     (let ((sourcemap (indium-sourcemap--decode indium-test-sourcemap-json)))
       (expect (indium-sourcemap-sources sourcemap) :to-equal '["test.coffee"])
-      (expect (indium-sourcemap-names sourcemap) :to-equal '[])
+      (expect (indium-sourcemap-names sourcemap) :to-equal '["foo" "bar"])
       (expect (length (indium-sourcemap-generated-mappings sourcemap)) :to-equal 62)
       (let ((mapping (elt (indium-sourcemap-generated-mappings sourcemap) 20)))
 	(expect (indium-source-mapping-p mapping) :to-be-truthy)
