@@ -42,5 +42,10 @@
     (indium-chrome--connect-to-tab-with-url "file:///home/foo" '())
     (expect #'indium-workspace-read :not :to-have-been-called)))
 
+(describe "Regression test for GH issue #97"
+  (it "should not create multiple REPL buffers"
+    (let ((buf (indium-repl-get-buffer-create)))
+      (expect (indium-repl-get-buffer-create) :to-be buf))))
+
 (provide 'indium-chrome-test)
 ;;; indium-chrome-test.el ends here

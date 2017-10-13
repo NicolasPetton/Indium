@@ -335,7 +335,7 @@ If NODEJS is non-nil, set an extra property in the connection.
 If WORKSPACE is non-nil, make it the workspace used for the connection."
   (setq indium-current-connection (indium-v8--make-connection ws url nodejs))
   (indium-v8--enable-tools)
-  (switch-to-buffer (indium-repl-buffer-create))
+  (switch-to-buffer (indium-repl-get-buffer-create))
   (when workspace (cd workspace))
   (run-hooks 'indium-connection-open-hook))
 
