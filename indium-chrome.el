@@ -93,11 +93,12 @@ Try a maximum of NUM-TRIES."
   (message "Trying to connect to the Chrome instance...")
   (sleep-for 1)
   (indium-chrome--get-tabs-data host
-                              indium-chrome-port
-                              (lambda (tabs)
-                                (if tabs
-                                    (indium-chrome--connect-to-tab tabs)
-                                  (indium-chrome--try-connect host (1- num-tries))))))
+				indium-chrome-port
+				(lambda (tabs)
+				  (if tabs
+				      (indium-chrome--connect-to-tab tabs)
+				    (when (> num-tries 0)
+				      (indium-chrome--try-connect host (1- num-tries)))))))
 
 (defun indium-connect-to-chrome ()
   "Open a connection to a v8 tab."
