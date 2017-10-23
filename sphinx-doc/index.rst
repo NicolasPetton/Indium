@@ -21,6 +21,7 @@ Table of contents
    debugger
    inspector
    network
+   listing-scripts
 
 Indices and tables
 ------------------
