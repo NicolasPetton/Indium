@@ -101,6 +101,7 @@ Table of contents
 * The stepping debugger:: 
 * The inspector:: 
 * Network:: 
+* Listing parsed scripts:: 
 
 Installation
 
@@ -145,11 +146,15 @@ The inspector
 
 * Using the inspector:: 
 
+Listing parsed scripts
+
+* Using the listing buffer:: 
+
 @end detailmenu
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
+@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
 @chapter Table of contents
 
 
@@ -161,11 +166,12 @@ The inspector
 * The stepping debugger:: 
 * The inspector:: 
 * Network:: 
+* Listing parsed scripts:: 
 
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation doc}@anchor{3}@anchor{installation installation}@anchor{4}
+@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
 @section Installation
 
 
@@ -232,7 +238,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup doc}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}
+@anchor{setup up-and-running}@anchor{7}@anchor{setup doc}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -338,7 +344,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
+@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -412,7 +418,7 @@ directory!
 @end cartouche
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl doc}@anchor{13}@anchor{repl repl}@anchor{14}@anchor{repl the-repl}@anchor{15}
+@anchor{repl the-repl}@anchor{13}@anchor{repl doc}@anchor{14}@anchor{repl repl}@anchor{15}
 @section The REPL
 
 
@@ -429,7 +435,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{9,,Getting up and running}).
+connection is made (see @ref{7,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -563,7 +569,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction}@anchor{1c}@anchor{code-evaluation doc}@anchor{1d}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1e}
+@anchor{code-evaluation doc}@anchor{1c}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1d}@anchor{code-evaluation interaction}@anchor{1e}
 @section Interaction in JS buffers
 
 
@@ -620,7 +626,7 @@ Here's a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{14,,The REPL}).
+switch back to the REPL buffer (see @ref{15,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{21}
@@ -727,7 +733,7 @@ window.addEventListener("patch", (event) => @{
 @end menu
 
 @node Using sourcemaps,,,The stepping debugger
-@anchor{debugger using-sourcemaps}@anchor{27}@anchor{debugger sourcemaps}@anchor{23}
+@anchor{debugger sourcemaps}@anchor{23}@anchor{debugger using-sourcemaps}@anchor{27}
 @subsection Using sourcemaps
 
 
@@ -746,13 +752,13 @@ supported, inlined sourcemaps are not yet supported.
 @end cartouche
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector inspector}@anchor{17}@anchor{inspector doc}@anchor{28}@anchor{inspector the-inspector}@anchor{29}
+@anchor{inspector doc}@anchor{28}@anchor{inspector the-inspector}@anchor{29}@anchor{inspector inspector}@anchor{17}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{14,,The REPL}), the debugger (see @ref{22,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1c,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{15,,The REPL}), the debugger (see @ref{22,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{1e,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -825,8 +831,8 @@ Jump to the previous object in the inspector
 @end multitable
 
 
-@node Network,,The inspector,Table of contents
-@anchor{network id1}@anchor{2b}@anchor{network doc}@anchor{2c}@anchor{network network}@anchor{2d}
+@node Network,Listing parsed scripts,The inspector,Table of contents
+@anchor{network doc}@anchor{2b}@anchor{network id1}@anchor{2c}@anchor{network network}@anchor{2d}
 @section Network
 
 
@@ -845,8 +851,74 @@ You can make the cache setting permament by setting @cite{indium-v8-cache-disabl
 (setq indium-v8-cache-disabled t)
 @end example
 
+@node Listing parsed scripts,,Network,Table of contents
+@anchor{listing-scripts listing-parsed-scripts}@anchor{2e}@anchor{listing-scripts doc}@anchor{2f}@anchor{listing-scripts listing-scripts}@anchor{30}
+@section Listing parsed scripts
+
+
+Indium includes the command @code{indium-list-scripts} to list all JavaScript
+scripts parsed by the runtime.  When using a workspace, local file can be
+visited from entries in the list (see @ref{11,,Using local files when debugging}).
+
+@menu
+* Using the listing buffer:: 
+
+@end menu
+
+@node Using the listing buffer,,,Listing parsed scripts
+@anchor{listing-scripts using-the-listing-buffer}@anchor{31}
+@subsection Using the listing buffer
+
+
+Here is a list of available keybindings in an script listing buffer:
+
+
+@multitable {xxxxxxxxxxxxxxxxxxxxxx} {xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx} 
+@headitem
+
+Keybinding
+
+@tab
+
+Description
+
+@item
+
+@code{RET}
+
+@tab
+
+Follow a link open the local file associated with the script
+
+@item
+
+@code{g}
+
+@tab
+
+Update the listing buffer
+
+@item
+
+@code{n} or @code{TAB}
+
+@tab
+
+Jump to the next script
+
+@item
+
+@code{p} or @code{s-TAB}
+
+@tab
+
+Jump to the previous script
+
+@end multitable
+
+
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{2e}
+@anchor{index indices-and-tables}@anchor{32}
 @chapter Indices and tables
 
 

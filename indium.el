@@ -35,6 +35,7 @@
 (require 'indium-chrome)
 (require 'indium-nodejs)
 (require 'indium-scratch)
+(require 'indium-list-scripts)
 
 (provide 'indium)
 ;;; indium.el ends here
