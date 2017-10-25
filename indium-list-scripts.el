@@ -28,6 +28,7 @@
 (require 'map)
 (require 'tabulated-list)
 
+;;;###autoload
 (defun indium-list-scripts ()
   "Display a list of parsed scripts."
   (interactive)

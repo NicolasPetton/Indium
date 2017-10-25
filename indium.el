@@ -31,7 +31,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'indium-backend)
 (require 'indium-chrome)
 (require 'indium-nodejs)
 (require 'indium-scratch)

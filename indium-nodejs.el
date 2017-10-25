@@ -58,7 +58,8 @@
 (defvar indium-nodejs-commands-history nil
   "Nodejs commands history.")
 
-(defun indium-run-node (command &optional no-switch)
+;;;###autoload
+(defun indium-run-node (command)
   "Start a NodeJS process.
 
 Execute COMMAND, adding the `--inspect' flag.  When the process
@@ -67,9 +68,7 @@ is ready, open an Indium connection on it.
 If `indium-nodejs-inspect-brk' is set to non-nil, break the
 execution at the first statement.
 
-If a connection is already open, close it.
-
-Unless NO-SWITCH is non-nil, switch to the process buffer."
+If a connection is already open, close it."
   (interactive (list (read-shell-command "Node command: "
                                          (or (car indium-nodejs-commands-history) "node ")
                                          'indium-nodejs-commands-history)))
@@ -83,6 +82,7 @@ Unless NO-SWITCH is non-nil, switch to the process buffer."
 						(indium-nodejs--add-flags command)))))
       (switch-to-buffer (process-buffer process)))))
 
+;;;###autoload
 (defun indium-restart-node ()
   "Restart the current nodejs process, and connect to it.
 
@@ -100,9 +100,10 @@ If no process has been started, or if it was not started using
       (let ((default-directory (with-current-buffer (indium-repl-get-buffer)
 				 default-directory)))
 	(indium-quit)
-	(indium-run-node command t))
+	(indium-run-node command))
     (user-error "Start a NodeJS connection with `indium-run-node' first")))
 
+;;;###autoload
 (defun indium-connect-to-nodejs ()
   "Open a connection to host:port/path."
   (interactive)

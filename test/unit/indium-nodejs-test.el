@@ -139,7 +139,7 @@
       (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
       (let ((indium-nodejs-commands-history '("node foobar")))
 	(indium-restart-node)
-	(expect #'indium-run-node :to-have-been-called-with "node foobar" t)))))
+	(expect #'indium-run-node :to-have-been-called-with "node foobar")))))
 
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here

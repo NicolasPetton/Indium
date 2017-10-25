@@ -28,6 +28,7 @@
 (require 'indium-repl)
 (eval-and-compile (require 'indium-structs))
 
+;;;###autoload
 (defun indium-scratch ()
   "Pop to the scratch buffer.
 If no scratch buffer exists for the current connection, create
