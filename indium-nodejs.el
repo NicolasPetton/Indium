@@ -58,6 +58,7 @@
 (defvar indium-nodejs-commands-history nil
   "Nodejs commands history.")
 
+;;;###autoload
 (defun indium-run-node (command)
   "Start a NodeJS process.
 
@@ -81,6 +82,7 @@ If a connection is already open, close it."
 						(indium-nodejs--add-flags command)))))
       (switch-to-buffer (process-buffer process)))))
 
+;;;###autoload
 (defun indium-restart-node ()
   "Restart the current nodejs process, and connect to it.
 
@@ -101,6 +103,7 @@ If no process has been started, or if it was not started using
 	(indium-run-node command))
     (user-error "Start a NodeJS connection with `indium-run-node' first")))
 
+;;;###autoload
 (defun indium-connect-to-nodejs ()
   "Open a connection to host:port/path."
   (interactive)

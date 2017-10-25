@@ -62,6 +62,7 @@
 (defvar indium-chrome-url-history nil
   "Chrome urls history.")
 
+;;;###autoload
 (defun indium-run-chrome (url)
   "Start chrome/chromium with remote debugging enabled.
 Open URL if provided."
@@ -100,6 +101,7 @@ Try a maximum of NUM-TRIES."
 				    (when (> num-tries 0)
 				      (indium-chrome--try-connect host (1- num-tries)))))))
 
+;;;###autoload
 (defun indium-connect-to-chrome ()
   "Open a connection to a v8 tab."
   (interactive)
