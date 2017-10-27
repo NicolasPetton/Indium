@@ -60,6 +60,11 @@ evaluated."
   (indium-interaction--ensure-connection)
   (indium-eval (buffer-string)))
 
+(defun indium-eval-region (start end)
+  "Evaluate the region between START and END."
+  (interactive "r")
+  (indium-eval (buffer-substring-no-properties start end)))
+
 (defun indium-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
 This is similar to `eval-last-sexp', but for JavaScript buffers.

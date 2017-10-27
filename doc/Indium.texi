@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.0.0, Oct 23, 2017
+Indium 1.0.0, Oct 27, 2017
 
 Nicolas Petton
 
@@ -238,7 +238,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup up-and-running}@anchor{7}@anchor{setup doc}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup up-and-running}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
 @section Getting up and running
 
 
@@ -344,7 +344,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
+@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -368,7 +368,7 @@ M-x indium-connect-to-chrome
 @end example
 
 @node Using local files when debugging,,Chrome/Chromium,Getting up and running
-@anchor{setup local-files}@anchor{11}@anchor{setup using-local-files-when-debugging}@anchor{12}
+@anchor{setup using-local-files-when-debugging}@anchor{11}@anchor{setup local-files}@anchor{12}
 @subsection Using local files when debugging
 
 
@@ -435,7 +435,7 @@ directory!
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{7,,Getting up and running}).
+connection is made (see @ref{8,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -618,6 +618,9 @@ Here's a list of available keybindings:
 
 @item 
 @code{M-x indium-eval-buffer}: Evaluate the entire buffer.
+
+@item 
+@code{M-x indium-eval-region}: Evaluate the current region.
 @end itemize
 
 @node Switching to the REPL buffer,Adding and removing breakpoints,Evaluating and inspecting,Interaction in JS buffers
@@ -634,7 +637,7 @@ switch back to the REPL buffer (see @ref{15,,The REPL}).
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{11,,Using local files when debugging}).
+(see @ref{12,,Using local files when debugging}).
 
 
 @itemize -
@@ -694,7 +697,7 @@ This feature currently in only available for Chrome & Chromium.
 @end cartouche
 
 To enable live updates, make sure Indium is set up to use local files (see
-@ref{11,,Using local files when debugging}).
+@ref{12,,Using local files when debugging}).
 
 
 @itemize -
@@ -723,7 +726,7 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger doc}@anchor{25}@anchor{debugger the-stepping-debugger}@anchor{26}@anchor{debugger debugger}@anchor{22}
+@anchor{debugger doc}@anchor{25}@anchor{debugger debugger}@anchor{22}@anchor{debugger the-stepping-debugger}@anchor{26}
 @section The stepping debugger
 
 
@@ -740,7 +743,7 @@ window.addEventListener("patch", (event) => @{
 Since version 0.7, Indium uses sourcemap files by default.
 
 For sourcemaps to work properly with Chrome/Chromium, make sure that a
-workspace is correctly set (see @ref{11,,Using local files when debugging}).
+workspace is correctly set (see @ref{12,,Using local files when debugging}).
 
 If you wish to disable sourcemaps when debugging, set @code{indium-script-enable-sourcemaps} to @code{nil}.
 
@@ -832,7 +835,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,Listing parsed scripts,The inspector,Table of contents
-@anchor{network doc}@anchor{2b}@anchor{network id1}@anchor{2c}@anchor{network network}@anchor{2d}
+@anchor{network id1}@anchor{2b}@anchor{network doc}@anchor{2c}@anchor{network network}@anchor{2d}
 @section Network
 
 
@@ -852,13 +855,13 @@ You can make the cache setting permament by setting @cite{indium-v8-cache-disabl
 @end example
 
 @node Listing parsed scripts,,Network,Table of contents
-@anchor{listing-scripts listing-parsed-scripts}@anchor{2e}@anchor{listing-scripts doc}@anchor{2f}@anchor{listing-scripts listing-scripts}@anchor{30}
+@anchor{listing-scripts doc}@anchor{2e}@anchor{listing-scripts listing-scripts}@anchor{2f}@anchor{listing-scripts listing-parsed-scripts}@anchor{30}
 @section Listing parsed scripts
 
 
 Indium includes the command @code{indium-list-scripts} to list all JavaScript
 scripts parsed by the runtime.  When using a workspace, local file can be
-visited from entries in the list (see @ref{11,,Using local files when debugging}).
+visited from entries in the list (see @ref{12,,Using local files when debugging}).
 
 @menu
 * Using the listing buffer:: 

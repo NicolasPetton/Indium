@@ -24,6 +24,7 @@ Here's a list of available keybindings:
   :ref:`inspector`).
 - ``C-c M-:``: Prompt for an expression to evaluate and inspect.
 - ``M-x indium-eval-buffer``: Evaluate the entire buffer.
+- ``M-x indium-eval-region``: Evaluate the current region.
 
 Switching to the REPL buffer
 ----------------------------
