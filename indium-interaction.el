@@ -139,7 +139,9 @@ When CONDITION is non-nil, add a conditional breakpoint with
 CONDITION."
   (interactive)
   (indium-interaction--guard-no-breakpoint-at-point)
-  (indium-breakpoint-add condition))
+  (save-excursion
+    (beginning-of-line)
+    (indium-breakpoint-add condition)))
 
 (defun indium-add-conditional-breakpoint (condition)
   "Add a breakpoint with CONDITION at point.
