@@ -104,13 +104,13 @@ If no process has been started, or if it was not started using
     (user-error "Start a NodeJS connection with `indium-run-node' first")))
 
 ;;;###autoload
-(defun indium-connect-to-nodejs ()
+(defun indium-connect-to-nodejs (host port path)
   "Open a connection to host:port/path."
-  (interactive)
-  (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
-        (port (read-from-minibuffer "Port: " "9229"))
-        (path (read-from-minibuffer "Path: ")))
-    (indium-nodejs--connect host port path)))
+  (interactive (list
+                (read-from-minibuffer "Host: " "127.0.0.1")
+                (read-from-minibuffer "Port: " "9229")
+                (read-from-minibuffer "Path: ")))
+  (indium-nodejs--connect host port path))
 
 (defun indium-nodejs--connect (host port path &optional process)
   "Ask the user for a websocket url HOST:PORT/PATH and connects to it.
