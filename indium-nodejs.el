@@ -105,7 +105,7 @@ If no process has been started, or if it was not started using
 
 ;;;###autoload
 (defun indium-connect-to-nodejs (host port path)
-  "Open a connection to host:port/path."
+  "Open a connection to HOST:PORT/PATH."
   (interactive (list
                 (read-from-minibuffer "Host: " "127.0.0.1")
                 (read-from-minibuffer "Port: " "9229")
