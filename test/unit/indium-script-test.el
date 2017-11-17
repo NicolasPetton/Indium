@@ -63,7 +63,23 @@
 	(spy-on 'indium-repl-get-buffer :and-return-value (find-file-noselect (expand-file-name ".")))
 	(let ((script (indium-script-find-by-id "1")))
 	  (expect (indium-script--sourcemap-file script)
-		  :to-equal (expand-file-name "js/foo.js.map")))))))
+		  :to-equal (expand-file-name "js/foo.js.map"))))))
+
+  (it "should be able to parse a sourcemap data url for a script"
+    (let* ((sourcemap-json '((version . 3)
+                             (file . "js/foo.js")
+                             (sources . ["foo-1.js" "foo-2.js"])
+                             (names . [])
+                             (mappings . ";;;;;;kBAAe;AAAA,SAAM,QAAQ,GAAR,CAAY,aAAZ,CAAN;AAAA,C")))
+           (sourcemap (indium-sourcemap--decode sourcemap-json)))
+     (with-fake-indium-connection
+     (indium-script-add-script-parsed
+      "1" "http://localhost/js/foo.js"
+      (concat "data:application/json;charset=utf-8;base64,"
+              (base64-encode-string (json-encode sourcemap-json))))
+     (let ((script (indium-script-find-by-id "1")))
+       (expect (indium-script--sourcemap-from-data-url script)
+               :to-equal sourcemap))))))
 
 (describe "Adding scripts"
   (it "should not multiple scripts with the same url"
