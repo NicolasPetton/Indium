@@ -747,13 +747,6 @@ workspace is correctly set (see @ref{12,,Using local files when debugging}).
 
 If you wish to disable sourcemaps when debugging, set @code{indium-script-enable-sourcemaps} to @code{nil}.
 
-@cartouche
-@quotation Note 
-Only sourcemap files specified with @code{sourceMappingURL} are currently
-supported, inlined sourcemaps are not yet supported.
-@end quotation
-@end cartouche
-
 @node The inspector,Network,The stepping debugger,Table of contents
 @anchor{inspector doc}@anchor{28}@anchor{inspector the-inspector}@anchor{29}@anchor{inspector inspector}@anchor{17}
 @section The inspector
