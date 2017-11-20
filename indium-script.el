@@ -193,13 +193,15 @@ If the sourcemap url is not a data url, return nil."
         ;; this is adapted from
         ;; `url-handle-content-transfer-encoding', which handles gzip
         (when-let (cte (mail-fetch-field "content-transfer-encoding"))
-          (if (string= cte "base64")
-              (save-restriction
-                (widen)
-                (goto-char (point-min))
-                (when (search-forward "\n\n")
-                  (base64-decode-region (point) (point-max))))
-            (error "Unknown Content-Transfer-Encoding %s" cte))))
+          (cond
+           ((string= cte "base64")
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (when (search-forward "\n\n")
+                (base64-decode-region (point) (point-max)))))
+           ((string= cte "8bit"))
+           (t (error "Unknown Content-Transfer-Encoding %s" cte)))))
       (with-temp-buffer
         (url-insert buf)
         (goto-char (point-min))
