@@ -31,6 +31,7 @@
 (require 'indium-backend)
 (require 'indium-sourcemap)
 (require 'url)
+(require 'url-handlers)
 (require 'subr-x)
 
 (defgroup indium-script nil
@@ -171,14 +172,40 @@ If the sourcemap file cannot be downloaded either, return nil."
   (when (indium-script-has-sourcemap-p script)
     (unless (indium-script-sourcemap-cache script)
       (setf (indium-script-sourcemap-cache script)
-	    (if-let ((file (indium-script--sourcemap-file script)))
-		(indium-sourcemap-from-file file)
-	      (when-let ((str (indium-script--download
-			       (indium-script--absolute-sourcemap-url script))))
-		(indium-sourcemap-from-string str))))
+	    (or (indium-script--sourcemap-from-data-url script)
+                (if-let ((file (indium-script--sourcemap-file script)))
+                    (indium-sourcemap-from-file file)
+                  (when-let ((str (indium-script--download
+                                   (indium-script--absolute-sourcemap-url script))))
+                    (indium-sourcemap-from-string str)))))
       (when-let (sourcemap (indium-script-sourcemap-cache script))
 	(indium-script--absolute-sourcemap-sources sourcemap script)))
     (indium-script-sourcemap-cache script)))
+
+(defun indium-script--sourcemap-from-data-url (script)
+  "Return the sourcemap for SCRIPT if it's specified by a data url.
+If the sourcemap url is not a data url, return nil."
+  (let ((url (indium-script-sourcemap-url script)) buf)
+    (when (and url (string-prefix-p "data:" url))
+      (setq buf (url-data (url-generic-parse-url url)))
+      (with-current-buffer buf
+        ;; `url-insert' does not handle Content-Transfer-Encoding;
+        ;; this is adapted from
+        ;; `url-handle-content-transfer-encoding', which handles gzip
+        (when-let (cte (mail-fetch-field "content-transfer-encoding"))
+          (cond
+           ((string= cte "base64")
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (when (search-forward "\n\n")
+                (base64-decode-region (point) (point-max)))))
+           ((string= cte "8bit"))
+           (t (error "Unknown Content-Transfer-Encoding %s" cte)))))
+      (with-temp-buffer
+        (url-insert buf)
+        (goto-char (point-min))
+        (indium-sourcemap--decode (json-read))))))
 
 (defun indium-script--absolute-sourcemap-sources (sourcemap script)
   "Convert all relative source paths in SOURCEMAP to absolute ones.
