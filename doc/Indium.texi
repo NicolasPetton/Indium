@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.0.0, Dec 01, 2017
+Indium 1.1.0, Dec 01, 2017
 
 Nicolas Petton
 
@@ -253,7 +253,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
+@anchor{setup nodejs}@anchor{a}@anchor{setup id1}@anchor{b}
 @subsection NodeJS
 
 
@@ -347,7 +347,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
+@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -371,7 +371,7 @@ M-x indium-connect-to-chrome
 @end example
 
 @node Using local files when debugging,Configuring Webpack for the debugger,Chrome/Chromium,Getting up and running
-@anchor{setup local-files}@anchor{11}@anchor{setup using-local-files-when-debugging}@anchor{12}
+@anchor{setup using-local-files-when-debugging}@anchor{11}@anchor{setup local-files}@anchor{12}
 @subsection Using local files when debugging
 
 
@@ -429,7 +429,7 @@ When Webpack is used to bundle JavaScript files, it is currently required to
 configure it to emit absolute file paths for sourcemaps, see @ref{14,,Sourcemaps and Webpack}.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{15}@anchor{repl repl}@anchor{16}@anchor{repl doc}@anchor{17}
+@anchor{repl doc}@anchor{15}@anchor{repl repl}@anchor{16}@anchor{repl the-repl}@anchor{17}
 @section The REPL
 
 
@@ -580,7 +580,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{1e}@anchor{code-evaluation doc}@anchor{1f}@anchor{code-evaluation interaction}@anchor{20}
+@anchor{code-evaluation doc}@anchor{1e}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1f}@anchor{code-evaluation interaction}@anchor{20}
 @section Interaction in JS buffers
 
 
@@ -648,7 +648,7 @@ switch back to the REPL buffer (see @ref{16,,The REPL}).
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{11,,Using local files when debugging}).
+(see @ref{12,,Using local files when debugging}).
 
 
 @itemize -
@@ -708,7 +708,7 @@ This feature currently in only available for Chrome & Chromium.
 @end cartouche
 
 To enable live updates, make sure Indium is set up to use local files (see
-@ref{11,,Using local files when debugging}).
+@ref{12,,Using local files when debugging}).
 
 
 @itemize -
@@ -737,7 +737,7 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger doc}@anchor{27}@anchor{debugger the-stepping-debugger}@anchor{28}@anchor{debugger debugger}@anchor{24}
+@anchor{debugger doc}@anchor{27}@anchor{debugger debugger}@anchor{24}@anchor{debugger the-stepping-debugger}@anchor{28}
 @section The stepping debugger
 
 
@@ -748,14 +748,14 @@ window.addEventListener("patch", (event) => @{
 @end menu
 
 @node Using sourcemaps,Sourcemaps and Webpack,,The stepping debugger
-@anchor{debugger using-sourcemaps}@anchor{29}@anchor{debugger sourcemaps}@anchor{25}
+@anchor{debugger sourcemaps}@anchor{25}@anchor{debugger using-sourcemaps}@anchor{29}
 @subsection Using sourcemaps
 
 
 Since version 0.7, Indium uses sourcemap files by default.
 
 For sourcemaps to work properly with Chrome/Chromium, make sure that a
-workspace is correctly set (see @ref{11,,Using local files when debugging}).
+workspace is correctly set (see @ref{12,,Using local files when debugging}).
 
 If you wish to disable sourcemaps when debugging, set @code{indium-script-enable-sourcemaps} to @code{nil}.
 
@@ -779,7 +779,7 @@ output : @{
 @end example
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector doc}@anchor{2b}@anchor{inspector inspector}@anchor{19}@anchor{inspector the-inspector}@anchor{2c}
+@anchor{inspector doc}@anchor{2b}@anchor{inspector the-inspector}@anchor{2c}@anchor{inspector inspector}@anchor{19}
 @section The inspector
 
 
@@ -859,7 +859,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,Listing parsed scripts,The inspector,Table of contents
-@anchor{network doc}@anchor{2e}@anchor{network network}@anchor{2f}@anchor{network id1}@anchor{30}
+@anchor{network doc}@anchor{2e}@anchor{network id1}@anchor{2f}@anchor{network network}@anchor{30}
 @section Network
 
 
@@ -885,7 +885,7 @@ You can make the cache setting permament by setting @cite{indium-v8-cache-disabl
 
 Indium includes the command @code{indium-list-scripts} to list all JavaScript
 scripts parsed by the runtime.  When using a workspace, local file can be
-visited from entries in the list (see @ref{11,,Using local files when debugging}).
+visited from entries in the list (see @ref{12,,Using local files when debugging}).
 
 @menu
 * Using the listing buffer:: 
