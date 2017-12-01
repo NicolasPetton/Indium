@@ -133,3 +133,9 @@ Indium will lookup the file ``www/js/app.js`` for the URL
 .. WARNING:: In order for this setup to work, make sure to call
             ``indium-connect-to-chrome`` from somewhere within the workspace
             directory!
+
+Configuring Webpack for the debugger
+------------------------------------
+
+When Webpack is used to bundle JavaScript files, it is currently required to
+configure it to emit absolute file paths for sourcemaps, see :ref:`webpack`.
