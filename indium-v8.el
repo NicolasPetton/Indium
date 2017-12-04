@@ -132,14 +132,13 @@ Evaluate CALLBACK on the filtered candidates."
               (locations (map-elt result 'locations))
 	      (location (seq--elt-safe locations 0))
               (line (map-elt location 'lineNumber)))
+	 (setf (indium-breakpoint-id breakpoint) id)
+	 (indium-current-connection-add-breakpoint breakpoint)
 	 (if line
-	     (progn
-	       (setf (indium-breakpoint-id breakpoint) id)
-	       (indium-current-connection-add-breakpoint breakpoint)
-	       (let ((script (indium-script-find-by-id
-			      (map-elt location 'scriptId)))
-		     (location (indium-v8--convert-from-v8-location location)))
-		 (indium-breakpoint-resolve id script location))
+	     (let ((script (indium-script-find-by-id
+			    (map-elt location 'scriptId)))
+		   (location (indium-v8--convert-from-v8-location location)))
+	       (indium-breakpoint-resolve id script location)
 	       (when callback
 		 (funcall callback breakpoint)))
 	   (message "Cannot get breakpoint location")))))))
