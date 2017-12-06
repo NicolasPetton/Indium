@@ -52,7 +52,7 @@
   :prefix "indium-nodejs-"
   :group 'indium)
 
-(defcustom indium-nodejs-inspect-brk nil
+(defcustom indium-nodejs-inspect-brk t
   "When non-nil, break the execution at the first statement.")
 
 (defvar indium-nodejs-commands-history nil
