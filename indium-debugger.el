@@ -397,9 +397,8 @@ frame."
                 (eq major-mode indium-debugger-major-mode))
       (funcall indium-debugger-major-mode))
     (indium-debugger-mode 1)
-    (when (and (eq major-mode 'js2-mode)
-               js2-mode-buffer-dirty-p)
-      (js2-parse))
+    (when (eq major-mode 'js2-mode)
+      (js2-reparse))
     (read-only-mode)))
 
 (defun indium-debugger-unset-current-buffer ()
