@@ -280,7 +280,7 @@ hitting a breakpoint."
     map))
 
 (define-minor-mode indium-interaction-mode
-  "Mode for JavaScript evalution.
+  "Mode for JavaScript evaluation.
 
 \\{indium-interaction-mode-map}"
   :lighter " js-interaction"
