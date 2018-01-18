@@ -1,6 +1,6 @@
 ;;; indium-inspector.el --- Inspector for JavaScript objects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Nicolas Petton
+;; Copyright (C) 2016-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: convenience, tools, javascript

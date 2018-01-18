@@ -1,6 +1,6 @@
 ;;; indium-interaction.el --- Interaction functions for indium.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Nicolas Petton
+;; Copyright (C) 2016-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: javascript, tools

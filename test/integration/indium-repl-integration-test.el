@@ -1,6 +1,6 @@
 ;;; indium-repl-integration-test.el --- Integration tests for indium-repl.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Nicolas Petton
+;; Copyright (C) 2017-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: test, integration

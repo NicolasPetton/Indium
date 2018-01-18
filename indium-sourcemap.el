@@ -1,7 +1,7 @@
 ;;; indium-sourcemap.el --- Indium helpers for source map decoding
 
 ;; Copyright (C) 2012 Julian Scheid
-;; Copyright (C) 2017 Nicolas Petton
+;; Copyright (C) 2017-2018 Nicolas Petton
 
 ;; Author: Julian Scheid <julians37@gmail.com>, Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: tools

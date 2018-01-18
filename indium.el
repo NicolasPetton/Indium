@@ -1,6 +1,6 @@
 ;;; indium.el --- JavaScript Awesome Development Environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Nicolas Petton
+;; Copyright (C) 2016-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; URL: https://github.com/NicolasPetton/indium

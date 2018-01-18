@@ -1,6 +1,6 @@
 ;;; indium-debugger.el --- Indium debugger               -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017  Nicolas Petton
+;; Copyright (C) 2016-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: tools

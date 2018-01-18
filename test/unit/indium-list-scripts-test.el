@@ -1,6 +1,6 @@
 ;;; indium-list-scripts-test.el --- Tests for indium-list-scripts.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Nicolas Petton
+;; Copyright (C) 2017-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@foretagsplatsen.se>
 

@@ -1,6 +1,6 @@
 ;;; indium-chrome-test.el --- tests for indium-chrome.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Nicolas Petton
+;; Copyright (C) 2017-2018  Nicolas Petton
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: test

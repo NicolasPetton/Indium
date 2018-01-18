@@ -52,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Indium'
-copyright = '2017, Nicolas Petton'
+copyright = '2018, Nicolas Petton'
 author = 'Nicolas Petton'
 
 # The version info for the project you're documenting, acts as replacement for
