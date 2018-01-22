@@ -81,6 +81,16 @@ the current buffer."
       (indium-interaction--eval-node node)
     (user-error "No function at point")))
 
+(defun indium-switch-to-debugger ()
+  "Switch to the buffer containing the Indium debugger.
+The point is moved to the top stack frame.
+
+If there is no debugging session, signal an error."
+  (interactive)
+  (unless (indium-current-connection-frames)
+    (user-error "No debugger to switch to"))
+  (indium-debugger-select-frame (seq-elt (indium-current-connection-frames) 0)))
+
 (defvar indium-interaction-eval-node-hook nil
   "Hooks to run after evaluating node before the point.")
 (add-hook 'indium-interaction-eval-node-hook #'indium-message)
@@ -258,6 +268,7 @@ hitting a breakpoint."
     (define-key map (kbd "C-c b a") #'indium-activate-breakpoints)
     (define-key map (kbd "C-c b d") #'indium-deactivate-breakpoints)
     (define-key map (kbd "C-c b l") #'indium-list-breakpoints)
+    (define-key map (kbd "C-c d") #'indium-switch-to-debugger)
     (easy-menu-define indium-interaction-mode-menu map
       "Menu for Indium interaction mode"
       '("Indium interaction"
