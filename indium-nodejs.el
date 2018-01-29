@@ -145,8 +145,9 @@ socket URL to connect to."
   (with-current-buffer (process-buffer process)
     (goto-char (point-max))
     (insert output))
-  (ignore-errors
-    (indium-nodejs--connect-to-process process output)))
+  (when (string-match-p "Debugger listening on" output)
+    (ignore-errors
+      (indium-nodejs--connect-to-process process output))))
 
 (defun indium-nodejs--connect-to-process (process output)
   "If PROCESS OUTPUT contain the WS url, connect to it."

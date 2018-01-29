@@ -48,6 +48,13 @@
     (sleep-for 2)
     (expect indium-current-connection :not :to-be nil))
 
+  (it "should not try to open a new connection on process output"
+    (spy-on 'indium-nodejs--connect-to-process :and-call-through)
+    (expect indium-current-connection :to-be nil)
+    (indium-run-node "node ../fixtures/test-with-output.js")
+    (sleep-for 2)
+    (expect #'indium-nodejs--connect-to-process :to-have-been-called-times 1))
+
   (it "should create a REPL buffer upon connection"
     (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
     (indium-run-node "node ../fixtures/test.js")
