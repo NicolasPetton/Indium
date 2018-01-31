@@ -238,7 +238,9 @@ Because of debbugs#17976 in Emacs <= 25.3, when the first call
 fails, the function is called again with FIX-ADDRESS, in which
 case 'localhost' is replaced with '127.0.0.1' in URL."
   (message "Downloading sourcemap file...")
-  (let ((buf (url-retrieve-synchronously url t)))
+  (when-let ((buf (condition-case nil
+		      (url-retrieve-synchronously url t)
+		    (error nil))))
     (with-current-buffer buf
       (message "Downloading sourcemap file...done")
       (goto-char (point-min))
