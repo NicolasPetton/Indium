@@ -124,5 +124,9 @@
       (expect (indium-source-mapping-source entry)
 	      :to-equal "/baz.js"))))
 
+(describe "Downloading sourcemap files"
+  (it "should return nil when download is not possible"
+    (should-not (indium-script--download "foo"))))
+
 (provide 'indium-script-test)
 ;;; indium-script-test.el ends here
