@@ -1,16 +1,49 @@
-image: nicolaspetton/emacs
+image: nicolaspetton/emacs:latest
 
-before_script:
- - cask install
- - emacs --version
- - curl -sL https://deb.nodesource.com/setup_8.x | bash -
- - apt-get install -y nodejs
+.prepare_job_template: &prepare_job_template
+  before_script:
+    - curl -sL https://deb.nodesource.com/setup_8.x | bash -
+    - apt-get install -y nodejs
+    - evm use $EMACS_VERSION
+    - emacs --version
+    - cask install
 
-lint:
+.test_job_template: &test_job_definition
+  <<: *prepare_job_template
+  script:
+    - ./run-tests.sh
+
+.lint_job_template: &lint_job_definition
+  <<: *prepare_job_template
   script:
     - ./run-lint.sh
 
-test:
-  script:
-    - ./run-tests.sh
-  
+test:emacs:25.1:
+  variables:
+    EMACS_VERSION: "emacs-25.1-travis"
+  <<: *test_job_definition
+
+test:emacs:25.3:
+  variables:
+    EMACS_VERSION: "emacs-25.3-travis"
+  <<: *test_job_definition
+
+test:emacs:26:
+  variables:
+    EMACS_VERSION: "emacs-26-pretest-travis"
+  <<: *test_job_definition
+
+lint:emacs:25.1:
+  variables:
+    EMACS_VERSION: "emacs-25.1-travis"
+  <<: *lint_job_definition
+
+lint:emacs:25.3:
+  variables:
+    EMACS_VERSION: "emacs-25.3-travis"
+  <<: *lint_job_definition
+
+lint:emacs:26:
+  variables:
+    EMACS_VERSION: "emacs-26-pretest-travis"
+  <<: *lint_job_definition
