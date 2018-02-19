@@ -1,4 +1,4 @@
-image: nicolaspetton/emacs:latest
+image: nicolaspetton/emacs-docker:latest
 
 .prepare_job_template: &prepare_job_template
   before_script:
@@ -6,6 +6,7 @@ image: nicolaspetton/emacs:latest
     - apt-get install -y nodejs
     - evm use $EMACS_VERSION
     - emacs --version
+    - cask upgrade-cask
     - cask install
 
 .test_job_template: &test_job_definition
