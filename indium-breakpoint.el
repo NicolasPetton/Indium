@@ -232,9 +232,9 @@ If there is no overlay, make one."
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
 (add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
 
-(and (display-images-p)
-     (define-fringe-bitmap 'indium-breakpoint
-       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
+(when (and (fboundp 'define-fringe-bitmap) (display-images-p))
+  (define-fringe-bitmap 'indium-breakpoint
+    "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
 
 (provide 'indium-breakpoint)
 ;;; indium-breakpoint.el ends here
