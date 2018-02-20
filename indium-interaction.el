@@ -141,6 +141,24 @@ If PRINT is non-nil, print the output into the current buffer."
         (pop-to-buffer buf t))
     (user-error "No REPL buffer open")))
 
+(defun indium-toggle-breakpoint ()
+  "Add or remove a breakpoint on current line."
+  (interactive)
+  (if (indium-breakpoint-on-current-line-p)
+      (call-interactively #'indium-remove-breakpoint)
+    (call-interactively #'indium-add-breakpoint)))
+
+(defun indium-mouse-toggle-breakpoint (event)
+  "Toggle breakpoint at mouse EVENT click point."
+  (interactive "e")
+  (let* ((posn (event-end event))
+         (pos (posn-point posn)))
+    (when (numberp pos)
+      (with-current-buffer (window-buffer (posn-window posn))
+        (save-excursion
+          (goto-char pos)
+          (call-interactively #'indium-toggle-breakpoint))))))
+
 (defun indium-add-breakpoint (&optional condition)
   "Add a breakpoint on the current line.
 If there is already a breakpoint, signal an error.
@@ -260,6 +278,9 @@ hitting a breakpoint."
     (define-key map (kbd "C-c M-:") #'indium-inspect-expression)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
     (define-key map (kbd "C-c C-k") #'indium-update-script-source)
+    (define-key map [left-fringe mouse-1] #'indium-mouse-toggle-breakpoint)
+    (define-key map [left-margin mouse-1] #'indium-mouse-toggle-breakpoint)
+    (define-key map (kbd "C-c b t") #'indium-toggle-breakpoint)
     (define-key map (kbd "C-c b b") #'indium-add-breakpoint)
     (define-key map (kbd "C-c b c") #'indium-add-conditional-breakpoint)
     (define-key map (kbd "C-c b e") #'indium-edit-breakpoint-condition)
