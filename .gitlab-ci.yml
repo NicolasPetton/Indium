@@ -1,23 +1,20 @@
-image: nicolaspetton/emacs-docker:latest
+image: nicolaspetton/emacs-nodejs-docker:latest
 
 .prepare_job_template: &prepare_job_template
   before_script:
-    - curl -sL https://deb.nodesource.com/setup_8.x | bash -
-    - apt-get install -y nodejs
     - evm use $EMACS_VERSION
     - emacs --version
-    - cask upgrade-cask
-    - cask install
+    - make ci-dependencies
 
 .test_job_template: &test_job_definition
   <<: *prepare_job_template
   script:
-    - ./run-tests.sh
+    - make test
 
 .lint_job_template: &lint_job_definition
   <<: *prepare_job_template
   script:
-    - ./run-lint.sh
+    - make lint
 
 test:emacs:25.1:
   variables:
