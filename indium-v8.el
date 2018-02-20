@@ -80,8 +80,8 @@
 (cl-defmethod indium-backend-reconnect ((_backend (eql v8)))
   (let ((url (indium-current-connection-url))
 	(ws-url (websocket-url (indium-connection-ws indium-current-connection))))
-     ;; close all buffers related to the closed
-     ;; connection the first
+    ;; close all buffers related to the closed
+    ;; connection the first
     (indium-quit)
     (indium-v8--open-ws-connection url ws-url)))
 
