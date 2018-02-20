@@ -31,6 +31,7 @@
 (require 'indium-backend)
 (require 'indium-sourcemap)
 (require 'url)
+(require 'url-http)
 (require 'url-handlers)
 (require 'subr-x)
 
@@ -62,9 +63,11 @@ parsed scripts with the same URL."
   (let ((script (make-indium-script :id id
 				    :url url
 				    :sourcemap-url sourcemap-url)))
-    (map-put (indium-current-connection-scripts)
-	     (intern id)
-	     script)
+    ;; TODO Should use `indum-current-connection-scripts' but I get a
+    ;; compilation warning.
+    (map-put (indium-connection-scripts indium-current-connection)
+    	     (intern id)
+    	     script)
     script))
 
 (defun indium-script-find-by-id (id)

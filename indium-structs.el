@@ -48,7 +48,7 @@
 
 (defmacro when-indium-connected (&rest body)
   "Evaluate BODY if there is a current Indium connection."
-  (declare (indent 0))
+  (declare (indent 0) (debug t))
   `(when indium-current-connection
      ,@body))
 
