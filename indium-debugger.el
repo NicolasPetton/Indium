@@ -52,6 +52,12 @@
   :group 'indium-debugger
   :type 'function)
 
+(defcustom indium-debugger-blackbox-regexps nil
+  "List of file path regexps to blackbox when debugging.
+Blackboxed scripts will be ignored (stepped out) when stepping in
+from the debugger."
+  :type '(repeat string))
+
 (defcustom indium-debugger-inspect-when-eval nil
   "When non-nil, use inspect as a default eval when debugging."
   :type 'boolean)

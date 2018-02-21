@@ -483,9 +483,17 @@ inspectors."
 
 (defun indium-v8--enable-debugger ()
   "Enable the debugger on the current tab."
-  (indium-v8--send-request '((method . "Debugger.enable"))
-                             (lambda (&rest _)
-                               (indium-v8-set-pause-on-exceptions "uncaught"))))
+  (indium-v8--send-request
+   '((method . "Debugger.enable"))
+   (lambda (&rest _)
+     (indium-v8-set-pause-on-exceptions "uncaught")
+     (indium-v8--set-blackbox-patterns indium-debugger-blackbox-regexps))))
+
+(defun indium-v8--set-blackbox-patterns (regexps)
+  "Replace previous blackbox patterns with passed REGEXPS."
+  (indium-v8--send-request
+   `((method . "Debugger.setBlackboxPatterns")
+     (params . ((patterns . ,regexps))))))
 
 (defun indium-v8--handle-evaluation-response (response callback)
   "Get the result of an evaluation in RESPONSE and evaluate CALLBACK with it."
