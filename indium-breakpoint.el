@@ -21,10 +21,9 @@
 
 ;; Add and remove breakpoints to a buffer.
 ;;
-;; Breakpoints are added even if Indium is not connected.  In such case, Indium will
-;; attempt to put all breakpoints when a connection is made.
-
-;; Add or remove breakpoints from buffers.
+;; Breakpoints can be added to buffer even if Indium is not connected.  In such
+;; case, Indium will attempt to register them breakpoints in the runtime when a
+;; connection is made.
 
 ;;; Code:
 

@@ -144,7 +144,7 @@ not on disk."
 (defun indium-workspace--make-url-using-file-path (file)
   "When using nodejs, the path of FILE should be used directly."
   (when (indium-connection-nodejs-p indium-current-connection)
-    file))
+    (convert-standard-filename file)))
 
 (defun indium-workspace--make-url-using-file-protocol (file)
   "Return a url using the \"file://\" protocol for FILE.
