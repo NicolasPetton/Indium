@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.1.0, Feb 20, 2018
+Indium 1.2.0, Feb 21, 2018
 
 Nicolas Petton
 
@@ -142,6 +142,7 @@ Interaction in JS buffers
 The stepping debugger
 
 * Using sourcemaps:: 
+* Blackboxing scripts:: 
 * Sourcemaps and Webpack:: 
 
 The inspector
@@ -156,7 +157,7 @@ Listing parsed scripts
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -347,7 +348,7 @@ Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
+@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -426,7 +427,7 @@ directory!
 
 
 When Webpack is used to bundle JavaScript files, it is currently required to
-configure it to emit absolute file paths for sourcemaps, see @ref{14,,Sourcemaps and Webpack}.
+configure it to emit absolute file paths for sourcemaps, see @ref{14,,Blackboxing scripts}.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
 @anchor{repl doc}@anchor{15}@anchor{repl the-repl}@anchor{16}@anchor{repl repl}@anchor{17}
@@ -580,7 +581,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation doc}@anchor{1e}@anchor{code-evaluation interaction}@anchor{1f}@anchor{code-evaluation interaction-in-js-buffers}@anchor{20}
+@anchor{code-evaluation doc}@anchor{1e}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1f}@anchor{code-evaluation interaction}@anchor{20}
 @section Interaction in JS buffers
 
 
@@ -748,12 +749,13 @@ window.addEventListener("patch", (event) => @{
 
 @menu
 * Using sourcemaps:: 
+* Blackboxing scripts:: 
 * Sourcemaps and Webpack:: 
 
 @end menu
 
-@node Using sourcemaps,Sourcemaps and Webpack,,The stepping debugger
-@anchor{debugger sourcemaps}@anchor{25}@anchor{debugger using-sourcemaps}@anchor{29}
+@node Using sourcemaps,Blackboxing scripts,,The stepping debugger
+@anchor{debugger using-sourcemaps}@anchor{29}@anchor{debugger sourcemaps}@anchor{25}
 @subsection Using sourcemaps
 
 
@@ -764,8 +766,18 @@ workspace is correctly set (see @ref{11,,Using local files when debugging}).
 
 If you wish to disable sourcemaps when debugging, set @code{indium-script-enable-sourcemaps} to @code{nil}.
 
-@node Sourcemaps and Webpack,,Using sourcemaps,The stepping debugger
-@anchor{debugger sourcemaps-and-webpack}@anchor{2a}@anchor{debugger webpack}@anchor{14}
+@node Blackboxing scripts,Sourcemaps and Webpack,Using sourcemaps,The stepping debugger
+@anchor{debugger blackboxing-scripts}@anchor{2a}@anchor{debugger webpack}@anchor{14}
+@subsection Blackboxing scripts
+
+
+The custom variable @code{indium-debugger-blackbox-regexps} holds a list of regular
+expression of script paths to blackbox when debugging.
+
+Blackboxed scripts are skipped when stepping in the debugger.
+
+@node Sourcemaps and Webpack,,Blackboxing scripts,The stepping debugger
+@anchor{debugger sourcemaps-and-webpack}@anchor{2b}
 @subsection Sourcemaps and Webpack
 
 
@@ -784,13 +796,13 @@ output : @{
 @end example
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector doc}@anchor{2b}@anchor{inspector inspector}@anchor{19}@anchor{inspector the-inspector}@anchor{2c}
+@anchor{inspector the-inspector}@anchor{2c}@anchor{inspector doc}@anchor{2d}@anchor{inspector inspector}@anchor{19}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
 from a REPL buffer (see @ref{17,,The REPL}), the debugger (see @ref{24,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{1f,,Interaction in JS buffers}).
+the result of any evaluation of JavaScript code (see @ref{20,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -804,7 +816,7 @@ object links from the REPL buffer.
 @end menu
 
 @node Using the inspector,,,The inspector
-@anchor{inspector using-the-inspector}@anchor{2d}
+@anchor{inspector using-the-inspector}@anchor{2e}
 @subsection Using the inspector
 
 
@@ -864,7 +876,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,Listing parsed scripts,The inspector,Table of contents
-@anchor{network doc}@anchor{2e}@anchor{network id1}@anchor{2f}@anchor{network network}@anchor{30}
+@anchor{network doc}@anchor{2f}@anchor{network network}@anchor{30}@anchor{network id1}@anchor{31}
 @section Network
 
 
@@ -884,7 +896,7 @@ You can make the cache setting permament by setting @cite{indium-v8-cache-disabl
 @end example
 
 @node Listing parsed scripts,,Network,Table of contents
-@anchor{listing-scripts doc}@anchor{31}@anchor{listing-scripts listing-parsed-scripts}@anchor{32}@anchor{listing-scripts listing-scripts}@anchor{33}
+@anchor{listing-scripts doc}@anchor{32}@anchor{listing-scripts listing-parsed-scripts}@anchor{33}@anchor{listing-scripts listing-scripts}@anchor{34}
 @section Listing parsed scripts
 
 
@@ -898,7 +910,7 @@ visited from entries in the list (see @ref{11,,Using local files when debugging}
 @end menu
 
 @node Using the listing buffer,,,Listing parsed scripts
-@anchor{listing-scripts using-the-listing-buffer}@anchor{34}
+@anchor{listing-scripts using-the-listing-buffer}@anchor{35}
 @subsection Using the listing buffer
 
 
@@ -950,7 +962,7 @@ Jump to the previous script
 
 
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{35}
+@anchor{index indices-and-tables}@anchor{36}
 @chapter Indices and tables
 
 

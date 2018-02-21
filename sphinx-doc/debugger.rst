@@ -17,6 +17,14 @@ If you wish to disable sourcemaps when debugging, set ``indium-script-enable-sou
 
 .. _webpack:
 
+Blackboxing scripts
+-------------------
+
+The custom variable ``indium-debugger-blackbox-regexps`` holds a list of regular
+expression of script paths to blackbox when debugging.
+
+Blackboxed scripts are skipped when stepping in the debugger.
+
 Sourcemaps and Webpack
 ----------------------
 
