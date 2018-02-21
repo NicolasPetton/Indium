@@ -158,7 +158,18 @@
       (assess-with-filesystem indium-workspace--test-fs
 	(let ((file (expand-file-name "js/app.js")))
 	  (expect (indium-workspace-make-url file)
-		  :to-equal (expand-file-name "js/app.js")))))))
+		  :to-equal (expand-file-name "js/app.js"))))))
+
+  ;; Regression test for GitHub issue #144
+  (it "should use Windows file paths file path with nodejs on Windows"
+    (with-indium-connection (make-indium-connection)
+      (map-put (indium-current-connection-props)
+	       'nodejs t)
+      (spy-on #'convert-standard-filename :and-call-through)
+      (assess-with-filesystem indium-workspace--test-fs
+	(let ((file (expand-file-name "js/app.js")))
+	  (indium-workspace-make-url file)
+	  (expect #'convert-standard-filename :to-have-been-called-with file))))))
 
 (describe "File protocol"
   (it "can lookup files using the file:// protocol"
