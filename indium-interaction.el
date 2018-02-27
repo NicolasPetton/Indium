@@ -362,7 +362,7 @@ update all breakpoints set in the current buffer as well."
     (when (indium-breakpoint-at-point)
       (user-error "There is already a breakpoint on the current line")))
 
-(add-hook 'before-save-hook #'indium-interaction-update)
+(add-hook 'after-save-hook #'indium-interaction-update)
 (add-hook 'kill-buffer-hook #'indium-interaction-kill-buffer)
 
 (provide 'indium-interaction)
