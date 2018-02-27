@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'url)
+(require 'url-parse)
 (require 'json)
 (require 'map)
 (require 'seq)
@@ -112,6 +113,17 @@ If no process has been started, or if it was not started using
                 (read-from-minibuffer "Port: " "9229")
                 (read-from-minibuffer "Path: ")))
   (indium-nodejs--connect host port path))
+
+
+;;;###autoload
+(defun indium-nodejs-connect-to-url (url)
+  "Connect to a node process with a given URL."
+  (interactive (list (read-from-minibuffer "Url: ")))
+  (let* ((parsed-url (url-generic-parse-url url))
+         (host (url-host parsed-url))
+         (port (or (url-port parsed-url) 9229))
+         (path (seq-drop (car (url-path-and-query parsed-url)) 1)))
+    (indium-nodejs--connect host (number-to-string port) path)))
 
 (defun indium-nodejs--connect (host port path &optional process)
   "Ask the user for a websocket url HOST:PORT/PATH and connects to it.
