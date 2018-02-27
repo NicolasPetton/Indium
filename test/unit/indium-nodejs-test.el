@@ -81,6 +81,14 @@
       (expect #'indium-nodejs--connect
               :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f" 'process))))
 
+(describe "Connecting to a NodeJS process with URL."
+  (it "should connect to process using a url."
+    (spy-on 'indium-nodejs--connect)
+    (let ((url "ws://127.0.0.1:9229/43c07a90-1aed-4753-961d-1d449b21e84f"))
+      (indium-nodejs-connect-to-url url)
+      (expect #'indium-nodejs--connect
+              :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f"))))
+
 (describe "Restarting NodeJS processes"
   (it "should signal an error when no connection"
     (let (indium-current-connection)

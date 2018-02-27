@@ -66,7 +66,9 @@ Node will tell you to open an URL in Chrome: ::
     chrome-devtools://inspector.html?...&ws=127.0.0.1:PORT/PATH
     
 Evaluate ``M-x indium-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH``,
-``PORT`` and ``PATH`` are the ones from the `ws` parameter of the above URL.
+``PORT`` and ``PATH`` are the ones from the `ws` parameter of the above URL
+or using ``M-x indium-nodejs-connect-to-url RET 127.0.0.1:PORT/PATH`` (in this case,
+if the ``Port`` is not specified, it will default to `9229`.
 
 Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument ``--debug-brk``.
