@@ -95,6 +95,19 @@ To connect to a tab, run from Emacs: ::
 
   M-x indium-connect-to-chrome
 
+Alternatively, you can connect to a local chrome programmatically using ``indium-chrome-connect-to-url``
+passing a ``Url`` to connect to.
+
+```
+(indium-chrome-connect-to-url URL)
+```
+
+``Host`` and ``Port`` are optional.
+
+```
+(indium-chrome-connect-to-url URL HOST PORT)
+```
+
 .. _local-files:
   
 Using local files when debugging

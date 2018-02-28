@@ -113,6 +113,15 @@ Try a maximum of NUM-TRIES."
           (port (read-from-minibuffer "Port: " (number-to-string indium-chrome-port))))
       (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab))))
 
+;;;###autoload
+(defun indium-chrome-connect-to-url (url &optional host port)
+  "Connect to a Chrome instance to a given tab URL.
+The default HOST is 'localhost' and PORT is '9229'."
+  (indium-chrome--get-tabs-data (or host "127.0.0.1")
+                                (or port "9229")
+                                (lambda (tabs)
+                                  (indium-chrome--connect-to-tab-with-url url tabs))))
+
 (defun indium-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
   (url-retrieve (format "http://%s:%s/json" host port)
@@ -120,6 +129,13 @@ Try a maximum of NUM-TRIES."
                   (funcall callback (if (eq :error (car status))
                                         nil
                                       (indium-chrome--read-tab-data))))))
+
+(defun indium-chrome--connect-to-url (host port url)
+  "Connect to a Chrome instance at HOST:PORT to a given tab URL."
+  (indium-chrome--get-tabs-data host
+                                port
+                                (lambda (tabs)
+                                  (indium-chrome--connect-to-tab-with-url url tabs))))
 
 (defun indium-chrome--connect-to-tab (tabs)
   "Connects to a tab in the list TABS.
