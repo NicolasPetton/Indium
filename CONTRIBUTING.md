@@ -51,4 +51,4 @@ its usage is therefore discouraged.
   
 ### seq.el and map.el
 
-Use `seq-` and `map-` functions for manipulating collcections whenever possible.
+Use `seq-` and `map-` functions for manipulating collections whenever possible.
