@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.2.0, Feb 21, 2018
+Indium 1.2.0, Feb 28, 2018
 
 Nicolas Petton
 
@@ -157,7 +157,7 @@ Listing parsed scripts
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
+@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
 @chapter Table of contents
 
 
@@ -342,13 +342,15 @@ chrome-devtools://inspector.html?...&ws=127.0.0.1:PORT/PATH
 @end example
 
 Evaluate @code{M-x indium-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH},
-@code{PORT} and @code{PATH} are the ones from the @cite{ws} parameter of the above URL.
+@code{PORT} and @code{PATH} are the ones from the @cite{ws} parameter of the above URL
+or using @code{M-x indium-nodejs-connect-to-url RET 127.0.0.1:PORT/PATH} (in this case,
+if the @code{Port} is not specified, it will default to @cite{9229}.
 
 Connecting Indium to the node process will open a debugger on the first line of
 the application code if you passed the CLI argument @code{--debug-brk}.
 
 @node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome}@anchor{f}@anchor{setup chrome-chromium}@anchor{10}
+@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
 @subsection Chrome/Chromium
 
 
@@ -430,7 +432,7 @@ When Webpack is used to bundle JavaScript files, it is currently required to
 configure it to emit absolute file paths for sourcemaps, see @ref{14,,Blackboxing scripts}.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl doc}@anchor{15}@anchor{repl the-repl}@anchor{16}@anchor{repl repl}@anchor{17}
+@anchor{repl doc}@anchor{15}@anchor{repl repl}@anchor{16}@anchor{repl the-repl}@anchor{17}
 @section The REPL
 
 
@@ -641,7 +643,7 @@ Here’s a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{17,,The REPL}).
+switch back to the REPL buffer (see @ref{16,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{23}
@@ -796,12 +798,12 @@ output : @{
 @end example
 
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector the-inspector}@anchor{2c}@anchor{inspector doc}@anchor{2d}@anchor{inspector inspector}@anchor{19}
+@anchor{inspector doc}@anchor{2c}@anchor{inspector inspector}@anchor{19}@anchor{inspector the-inspector}@anchor{2d}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{17,,The REPL}), the debugger (see @ref{24,,The stepping debugger}), or
+from a REPL buffer (see @ref{16,,The REPL}), the debugger (see @ref{24,,The stepping debugger}), or
 the result of any evaluation of JavaScript code (see @ref{20,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
@@ -896,7 +898,7 @@ You can make the cache setting permament by setting @cite{indium-v8-cache-disabl
 @end example
 
 @node Listing parsed scripts,,Network,Table of contents
-@anchor{listing-scripts doc}@anchor{32}@anchor{listing-scripts listing-parsed-scripts}@anchor{33}@anchor{listing-scripts listing-scripts}@anchor{34}
+@anchor{listing-scripts doc}@anchor{32}@anchor{listing-scripts listing-scripts}@anchor{33}@anchor{listing-scripts listing-parsed-scripts}@anchor{34}
 @section Listing parsed scripts
 
 
