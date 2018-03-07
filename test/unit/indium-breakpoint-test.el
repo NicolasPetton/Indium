@@ -160,32 +160,32 @@
 	(indium-breakpoint--remove-overlay)
 	(expect (indium-breakpoint-buffer brk) :to-be nil)))))
 
-(describe "Keeping track of breakpoints"
+(describe "Keeping track of local breakpoints in buffers"
   (it "should track breakpoints when added"
     (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--breakpoints (make-hash-table :weakness t)))
+      (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
-	(expect (seq-length (map-keys indium-breakpoint--breakpoints)) :to-be 1)
-	(expect (car (map-values indium-breakpoint--breakpoints)) :to-be (current-buffer)))))
+	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 1)
+	(expect (car (map-values indium-breakpoint--local-breakpoints)) :to-be (current-buffer)))))
 
   (it "should untrack breakpoints when removed"
     (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--breakpoints (make-hash-table :weakness t)))
+      (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
 	(indium-breakpoint-remove)
-	(expect (seq-length (map-keys indium-breakpoint--breakpoints)) :to-be 0))))
+	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0))))
 
   (it "should untrack breakpoints when killing a buffer"
     (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--breakpoints (make-hash-table :weakness t)))
+      (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
 	(kill-buffer)
-	(expect (seq-length (map-keys indium-breakpoint--breakpoints)) :to-be 0)))))
+	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0)))))
 
 (describe "Breakpoint resolution"
   (it "should be able to unresolve breakpoints"
     (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--breakpoints (make-hash-table)))
+      (let ((indium-breakpoint--local-breakpoints (make-hash-table)))
 	(indium-breakpoint-add)
 	(let ((brk (indium-breakpoint-at-point)))
 	  ;; Fake the resolution of the breakpoint

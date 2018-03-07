@@ -33,7 +33,7 @@
 (eval-and-compile
   (require 'indium-script))
 
-(defvar indium-breakpoint--breakpoints (make-hash-table :weakness t)
+(defvar indium-breakpoint--local-breakpoints (make-hash-table :weakness t)
   "Table of all local breakpoints and their buffers.")
 
 (defun indium-breakpoint-add (&optional condition)
@@ -46,7 +46,7 @@ CONDITION is true."
 					  :line (indium-location-line location)
 					  :column (indium-location-column location)
 					  :condition (or condition ""))))
-	(map-put indium-breakpoint--breakpoints brk (current-buffer))
+	(map-put indium-breakpoint--local-breakpoints brk (current-buffer))
 	(indium-breakpoint--add-overlay brk)
 	(when-indium-connected
 	  (indium-backend-register-breakpoint (indium-current-connection-backend)
@@ -68,7 +68,7 @@ CONDITION is true."
     (when-indium-connected
       (indium-backend-unregister-breakpoint (indium-current-connection-backend)
 					    (indium-breakpoint-id brk)))
-    (map-delete indium-breakpoint--breakpoints brk)
+    (map-delete indium-breakpoint--local-breakpoints brk)
     (indium-breakpoint--remove-overlay)))
 
 (defun indium-breakpoint-remove-breakpoints-from-current-buffer ()
@@ -171,7 +171,7 @@ An icon is added to the left fringe."
   "Resolve breakpoints from all buffers.
 
 When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
-  (let ((buffers (seq-uniq (map-values indium-breakpoint--breakpoints))))
+  (let ((buffers (seq-uniq (map-values indium-breakpoint--local-breakpoints))))
    (seq-doseq (buf buffers)
      (with-current-buffer buf
        (indium-breakpoint--resolve-breakpoints-in-current-buffer pred)))))
@@ -180,7 +180,7 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
   "Remove the resolution information from all breakpoints."
   (map-apply (lambda (brk _)
 	       (indium-breakpoint-unresolve brk))
-	     indium-breakpoint--breakpoints))
+	     indium-breakpoint--local-breakpoints))
 
 (defun indium-breakpoint--resolve-breakpoints-in-current-buffer (&optional pred)
   "Resolve breakpoints from the current buffer.
