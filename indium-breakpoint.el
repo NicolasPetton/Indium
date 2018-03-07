@@ -184,7 +184,7 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
 When PRED is non-nil, only resolve breakpoints which
 satisfy (PRED brk)."
   (indium-breakpoint--breakpoints-in-buffer-do
-   (lambda (brk overlay)
+   (lambda (brk _)
      (when (and (indium-breakpoint-unresolved-p brk)
 		(or (null pred)
 		    (funcall pred brk)))
