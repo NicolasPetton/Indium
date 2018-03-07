@@ -45,7 +45,7 @@ CONDITION is true."
 					  :condition (or condition ""))))
 	(indium-breakpoint--add-overlay brk)
 	(when-indium-connected
-	  (indium-backend-add-breakpoint (indium-current-connection-backend)
+	  (indium-backend-register-breakpoint (indium-current-connection-backend)
 					 brk)))
     (user-error "Cannot place a breakpoint here")))
 
@@ -63,14 +63,14 @@ CONDITION is true."
   "Remove the breakpoint from the current line."
   (when-let ((brk (indium-breakpoint-at-point)))
     (when-indium-connected
-      (indium-backend-remove-breakpoint (indium-current-connection-backend)
+      (indium-backend-unregister-breakpoint (indium-current-connection-backend)
 					(indium-breakpoint-id brk)))
     (indium-breakpoint--remove-overlay)))
 
 (defun indium-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
   (indium-breakpoint-remove-all-overlays)
-  (indium-breakpoint-remove-breakpoints-from-backend))
+  (indium-breakpoint-unregister-breakpoints-from-backend))
 
 (defun indium-breakpoint-resolve (id script location)
   "Update the breakpoint with ID for SCRIPT at LOCATION.
@@ -110,11 +110,11 @@ This function does no unset breakpoints."
                    'indium-breakpoint-ov
                    t))
 
-(defun indium-breakpoint-remove-breakpoints-from-backend ()
+(defun indium-breakpoint-unregister-breakpoints-from-backend ()
   "Remove all breakpoints from the current buffer.
 This function does not remove any breakpoint overlay."
   (seq-do (lambda (brk)
-	    (indium-backend-remove-breakpoint (indium-current-connection-backend)
+	    (indium-backend-unregister-breakpoint (indium-current-connection-backend)
 					      (indium-breakpoint-id brk)))
 	  (indium-current-connection-get-breakpoints-in-file buffer-file-name)))
 

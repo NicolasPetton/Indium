@@ -113,7 +113,7 @@ Evaluate CALLBACK on the filtered candidates."
      (lambda (response)
        (indium-v8--handle-completions-response response prefix callback)))))
 
-(cl-defmethod indium-backend-add-breakpoint ((_backend (eql v8)) breakpoint &optional callback)
+(cl-defmethod indium-backend-register-breakpoint ((_backend (eql v8)) breakpoint &optional callback)
   "Request the addition of BREAKPOINT."
   (let* ((location (indium-breakpoint-location breakpoint))
 	 (file (indium-location-file location))
@@ -143,7 +143,7 @@ Evaluate CALLBACK on the filtered candidates."
 		 (funcall callback breakpoint)))
 	   (message "Cannot get breakpoint location")))))))
 
-(cl-defmethod indium-backend-remove-breakpoint ((_backend (eql v8)) id &optional callback)
+(cl-defmethod indium-backend-unregister-breakpoint ((_backend (eql v8)) id &optional callback)
   "Request the removal of the breakpoint with id ID.
 Evaluate CALLBACK on success"
   (indium-v8--send-request

@@ -135,14 +135,14 @@ Evaluate CALLBACK on the filtered candidates.
 
 EXPRESSION should be a valid JavaScript expression string.")
 
-(cl-defgeneric indium-backend-add-breakpoint (backend breakpoint &optional callback)
+(cl-defgeneric indium-backend-register-breakpoint (backend breakpoint &optional callback)
   "Request the addition of BREAKPOINT.
 
 Concrete implementations should call
 `indium-current-connection-add-breakpoint' once the addition has
 been performed.")
 
-(cl-defgeneric indium-backend-remove-breakpoint (backend id &optional callback)
+(cl-defgeneric indium-backend-unregister-breakpoint (backend id &optional callback)
   "Request the removal of the breakpoint with id ID.
 
 Concrete implementations should call
