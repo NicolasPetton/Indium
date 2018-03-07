@@ -104,11 +104,10 @@
         (expect (indium-breakpoint--overlay-on-current-line) :to-be ov)))))
 
 (describe "Accessing breakpoints"
-  (it "can get a breakpoint overlays on the current line"
+  (it "can get a breakpoint overlay on the current line"
     (with-js2-buffer "let a = 1;"
       (let* ((brk (make-indium-breakpoint))
 	     (ov (indium-breakpoint--add-overlay brk)))
-        (overlay-put ov 'indium-breakpoint t)
         (expect (indium-breakpoint--overlay-on-current-line) :to-be ov))))
 
   (it "can put a breakpoint on the current line"
