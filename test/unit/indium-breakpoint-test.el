@@ -180,7 +180,15 @@
       (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
 	(kill-buffer)
-	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0)))))
+	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0))))
+
+  (it "can get breakpoints by id"
+    (let ((indium-breakpoint--local-breakpoints (make-hash-table))
+	  (brk (make-indium-breakpoint :id 'foo)))
+      (map-put indium-breakpoint--local-breakpoints
+	       brk
+	       'bar)
+      (expect (indium-breakpoint-breakpoint-with-id 'foo) :to-be brk))))
 
 (describe "Breakpoint resolution"
   (it "should be able to unresolve breakpoints"

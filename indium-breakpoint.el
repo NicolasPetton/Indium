@@ -86,8 +86,14 @@ This function should be called upon breakpoint resolution by the
 backend, or when a breakpoint location gets updated from the
 backend."
   (let ((original-location (indium-script-original-location script location))
-	(brk (indium-current-connection-get-breakpoint id)))
+	(brk (indium-breakpoint-breakpoint-with-id id)))
     (indium-breakpoint--update-overlay brk original-location)))
+
+(defun indium-breakpoint-breakpoint-with-id (id)
+  "Return the breakpoint with ID or nil."
+  (seq-find (lambda (brk)
+	      (equal id (indium-breakpoint-id brk)))
+	    (map-keys indium-breakpoint--local-breakpoints)))
 
 (defun indium-breakpoint-at-point ()
   "Return the breakpoint on the current line.
@@ -98,16 +104,6 @@ If there is no breakpoint set on the line, return nil."
 (defun indium-breakpoint-on-current-line-p ()
   "Return non-nil if there is a breakpoint on the current line."
   (not (null (indium-breakpoint--overlay-on-current-line))))
-
-(defun indium-breakpoint-add-breakpoints-to-buffer ()
-  "Add all breakpoints markers to the current buffer.
-This function does not register breakpoints."
-  (seq-do (lambda (brk)
-            (save-excursion
-	      (goto-char (point-min))
-	      (forward-line (indium-location-line (indium-breakpoint-location brk)))
-	      (indium-breakpoint--add-overlay brk)))
-          (indium-current-connection-get-breakpoints-in-file buffer-file-name)))
 
 (defun indium-breakpoint-remove-overlays-from-current-buffer ()
   "Remove all breakpoint markers from the current buffer.
@@ -189,11 +185,11 @@ When PRED is non-nil, only resolve breakpoints which
 satisfy (PRED brk)."
   (indium-breakpoint--breakpoints-in-buffer-do
    (lambda (brk overlay)
-     (when (or (null pred)
-	       (funcall pred brk))
-	(save-excursion
-	  (goto-char (overlay-start overlay))
-	  (indium-breakpoint-add (indium-breakpoint-condition brk)))))))
+     (when (and (indium-breakpoint-unresolved-p brk)
+		(or (null pred)
+		    (funcall pred brk)))
+       (indium-backend-register-breakpoint (indium-current-connection-backend)
+					   brk)))))
 
 (defun indium-breakpoint--fringe-icon ()
   "Return the fringe icon used for breakpoints."
@@ -223,11 +219,10 @@ If there is no overlay, make one."
   "Attempt to resolve unresolved breakpoints for SCRIPT."
   (indium-breakpoint--resolve-all-breakpoints
    (lambda (brk)
-     (and (indium-breakpoint-unresolved-p brk)
-	  (eq script
-	      (indium-script-find-from-file (indium-location-file
-					     (indium-script-generated-location
-					      (indium-breakpoint-location brk)))))))))
+     (eq script
+	 (indium-script-find-from-file (indium-location-file
+					(indium-script-generated-location
+					 (indium-breakpoint-location brk))))))))
 
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)

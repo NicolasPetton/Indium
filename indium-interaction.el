@@ -213,23 +213,31 @@ hitting a breakpoint."
 (defun indium-list-breakpoints ()
   "List all breakpoints in the current connection."
   (interactive)
-  (xref--show-xrefs (indium--make-xrefs-from-breakpoints) nil))
+  (if-let ((xrefs (indium--make-xrefs-from-breakpoints)))
+      (xref--show-xrefs xrefs nil)
+    (message "No breakpoint")))
 
 (defun indium--make-xrefs-from-breakpoints ()
   "Return a list of xref objects from all breakpoints."
-  (map-values-apply (lambda (breakpoint)
-		      (xref-make (indium--get-breakpoint-xref-match breakpoint)
-				 (xref-make-file-location (map-elt breakpoint 'file)
-							  (1+ (map-elt breakpoint 'line))
-							  0)))
-		    (indium-current-connection-breakpoints)))
+  (map-apply (lambda (breakpoint buffer)
+	       (let ((line (with-current-buffer buffer
+			     (line-number-at-pos
+			      (overlay-start
+			       (indium-breakpoint-overlay breakpoint))))))
+		(xref-make (indium--get-breakpoint-xref-match breakpoint buffer)
+			   (xref-make-file-location (buffer-file-name buffer)
+						    line
+						    0))))
+	     indium-breakpoint--local-breakpoints))
 
-(defun indium--get-breakpoint-xref-match (breakpoint)
+(defun indium--get-breakpoint-xref-match (breakpoint buffer)
   "Return the source line where BREAKPOINT is set."
-  (with-current-buffer (find-file-noselect (map-elt breakpoint 'file))
+  (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
-      (forward-line (map-elt breakpoint 'line))
+      (forward-line (1- (line-number-at-pos
+			 (overlay-start
+			  (indium-breakpoint-overlay breakpoint)))))
       (buffer-substring (point-at-bol) (point-at-eol)))))
 
 (defun indium-interaction-node-before-point ()
@@ -317,14 +325,8 @@ hitting a breakpoint."
 \\{indium-interaction-mode-map}"
   :lighter " js-interaction"
   :keymap indium-interaction-mode-map
-  (if indium-interaction-mode
-      (indium-interaction-mode-on)
+  (unless indium-interaction-mode
     (indium-interaction-mode-off)))
-
-(defun indium-interaction-mode-on ()
-  "Function to be evaluated when `indium-interaction-mode' is turned on."
-  (when-indium-connected
-    (indium-breakpoint-add-breakpoints-to-buffer)))
 
 (defun indium-interaction-mode-off ()
   "Function to be evaluated when `indium-interaction-mode' is turned off."

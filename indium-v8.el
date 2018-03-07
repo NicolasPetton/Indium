@@ -134,7 +134,6 @@ Evaluate CALLBACK on the filtered candidates."
 	      (location (seq--elt-safe locations 0))
               (line (map-elt location 'lineNumber)))
 	 (setf (indium-breakpoint-id breakpoint) id)
-	 (indium-current-connection-add-breakpoint breakpoint)
 	 (if line
 	     (let ((script (indium-script-find-by-id
 			    (map-elt location 'scriptId)))
@@ -151,7 +150,6 @@ Evaluate CALLBACK on success"
    `((method . "Debugger.removeBreakpoint")
      (params . ((breakpointId . ,id))))
    (lambda (_response)
-     (indium-current-connection-remove-breakpoint id)
      (when callback (funcall callback)))))
 
 (cl-defmethod indium-backend-deactivate-breakpoints ((_backend (eql v8)))
