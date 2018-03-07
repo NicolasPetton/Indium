@@ -73,8 +73,11 @@ CONDITION is true."
 
 (defun indium-breakpoint-remove-all ()
   "Remove all breakpoints from the current buffer's file."
-  (indium-breakpoint-remove-all-overlays)
-  (indium-breakpoint-unregister-breakpoints-from-backend))
+  (indium-breakpoint--breakpoints-in-buffer-do
+   (lambda (_ ov)
+     (save-excursion
+       (goto-char (overlay-start ov))
+       (indium-breakpoint-remove)))))
 
 (defun indium-breakpoint-resolve (id script location)
   "Update the breakpoint with ID for SCRIPT at LOCATION.
@@ -113,14 +116,6 @@ This function does no unset breakpoints."
                    (point-max)
                    'indium-breakpoint-ov
                    t))
-
-(defun indium-breakpoint-unregister-breakpoints-from-backend ()
-  "Remove all breakpoints from the current buffer.
-This function does not remove any breakpoint overlay."
-  (seq-do (lambda (brk)
-	    (indium-backend-unregister-breakpoint (indium-current-connection-backend)
-					      (indium-breakpoint-id brk)))
-	  (indium-current-connection-get-breakpoints-in-file buffer-file-name)))
 
 
 (defun indium-breakpoint--add-overlay (breakpoint)
@@ -234,6 +229,18 @@ If there is no overlay, make one."
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
 (add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
+
+;; Helpers
+(defun indium-breakpoint--breakpoints-in-buffer-do (fn)
+  "Evaluate FN on all breakpoints in the current buffer.
+
+FN takes two arguments, the breakpoint and its associated
+overlay."
+  (let ((overlays (overlays-in (point-min) (point-max))))
+    (seq-doseq (ov overlays)
+      (when-let ((brk (overlay-get ov 'indium-breakpoint)))
+	(funcall fn brk ov)))))
+
 
 (when (and (fboundp 'define-fringe-bitmap) (display-images-p))
   (define-fringe-bitmap 'indium-breakpoint
