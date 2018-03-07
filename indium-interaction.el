@@ -194,7 +194,7 @@ If there is no breakpoint, signal an error."
 (defun indium-remove-all-breakpoints-from-buffer ()
   "Remove all breakpoints from the current buffer."
   (interactive)
-  (indium-breakpoint-remove-all))
+  (indium-breakpoint-remove-breakpoints-from-current-buffer))
 
 (defun indium-deactivate-breakpoints ()
   "Deactivate all breakpoints in all buffers.
@@ -328,7 +328,7 @@ hitting a breakpoint."
 
 (defun indium-interaction-mode-off ()
   "Function to be evaluated when `indium-interaction-mode' is turned off."
-  (indium-breakpoint-remove-all-overlays))
+  (indium-breakpoint-remove-overlays-from-current-buffer))
 
 (defun indium-interaction-update ()
   "Update breakpoints and script source of the current buffer."
@@ -338,7 +338,7 @@ hitting a breakpoint."
 (defun indium-interaction-kill-buffer ()
   "Remove all breakpoints prior to killing the current buffer."
   (when indium-interaction-mode
-    (indium-breakpoint-remove-all)))
+    (indium-breakpoint-remove-breakpoints-from-current-buffer)))
 
 (defun indium-update-script-source ()
   "Update the script source of the backend from the current buffer.

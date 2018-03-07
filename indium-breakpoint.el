@@ -71,7 +71,7 @@ CONDITION is true."
     (map-delete indium-breakpoint--breakpoints brk)
     (indium-breakpoint--remove-overlay)))
 
-(defun indium-breakpoint-remove-all ()
+(defun indium-breakpoint-remove-breakpoints-from-current-buffer ()
   "Remove all breakpoints from the current buffer's file."
   (indium-breakpoint--breakpoints-in-buffer-do
    (lambda (_ ov)
@@ -109,7 +109,7 @@ This function does not register breakpoints."
 	      (indium-breakpoint--add-overlay brk)))
           (indium-current-connection-get-breakpoints-in-file buffer-file-name)))
 
-(defun indium-breakpoint-remove-all-overlays ()
+(defun indium-breakpoint-remove-overlays-from-current-buffer ()
   "Remove all breakpoint markers from the current buffer.
 This function does no unset breakpoints."
   (remove-overlays (point-min)
@@ -175,11 +175,11 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
     (with-current-buffer buf
       (indium-breakpoint--resolve-breakpoints pred))))
 
-(defun indium-breakpoint--unresolve-breakpoints-in-all-buffers ()
   "Remove the resolution information from all breakpoints in all buffers."
   (indium-breakpoint--breakpoints-in-all-buffers-do
    (lambda (brk _)
      (indium-breakpoint-unresolve brk))))
+(defun indium-breakpoint--unresolve-all-breakpoints ()
 
 (defun indium-breakpoint--resolve-breakpoints (&optional pred)
   "Resolve breakpoints from the current buffer.
@@ -231,7 +231,7 @@ If there is no overlay, make one."
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
 (add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
-(add-hook 'indium-connection-closed-hook #'indium-breakpoint--unresolve-breakpoints-in-all-buffers)
+(add-hook 'indium-connection-closed-hook #'indium-breakpoint--unresolve-all-breakpoints)
 
 
 ;; Helpers

@@ -164,11 +164,11 @@
 
 (describe "Interaction mode"
   (it "should remove breakpoints when killing a buffer"
-    (spy-on 'indium-breakpoint-remove-all)
+    (spy-on 'indium-breakpoint-remove-breakpoints-from-current-buffer)
     (with-js2-buffer "let a = 1;"
       (indium-add-breakpoint)
       (kill-buffer)
-      (expect #'indium-breakpoint-remove-all :to-have-been-called))))
+      (expect #'indium-breakpoint-remove-breakpoints-from-current-buffer :to-have-been-called))))
 
 (provide 'indium-interaction-test)
 ;;; indium-interaction-test.el ends here
