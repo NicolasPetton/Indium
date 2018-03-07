@@ -167,13 +167,14 @@ An icon is added to the left fringe."
 	  (goto-char (overlay-start overlay))
 	  (indium-breakpoint-add (indium-breakpoint-condition brk))))))))
 
-(defun indium-breakpoint--resolve-breakpoints-in-all-buffers (&optional pred)
+(defun indium-breakpoint--resolve-all-breakpoints (&optional pred)
   "Resolve breakpoints from all buffers.
 
 When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
-  (seq-doseq (buf (buffer-list))
-    (with-current-buffer buf
-      (indium-breakpoint--resolve-breakpoints pred))))
+  (let ((buffers (seq-uniq (map-values indium-breakpoint--breakpoints))))
+   (seq-doseq (buf buffers)
+     (with-current-buffer buf
+       (indium-breakpoint--resolve-breakpoints-in-current-buffer pred)))))
 
 (defun indium-breakpoint--unresolve-all-breakpoints ()
   "Remove the resolution information from all breakpoints."
@@ -181,7 +182,7 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
 	       (indium-breakpoint-unresolve brk))
 	     indium-breakpoint--breakpoints))
 
-(defun indium-breakpoint--resolve-breakpoints (&optional pred)
+(defun indium-breakpoint--resolve-breakpoints-in-current-buffer (&optional pred)
   "Resolve breakpoints from the current buffer.
 
 When PRED is non-nil, only resolve breakpoints which
@@ -189,7 +190,7 @@ satisfy (PRED brk)."
   (indium-breakpoint--breakpoints-in-buffer-do
    (lambda (brk overlay)
      (when (or (null pred)
-		(funcall pred brk))
+	       (funcall pred brk))
 	(save-excursion
 	  (goto-char (overlay-start overlay))
 	  (indium-breakpoint-add (indium-breakpoint-condition brk)))))))
@@ -220,7 +221,7 @@ If there is no overlay, make one."
 
 (defun indium-breakpoint--update-after-script-parsed (script)
   "Attempt to resolve unresolved breakpoints for SCRIPT."
-  (indium-breakpoint--resolve-breakpoints-in-all-buffers
+  (indium-breakpoint--resolve-all-breakpoints
    (lambda (brk)
      (and (indium-breakpoint-unresolved-p brk)
 	  (eq script
@@ -244,15 +245,6 @@ overlay."
     (seq-doseq (ov overlays)
       (when-let ((brk (overlay-get ov 'indium-breakpoint)))
 	(funcall fn brk ov)))))
-
-(defun indium-breakpoint--breakpoints-in-all-buffers-do (fn)
-  "Evaluate FN on all breakpoints in all buffers.
-
-FN takes two arguments, the breakpoint and its associated
-overlay."
-  (seq-doseq (buf (buffer-list))
-    (with-current-buffer buf
-      (indium-breakpoint--breakpoints-in-buffer-do fn))))
 
 (when (and (fboundp 'define-fringe-bitmap) (display-images-p))
   (define-fringe-bitmap 'indium-breakpoint
