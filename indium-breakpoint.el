@@ -33,6 +33,9 @@
 (eval-and-compile
   (require 'indium-script))
 
+(defvar indium-breakpoint--breakpoints (make-hash-table :weakness t)
+  "Table of all local breakpoints and their buffers.")
+
 (defun indium-breakpoint-add (&optional condition)
   "Add a breakpoint at point.
 
@@ -43,6 +46,7 @@ CONDITION is true."
 					  :line (indium-location-line location)
 					  :column (indium-location-column location)
 					  :condition (or condition ""))))
+	(map-put indium-breakpoint--breakpoints brk (current-buffer))
 	(indium-breakpoint--add-overlay brk)
 	(when-indium-connected
 	  (indium-backend-register-breakpoint (indium-current-connection-backend)
@@ -64,7 +68,8 @@ CONDITION is true."
   (when-let ((brk (indium-breakpoint-at-point)))
     (when-indium-connected
       (indium-backend-unregister-breakpoint (indium-current-connection-backend)
-					(indium-breakpoint-id brk)))
+					    (indium-breakpoint-id brk)))
+    (map-delete indium-breakpoint--breakpoints brk)
     (indium-breakpoint--remove-overlay)))
 
 (defun indium-breakpoint-remove-all ()
