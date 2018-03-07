@@ -112,7 +112,9 @@ The new connection is based on the current (usually closed) one."
   t)
 
 (cl-defgeneric indium-backend-close-connection (_backend)
-  "Close the current connection.")
+  "Close the current connection.
+
+Concrete implementations should run `indium-connection-closed-hook'.")
 
 (cl-defgeneric indium-backend-reconnect (_backend)
   "Try to re-establish a connection.

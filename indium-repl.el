@@ -445,5 +445,7 @@ Evaluate CALLBACK with the completion candidates."
 		 repl-buffer)))
 	    (setq pos next)))))))
 
+(add-hook 'indium-connection-closed-hook #'indium-repl--handle-connection-closed)
+
 (provide 'indium-repl)
 ;;; indium-repl.el ends here

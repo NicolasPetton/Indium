@@ -75,7 +75,8 @@
 
 (cl-defmethod indium-backend-close-connection ((_backend (eql v8)))
   "Close the websocket associated with the current connection."
-  (websocket-close (indium-connection-ws indium-current-connection)))
+  (websocket-close (indium-connection-ws indium-current-connection))
+  (run-hooks 'indium-connection-closed-hook))
 
 (cl-defmethod indium-backend-reconnect ((_backend (eql v8)))
   (let ((url (indium-current-connection-url))
@@ -422,8 +423,7 @@ MESSAGE explains why the connection has been closed."
 
 (defun indium-v8--handle-ws-closed (_ws)
   "Cleanup function called when the connection socket is closed."
-  (run-hooks 'indium-connection-closed-hook)
-  (indium-repl--handle-connection-closed))
+  (run-hooks 'indium-connection-closed-hook))
 
 (defun indium-v8--handle-ws-error (_ws _action error)
   "Display an error message for an exception in a websocket callback handling.
