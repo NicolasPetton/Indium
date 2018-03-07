@@ -175,11 +175,11 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
     (with-current-buffer buf
       (indium-breakpoint--resolve-breakpoints pred))))
 
-  "Remove the resolution information from all breakpoints in all buffers."
-  (indium-breakpoint--breakpoints-in-all-buffers-do
-   (lambda (brk _)
-     (indium-breakpoint-unresolve brk))))
 (defun indium-breakpoint--unresolve-all-breakpoints ()
+  "Remove the resolution information from all breakpoints."
+  (map-apply (lambda (brk _)
+	       (indium-breakpoint-unresolve brk))
+	     indium-breakpoint--breakpoints))
 
 (defun indium-breakpoint--resolve-breakpoints (&optional pred)
   "Resolve breakpoints from the current buffer.
