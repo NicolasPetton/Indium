@@ -175,6 +175,12 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
     (with-current-buffer buf
       (indium-breakpoint--resolve-breakpoints pred))))
 
+(defun indium-breakpoint--unresolve-breakpoints-in-all-buffers ()
+  "Remove the resolution information from all breakpoints in all buffers."
+  (indium-breakpoint--breakpoints-in-all-buffers-do
+   (lambda (brk _)
+     (indium-breakpoint-unresolve brk))))
+
 (defun indium-breakpoint--resolve-breakpoints (&optional pred)
   "Resolve breakpoints from the current buffer.
 
@@ -225,6 +231,8 @@ If there is no overlay, make one."
 ;; Update/Restore breakpoints
 (add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
 (add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
+(add-hook 'indium-connection-closed-hook #'indium-breakpoint--unresolve-breakpoints-in-all-buffers)
+
 
 ;; Helpers
 (defun indium-breakpoint--breakpoints-in-buffer-do (fn)

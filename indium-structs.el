@@ -239,5 +239,9 @@ If LINE is not provided, return all breakpoints in FILE."
   "Return non-nil if BREAKPOINT is not yet resolved in the runtime."
   (null (indium-breakpoint-id breakpoint)))
 
+(defun indium-breakpoint-unresolve (breakpoint)
+  "Remove the resolution information from BREAKPOINT."
+  (setf (indium-breakpoint-id breakpoint) nil))
+
 (provide 'indium-structs)
 ;;; indium-structs.el ends here
