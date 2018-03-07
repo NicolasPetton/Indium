@@ -59,7 +59,6 @@ CONDITION is true."
     (let* ((old-condition (indium-breakpoint-condition breakpoint))
 	   (new-condition (read-from-minibuffer "Breakpoint condition: "
 			   old-condition nil nil nil old-condition)))
-      (setf (indium-breakpoint-condition breakpoint) new-condition)
       (indium-breakpoint-remove)
       (indium-breakpoint-add new-condition))))
 
