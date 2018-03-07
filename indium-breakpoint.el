@@ -180,15 +180,13 @@ When PRED is non-nil, only resolve breakpoints which satisfy (PRED brk)."
 
 When PRED is non-nil, only resolve breakpoints which
 satisfy (PRED brk)."
-  (save-excursion
-    (let ((overlays (overlays-in (point-min) (point-max))))
-      (seq-doseq (ov overlays)
-	(when-let ((brk (overlay-get ov 'indium-breakpoint))
-		   (start (overlay-start ov)))
-	  (when (or (null pred)
-		    (funcall pred brk))
-	    (goto-char start)
-	    (indium-breakpoint-add (indium-breakpoint-condition brk))))))))
+  (indium-breakpoint--breakpoints-in-buffer-do
+   (lambda (brk overlay)
+     (when (or (null pred)
+		(funcall pred brk))
+	(save-excursion
+	  (goto-char (overlay-start overlay))
+	  (indium-breakpoint-add (indium-breakpoint-condition brk)))))))
 
 (defun indium-breakpoint--fringe-icon ()
   "Return the fringe icon used for breakpoints."
