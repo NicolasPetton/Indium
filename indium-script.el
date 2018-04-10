@@ -263,7 +263,8 @@ For instance, for a script located at
 \"bar.js.map\", return \"http://localhost/foo/bar.js.ap\"."
   (let* ((url (indium-script-url script))
 	 (sourcemap-url (indium-script-sourcemap-url script)))
-    (url-expand-file-name sourcemap-url url)))
+    (unless (string-empty-p url)
+      (url-expand-file-name sourcemap-url url))))
 
 (provide 'indium-script)
 ;;; indium-script.el ends here
