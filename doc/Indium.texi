@@ -315,7 +315,7 @@ arguments automatically, so you do not need to provide them.
 @end cartouche
 
 If you wish to break the execution at the first statement, set
-@code{indium-nodejs-inspect-break} to @code{t}.
+@code{indium-nodejs-inspect-brk} to @code{t}.
 
 @node Connecting to a Nodejs process,,Executing NodeJS from Emacs,NodeJS
 @anchor{setup connecting-to-a-nodejs-process}@anchor{e}
