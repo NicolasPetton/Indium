@@ -240,7 +240,7 @@ If the request fails or has no data, return nil.
 Because of debbugs#17976 in Emacs <= 25.3, when the first call
 fails, the function is called again with FIX-ADDRESS, in which
 case 'localhost' is replaced with '127.0.0.1' in URL."
-  (message "Downloading sourcemap file...")
+  (message "Downloading sourcemap file %s..." url)
   (when-let ((buf (condition-case nil
 		      (url-retrieve-synchronously url t)
 		    (error nil))))
