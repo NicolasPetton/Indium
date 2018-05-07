@@ -384,9 +384,10 @@ CALLBACK is evaluated with two arguments, the properties and SCOPE."
 
 If a buffer already exists, just return it."
   (let* ((location (indium-script-get-frame-original-location (indium-current-connection-current-frame)))
-	 (buf (if-let ((file (indium-location-file location)))
-                 (find-file file)
-               (get-buffer-create (indium-debugger--buffer-name-no-file)))))
+	 (file (indium-location-file location))
+	 (buf (if (and file (file-exists-p file))
+                  (find-file file)
+		(get-buffer-create (indium-debugger--buffer-name-no-file)))))
     (indium-debugger-setup-buffer buf)
     buf))
 
