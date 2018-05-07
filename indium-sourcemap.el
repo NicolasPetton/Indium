@@ -87,11 +87,20 @@ lookup."
 
 (defun indium-sourcemap-from-file (file)
   "Return a sourcemap from FILE."
-  (indium-sourcemap--decode (json-read-file file)))
+  (let ((contents (with-temp-buffer
+		    (insert-file-contents file)
+		    (buffer-string))))
+        (message "Parsing sourcemap file %s..." file)
+	(prog1
+	    (indium-sourcemap--cached-decode contents)
+	  (message "Parsing sourcemap file %s...done!" file))))
 
 (defun indium-sourcemap-from-string (string)
   "Return a sourcemap from STRING."
-  (indium-sourcemap--decode (json-read-from-string string)))
+    (message "Parsing sourcemap...")
+    (prog1
+	(indium-sourcemap--cached-decode string)
+      (message "Parsing sourcemap ...done!")))
 
 (defun indium-sourcemap-original-position-for (sourcemap line column)
   "Given SOURCEMAP, find the original position for LINE and COLUMN.
@@ -157,6 +166,28 @@ list (VALUE STRING-REST)."
       (setq string-as-list (cdr string-as-list)))
     (list :value (indium--from-vlq-signed result)
           :rest string-as-list)))
+
+(defvar indium-sourcemap--cache nil
+  "Cache hash table of decoded sourcemaps.")
+
+(defun indium-sourcemap--reset-cache ()
+  "Reset the cache of sourcemap data."
+  (setq indium-sourcemap--cache (make-hash-table :test 'equal)))
+
+(indium-sourcemap--reset-cache)
+
+(defun indium-sourcemap--cached-decode (string)
+  "Decode STRING json object.
+
+Return a cached version if STRING was already decoded."
+  (let ((md5 (md5 string)))
+    (if (map-contains-key indium-sourcemap--cache md5)
+	(map-elt indium-sourcemap--cache md5)
+      (let ((decoded (indium-sourcemap--decode (json-read-from-string string))))
+	(unless (indium-sourcemap-p decoded)
+	  (message "Not a sourcemap!!!!!!!!!!!!!! :%s" (type-of decoded)))
+	(map-put indium-sourcemap--cache md5 decoded)
+	decoded))))
 
 (defun indium-sourcemap--decode (json)
   "Decode JSON object.

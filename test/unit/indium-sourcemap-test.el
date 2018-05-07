@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'buttercup)
+(require 'map)
 
 (require 'indium-sourcemap)
 
@@ -38,14 +39,23 @@ EAAA;EACV,MAAA,GAAS,GAAG,IAAH,CAAQ,SAAA,CAAA,IAAA,CAAA;WAAU,IAAA,CAAA,\
 CAAA,CAAO;GAAzB;EAET,OAAO,IAAP,CAAY,MAAZ")))
 
 (describe "Decoding sourcemaps"
-  (it "should read files as JSON when decoding then"
+  (before-each
+    (indium-sourcemap--reset-cache))
+
+  (after-each
+    (indium-sourcemap--reset-cache))
+
+  (it "should read files as JSON when decoding"
     (spy-on 'indium-sourcemap--decode :and-call-through)
-    (spy-on 'json-read-file :and-return-value indium-test-sourcemap-json)
+    ;; (spy-on 'json-read-file :and-return-value indium-test-sourcemap-json)
+    (spy-on 'insert-file-contents :and-call-fake
+	    (lambda (_)
+	      (insert (json-encode indium-test-sourcemap-json))))
     (indium-sourcemap-from-file "foo.js")
     (expect #'indium-sourcemap--decode
 	    :to-have-been-called-with indium-test-sourcemap-json))
 
-  (it "should read strings as JSON when decoding then"
+  (it "should read strings as JSON when decoding"
     (spy-on 'indium-sourcemap--decode :and-call-through)
     (spy-on 'json-read-from-string :and-return-value indium-test-sourcemap-json)
     (indium-sourcemap-from-string "test")

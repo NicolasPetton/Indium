@@ -177,7 +177,7 @@ If the sourcemap file cannot be downloaded either, return nil."
       (setf (indium-script-sourcemap-cache script)
 	    (or (indium-script--sourcemap-from-data-url script)
                 (if-let ((file (indium-script--sourcemap-file script)))
-                    (indium-sourcemap-from-file file)
+		    (indium-sourcemap-from-file file)
                   (when-let ((str (indium-script--download
                                    (indium-script--absolute-sourcemap-url script))))
                     (indium-sourcemap-from-string str)))))
