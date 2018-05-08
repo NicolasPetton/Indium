@@ -145,13 +145,12 @@ sourcemap."
       (if indium-script-enable-sourcemaps
 	  (or (seq-some (lambda (script)
 			  (if-let ((sourcemap (indium-script-sourcemap script))
-				   (script-file (indium-script-get-file script t))
 				   (generated-location (indium-sourcemap-generated-position-for
 							sourcemap
 							(indium-location-file location)
 							(1+ (indium-location-line location))
-							 0)))
-			      (make-indium-location :file script-file
+							0)))
+			      (make-indium-location :file (indium-script-url script)
 						    :line (max 0 (1- (plist-get generated-location :line)))
 						    :column (plist-get generated-location :column))))
 			(indium-script-all-scripts-with-sourcemap))

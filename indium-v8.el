@@ -118,7 +118,7 @@ Evaluate CALLBACK on the filtered candidates."
   "Request the addition of BREAKPOINT."
   (let* ((location (indium-breakpoint-location breakpoint))
 	 (file (indium-location-file location))
-	 (url (indium-workspace-make-url file)))
+	 (url file))
     (unless url
       (user-error "No URL associated with the current buffer.  Setup an Indium workspace first"))
     (indium-v8--send-request
