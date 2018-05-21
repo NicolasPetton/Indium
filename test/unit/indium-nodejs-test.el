@@ -34,6 +34,17 @@
     (expect #'indium-nodejs--add-flags
             :to-have-been-called-with "node foo"))
 
+  (it "should append the flag after the reference to \"node\""
+    (let ((indium-nodejs-inspect-brk))
+      (expect (indium-nodejs--add-flags "node foo")
+	      :to-equal "node --inspect foo")
+      ;; Regression for GitHub issue #150
+      (expect (indium-nodejs--add-flags "MY_ENV=\"val\" node foo")
+	      :to-equal "MY_ENV=\"val\" node --inspect foo"))
+    (let ((indium-nodejs-inspect-brkt))
+      (expect (indium-nodejs--add-flags "node foo")
+	      :to-equal "node --inspect-brk foo")))
+
   (it "should kill the previous connection process when there is one"
     (let ((indium-current-connection (make-indium-connection
 				      :process 'first-process)))

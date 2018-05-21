@@ -141,14 +141,12 @@ When PROCESS is non-nil, attach it to the connection."
 
 (defun indium-nodejs--add-flags (command)
   "Return COMMAND with the `--inspect' or `--inspect-brk' flag added."
-  (let* ((tokens (split-string command))
-         (program (car tokens))
-         (arguments (cdr tokens))
-	 (inspect-flag (if indium-nodejs-inspect-brk
-			   "--inspect-brk"
-			 "--inspect"))
-         (result `(,program ,inspect-flag ,@arguments)))
-  (mapconcat #'identity result " ")))
+  (let ((inspect-flag (if indium-nodejs-inspect-brk
+			  "--inspect-brk"
+			"--inspect")))
+    (if (string-match "\\<node\\>" command)
+	(replace-match (concat "node " inspect-flag) nil nil command)
+      (error "Not a node command"))))
 
 (defun indium-nodejs--process-filter (process output)
   "Filter function for PROCESS.
