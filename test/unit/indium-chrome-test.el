@@ -130,6 +130,19 @@
     (indium-chrome--try-connect "foo" 1)
     (expect #'indium-chrome--connect-to-tab :to-have-been-called-with 'tabs)))
 
+(describe "Connecting to a Chrome instance"
+  (it "Should connect to a local Chrome instance."
+    (spy-on 'indium-chrome--connect-to-url)
+    (indium-chrome-connect-to-url "http://test.com")
+    (expect #'indium-chrome--connect-to-url
+            :to-have-been-called-with "127.0.0.1" "9229" "http://test.com"))
+
+  (it "Should connect to a Chrome instance at HOST:PORT to url."
+    (spy-on 'indium-chrome--connect-to-url)
+    (indium-chrome-connect-to-url "http://test.com" "127.0.0.1" "1")
+    (expect #'indium-chrome--connect-to-url
+            :to-have-been-called-with "127.0.0.1" "1" "http://test.com")))
+
 (describe "Regression test for GH issue #97"
   (it "should not create multiple REPL buffers"
     (let ((buf (indium-repl-get-buffer-create)))
