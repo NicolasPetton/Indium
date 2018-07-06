@@ -43,31 +43,39 @@
      (indium-quit)))
 
   (it "should be able to start a node process and connect to it"
-    (expect indium-current-connection :to-be nil)
-    (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 2)
-    (expect indium-current-connection :not :to-be nil))
+    (with-indium-test-fs
+      (spy-on 'indium-workspace-root :and-return-value default-directory)
+      (expect indium-current-connection :to-be nil)
+      (indium-launch)
+      (sleep-for 2)
+      (expect indium-current-connection :not :to-be nil)))
 
   (it "should not try to open a new connection on process output"
-    (spy-on 'indium-nodejs--connect-to-process :and-call-through)
-    (expect indium-current-connection :to-be nil)
-    (indium-run-node "node ../fixtures/test-with-output.js")
-    (sleep-for 2)
-    (expect #'indium-nodejs--connect-to-process :to-have-been-called-times 1))
+    (with-indium-test-fs
+      (spy-on 'indium-workspace-root :and-return-value default-directory)
+      (spy-on 'indium-nodejs--connect-to-process :and-call-through)
+      (expect indium-current-connection :to-be nil)
+      (indium-launch)
+      (sleep-for 2)
+      (expect #'indium-nodejs--connect-to-process :to-have-been-called-times 1)))
 
   (it "should create a REPL buffer upon connection"
-    (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
-    (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 2)
-    (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil))
+    (with-indium-test-fs
+      (spy-on 'indium-workspace-root :and-return-value default-directory)
+      (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
+      (indium-launch)
+      (sleep-for 2)
+      (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil)))
 
   (it "should run hooks when opening a connection"
-    (spy-on 'foo)
-    (add-hook 'indium-connection-open-hook #'foo)
-    (indium-run-node "node ../fixtures/test.js")
-    (sleep-for 2)
-    (expect #'foo :to-have-been-called)
-    (remove-hook 'indium-connection-open-hook #'foo)))
+    (with-indium-test-fs
+      (spy-on 'indium-workspace-root :and-return-value default-directory)
+      (spy-on 'ignore)
+      (add-hook 'indium-connection-open-hook #'ignore)
+      (indium-launch)
+      (sleep-for 2)
+      (expect #'ignore :to-have-been-called)
+      (remove-hook 'indium-connection-open-hook #'ignore)))
 
-(provide 'indium-nodejs-integration-test)
+  (provide 'indium-nodejs-integration-test))
 ;;; indium-nodejs-integration-test.el ends here

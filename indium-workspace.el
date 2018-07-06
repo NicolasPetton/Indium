@@ -1,4 +1,4 @@
-;;; indium-workspace.el --- Use local files for debugging          -*- lexical-binding: t; -*-
+;;; indium-workspace.el --- Indium workspace management          -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2018  Nicolas Petton
 
@@ -20,82 +20,133 @@
 
 ;;; Commentary:
 
-;; Setup a workspace for using local files when debugging JavaScript.
+;; Indium workspace management.
 ;;
-;; Files are looked up using a special `.indium' file placed in the root directory
-;; of the files served.
-;;
+;; When connecting to a backend, Indium will lookup and read a project
+;; configuration file `.indium.json' in the project root directory.
 
-;;; Example:
+;;; .indium.json configuration file example:
+;;
+;; {
+;;   "configurations": [
+;; 	{
+;; 	  "name": "Chrome",
+;; 	  "type": "chrome",
+;; 	  "url": "http://localhost:3333/"
+;; 	},
+;; 	{
+;; 	  "name": "Node server",
+;; 	  "type": "node",
+;; 	  "command": "node ./src/server.js",
+;; 	  "inspect-brk": false
+;; 	}
+;; 	{
+;; 	  "name": "Gulp",
+;; 	  "type": "node",
+;; 	  "command": "node ./node_modules/gulp/bin/gulp.js default",
+;; 	  "inspect-brk": true
+;; 	}
+;;   ]
+;; }
 
-;; With the following directory structure:
+;;; Available settings:
 ;;
-;; project/ (current directory)
-;;    www/
-;;       index.html
-;;       css/
-;;          style.css
-;;       js/
-;;          app.js
-;;       .indium
+;; "type": Type of runtime (currently "node" or "chrome" are supported).
+;; "webRoot": Relative path to the root directory from where files are served.
 ;;
-;; For the following URL "http://localhost:3000/js/app.js"
-;; `indium-workspace-lookup-file' will return "./www/js/app.js".
+;; Chrome-specific settings
 ;;
-;; Previously used workspace directories are saved and stored in
-;; "~/.emacs.d/indium-workspaces.el".  You can change its location by
-;; customizing `indium-workspace-file'.
+;; "host": Host on which Chrome is running (defaults to "localhost").
+;; "port": Port on which Chrome is running (defaults to 9222).
+;; "url": Url to open when running `indium-run-chrome'.
 ;;
-;; To disable persisting the list of workspaces to a file, you can set
-;; `indium-workspace-use-workspace-file' to `nil'.  In this case,
-;; `indium-workspaces' can be manually set in your emacs.d.
+;; Nodejs-specific settings
+;;
+;; "command": Nodejs command to start a new process.  The `--inspect' flag will
+;;            be added automatically.
+;; "inspect-brk": Whether Indium should break at the first statement (true by
+;;            default).
+;; "host":    Host on which the Node inspector is listening (defaults to "localhost").
+;; "port":    Port on which the Node inspector is listening (defaults to 9229).
 
-
-;;
 ;;; Code:
-
+
 (require 'url)
 (require 'seq)
 (require 'map)
 (require 'subr-x)
+(require 'json)
 
 (require 'indium-structs)
 (require 'indium-backend)
 
 (declare-function indium-repl-get-buffer "indium-repl.el")
+(declare-function indium-connection-nodejs-p "indium-nodejs.el")
+
 
-(defgroup indium-workspace nil
-  "Indium workspace"
-  :prefix "indium-worspace-"
-  :group 'indium)
+(defvar indium-workspace-filename ".indium.json"
+  "Name of the configuration file containing the Indium project settings.")
 
-(defcustom indium-workspace-file (locate-user-emacs-file "indium-workspaces.el")
-  "Location of the file used to store previously used workspace directories."
-  :type 'file)
+(defvar indium-workspace-configuration nil
+  "Configuration in the settings file used for connecting.")
 
-(defcustom indium-workspace-use-workspace-file t
-  "Persist the list of worskpaces used in a file."
-  :type 'boolean)
+(defun indium-workspace-root ()
+  "Lookup the root workspace directory from the current buffer."
+  (locate-dominating-file default-directory
+			  indium-workspace-filename))
 
-(defvar indium-workspaces nil
-  "List of previously used workspace directories.")
+(defun indium-workspace-ensure-setup ()
+  "Signal an error no workspace file can be found."
+  (unless (indium-workspace-root)
+    (error "No file .indium.json found in the current project")))
 
-(defun indium-workspace-read ()
-  "Ask the user to select a workspace directory.
-If the current directory is within a workspace, simply return it
-without prompting the user.
+(defun indium-workspace-settings-file ()
+  "Lookup the filename of the settings file for the current workspace.
+Return nil if not found."
+  (when-let ((root (indium-workspace-root)))
+    (expand-file-name indium-workspace-filename
+		      root)))
 
-The selected workspace directory is added to the list of workspaces."
-  (when indium-workspace-use-workspace-file
-    (indium-workspace--read-workspaces-file))
-  (let ((workspace (or (indium-workspace-root)
-                       (when (and indium-workspaces
-                                  (y-or-n-p "No workspace found.  Select one? "))
-                         (completing-read "Choose a workspace: " indium-workspaces)))))
-    (when (and workspace indium-workspace-use-workspace-file)
-      (indium-workspace--add-directory workspace)
-      (indium-workspace--save-workspaces-file)
-      workspace)))
+(defun indium-workspace-settings ()
+  "Return the workspace settings read from the workspace file."
+  (indium-workspace-ensure-setup)
+  (with-temp-buffer
+    (insert-file-contents (indium-workspace-settings-file))
+    (goto-char (point-min))
+    (json-read)))
+
+(defmacro with-indium-workspace-configuration (&rest body)
+  "Promt the users for a configuration and evaluate BODY.
+During the evaluation of BODY, `indium-workspace-configuration'
+is set to the choosen configuration."
+  (declare (indent 0) (debug t))
+  `(let ((indium-workspace-configuration
+	  (or indium-workspace-configuration
+	      (indium-workspace--read-configuration))))
+     ,@body))
+
+(defun indium-workspace--read-configuration ()
+  "Prompt for the configuration used for connecting to a backend.
+If the settings file contains only one configuration, return it."
+  (let* ((settings (indium-workspace-settings))
+	 (configurations (map-elt settings 'configurations))
+	 (configuration-names (seq-map (lambda (configuration)
+					 (map-elt configuration 'name))
+				       configurations)))
+    (unless configurations
+      (user-error "No configuration provided in the project file"))
+    (if (= (seq-length configurations) 1)
+	(seq-elt configurations 0)
+      (let ((name (completing-read "Choose a configuration: "
+				   configuration-names
+				   nil
+				   t)))
+	(seq-find (lambda (configuration)
+		    (string-equal (map-elt configuration 'name)
+				  name))
+		  configurations)))))
+
+
 
 (defun indium-workspace-lookup-file (url &optional ignore-existence)
   "Return a local file matching URL for the current connection.
@@ -121,19 +172,14 @@ otherwise return the path of a file that does not exist."
   "Return a local file matching URL using the current Indium workspace.
 When IGNORE-EXISTENCE is non-nil, also match file paths that are
 not on disk."
-  ;; Make sure we are in the correct directory so that indium can find a
-  ;; ".indium" file.
-  ;;
-  ;; TODO: set the directory in the connection directly instead of relying on
-  ;; the REPL buffer
-  (with-current-buffer (indium-repl-get-buffer)
-    (if-let ((root (indium-workspace-root)))
-	(let* ((path (seq-drop (car (url-path-and-query
-				     (url-generic-parse-url url)))
-			       1))
-	       (file (expand-file-name path root)))
-	  (when (or ignore-existence (file-regular-p file))
-	    file)))))
+  (indium-workspace-ensure-setup)
+  (let* ((root (indium-workspace-root))
+	 (path (seq-drop (car (url-path-and-query
+			       (url-generic-parse-url url)))
+			 1))
+	 (file (expand-file-name path root)))
+    (when (or ignore-existence (file-regular-p file))
+      file)))
 
 (defun indium-workspace-make-url (file)
   "Return the url associated with the local FILE."
@@ -155,11 +201,12 @@ If the current connection doesn't use the file protocol, return nil."
 (defun indium-workspace--make-url-using-workspace (file)
   "Return the url associated with the local FILE.
 The url is built using `indium-workspace-root'."
-  (if-let ((root (indium-workspace-root)))
-      (let* ((url (indium-workspace--url-basepath (indium-current-connection-url)))
-             (path (file-relative-name file root)))
-        (setf (url-filename url) (indium-workspace--absolute-path path))
-        (url-recreate-url url))))
+  (indium-workspace-ensure-setup)
+  (let* ((root (indium-workspace-root))
+	 (url (indium-workspace--url-basepath (indium-current-connection-url)))
+         (path (file-relative-name file root)))
+    (setf (url-filename url) (indium-workspace--absolute-path path))
+    (url-recreate-url url)))
 
 (defun indium-workspace--file-protocol-p ()
   "Return non-nil if the current connection use the file protocol."
@@ -182,51 +229,6 @@ The path and query string of URL are stripped."
                            (url-host urlobj)
                            (url-port urlobj)
                            nil nil nil t)))
-
-(defun indium-workspace-root ()
-  "Lookup the root workspace directory from the current buffer."
-  (indium-workspace-locate-dominating-file default-directory ".indium"))
-
-(defun indium-workspace-locate-dominating-file (file name)
-  "Look up the directory hierarchy from FILE for a directory containing NAME.
-Stop at the first parent directory containing a file NAME,
-and return the directory.  Return nil if not found.
-Instead of a string, NAME can also be a predicate taking one argument
-\(a directory) and returning a non-nil value if that directory is the one for
-which we're looking."
-  ;; copied from projectile.el, itself copied from files.el (stripped comments)
-  ;; emacs-24 bzr branch 2014-03-28 10:20
-  (setq file (abbreviate-file-name file))
-  (let ((root nil)
-        try)
-    (while (not (or root
-                    (null file)
-                    (string-match locate-dominating-stop-dir-regexp file)))
-      (setq try (if (stringp name)
-                    (file-exists-p (expand-file-name name file))
-                  (funcall name file)))
-      (cond (try (setq root file))
-            ((equal file (setq file (file-name-directory
-                                     (directory-file-name file))))
-             (setq file nil))))
-    (and root (expand-file-name (file-name-as-directory root)))))
-
-(defun indium-workspace--add-directory (directory)
-  "Add DIRECTORY to the list of workspaces."
-  (add-to-list 'indium-workspaces directory))
-
-(defun indium-workspace--save-workspaces-file ()
-  "Save previously used workspace directories."
-  (make-directory (file-name-directory indium-workspace-file) t)
-  (with-temp-file indium-workspace-file
-    (emacs-lisp-mode)
-    (insert ";; This file is automatically generated by Indium.")
-    (newline)
-    (insert (format "(setq %s '%S)" "indium-workspaces" indium-workspaces))))
-
-(defun indium-workspace--read-workspaces-file ()
-  "Read the workspaces file and set `indium-worspaces'."
-  (load indium-workspace-file t))
 
 (provide 'indium-workspace)
 ;;; indium-workspace.el ends here

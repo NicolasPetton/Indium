@@ -21,12 +21,9 @@
 ;;; Commentary:
 
 ;; Handle indium connections to Chrom{e|ium} using the v8 backend.
-;;
-;; To open a Indium connection, enable chromium/chrome remote debugging:
-;;
-;;     chromium --remote-debugging-port=9222 https://gnu.org
 
 ;;; Code:
+
 
 (require 'url)
 (require 'json)
@@ -54,31 +51,57 @@
   "Chrome executable."
   :type '(file))
 
-(defcustom indium-chrome-port
+(defcustom indium-chrome-default-port
   9222
-  "Chrome remote debugger port."
+  "Default Chrome remote debugger port."
   :type '(integer))
+
+(defcustom indium-chrome-default-host
+  "localhost"
+  "Default Chrome remote debugger host."
+  :type '(string))
 
 (defvar indium-chrome-url-history nil
   "Chrome urls history.")
 
-;;;###autoload
-(defun indium-run-chrome (url)
-  "Start chrome/chromium with remote debugging enabled.
-Open URL if provided."
-  (interactive (list (completing-read "Url: "
-                                      nil
-                                      nil
-                                      nil
-                                      nil
-                                      'indium-chrome-url-history
-                                      (car indium-chrome-url-history))))
+(defun indium-connect-to-chrome ()
+  "Open a connection to a Chrome tab."
+  (when (or (null indium-current-connection)
+            (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
+    (when-indium-connected
+      (indium-quit))
+    (let* ((host (indium-chrome--host))
+	   (port (indium-chrome--port)))
+      (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab))))
+
+(defun indium-launch-chrome ()
+  "Start chrome/chromium with remote debugging enabled."
   (make-process :name "indium-chrome-process"
                 :command (list (indium-chrome--find-executable)
-                               (format "--remote-debugging-port=%s" indium-chrome-port)
-                               (or url "")))
+			       (format "--remote-debugging-port=%s"
+				       (indium-chrome--port))
+			       (indium-chrome--url)))
   (message "Connecting to Chrome instance...")
-  (indium-chrome--try-connect "127.0.0.1" 10))
+  (indium-chrome--try-connect 10))
+
+(defun indium-chrome--port ()
+  "Return the debugging port for the Chrome process.
+The port is either read from the workpace configuration file or
+`indium-chrome-default-port'."
+  (map-elt indium-workspace-configuration 'port indium-chrome-default-port))
+
+(defun indium-chrome--host ()
+  "Return the debugging host for the Chrome process.
+The host is either read from the workpace configuration file or
+`indium-chrome-default-host'."
+  (map-elt indium-workspace-configuration 'host indium-chrome-default-host))
+
+(defun indium-chrome--url ()
+  "Return the url to open for the Chrome process."
+  (let ((url (map-elt indium-workspace-configuration 'url)))
+    (unless url
+      (user-error "No Chrome url specified in the .indium.json file"))
+    url))
 
 (defun indium-chrome--find-executable ()
   "Find chrome executable using `indium-chrome-executable'."
@@ -87,31 +110,18 @@ Open URL if provided."
       (user-error "Cannot find chrome/chromium binary (%s) in PATH" indium-chrome-executable))
     executable))
 
-
-(defun indium-chrome--try-connect (host num-tries)
-  "Try to connect to chrome on HOST.
+(defun indium-chrome--try-connect (num-tries)
+  "Try to connect to chrome.
 Try a maximum of NUM-TRIES."
   (message "Trying to connect to the Chrome instance...")
   (sleep-for 1)
-  (indium-chrome--get-tabs-data host
-				indium-chrome-port
+  (indium-chrome--get-tabs-data (indium-chrome--host)
+				(indium-chrome--port)
 				(lambda (tabs)
 				  (if tabs
 				      (indium-chrome--connect-to-tab tabs)
 				    (when (> num-tries 0)
-				      (indium-chrome--try-connect host (1- num-tries)))))))
-
-;;;###autoload
-(defun indium-connect-to-chrome ()
-  "Open a connection to a v8 tab."
-  (interactive)
-  (when (or (null indium-current-connection)
-            (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
-    (when-indium-connected
-      (indium-quit))
-    (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
-          (port (read-from-minibuffer "Port: " (number-to-string indium-chrome-port))))
-      (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab))))
+				      (indium-chrome--try-connect (1- num-tries)))))))
 
 (defun indium-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
@@ -139,12 +149,8 @@ If there are more then one tab available ask the user which tab to connect."
   (let* ((tab (seq-find (lambda (tab)
                           (string= (map-elt tab 'url) url))
                         tabs))
-         (websocket-url (map-elt tab 'webSocketDebuggerUrl))
-         (workspace))
-    ;; No need to setup a workspace when using the file protocol.
-    (unless (string= (url-type (url-generic-parse-url url)) "file")
-      (setq workspace (indium-workspace-read)))
-    (indium-v8--open-ws-connection url websocket-url nil nil workspace)))
+         (websocket-url (map-elt tab 'webSocketDebuggerUrl)))
+    (indium-v8--open-ws-connection url websocket-url nil nil)))
 
 (defun indium-chrome--read-tab-data ()
   "Return the JSON tabs data in the current buffer."

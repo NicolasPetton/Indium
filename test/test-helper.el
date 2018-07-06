@@ -26,12 +26,16 @@
 
 (require 'seq)
 (require 'map)
+(require 'assess)
 
 (when (require 'undercover nil t)
   (setq undercover-force-coverage t)
   (undercover "*.el" (:exclude "run-lint.el" "test/*.el")))
 
 (advice-add 'undercover-report :after #'print-coverage-report-safe)
+
+(defvar indium-nodejs--test-fs
+  '((".indium.json" "{\"configurations\": [{\"type\": \"node\", \"command\": \"node\"}]}")))
 
 (defun print-coverage-report-safe (&rest _)
   (ignore-errors
@@ -86,17 +90,26 @@ a temporary file, which is removed afterwards."
   `(with-indium-connection (make-indium-connection :backend 'fake)
      ,@body))
 
-(defmacro with-nodejs-connection (&rest body)
-  "Run BODY within a NodeJS connection on a process on fixtures/test.js."
+(defmacro with-indium-test-fs (&rest body)
+  "Run BODY with filesystem set to `indium-nodejs--test-fs'."
+  (declare (indent 0) (debug t))
+  `(assess-with-filesystem indium-nodejs--test-fs
+     ,@body))
+
+(defmacro with-indium-nodejs-connection (&rest body)
+  "Run BODY within a NodeJS connection."
   (declare (indent 0))
   `(progn
      (ignore-errors (exec-path-from-shell-initialize))
-     (indium-run-node "node")
-     (wait-for-repl-buffer)
-     ,@body
-     (indium-quit)))
+     (with-indium-test-fs
+       (indium-launch)
+       (wait-for-repl-buffer)
+       ,@body
+       (indium-quit))))
 
 (defun wait-for-repl-buffer (&optional retry)
+  "Wait 200ms for the REPL buffer to be ready.
+If RETRY is the number of retries, is non-nil."
   (unless retry (setq retry 10))
   (sleep-for 0.2)
   (unless (or (get-buffer (indium-repl-buffer-name))
@@ -107,7 +120,7 @@ a temporary file, which is removed afterwards."
 (defmacro with-repl-buffer (&rest body)
   "Execute BODY within a REPL buffer with a NodeJS connection."
   (declare (indent 0))
-  `(with-nodejs-connection
+  `(with-indium-nodejs-connection
      (with-current-buffer (indium-repl-buffer-name)
        ,@body)))
 

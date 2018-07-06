@@ -21,10 +21,10 @@
 ;;; Commentary:
 
 ;; Minor mode for interacting with a JavaScript runtime.  This mode provides
-;; commands for managing breakpoints and evaluating code.
+;; commands connecting to a runtime, managing breakpoints and evaluating code.
 
 ;;; Code:
-
+
 (require 'js2-mode)
 (require 'map)
 (require 'seq)
@@ -32,6 +32,7 @@
 (require 'xref)
 (require 'easymenu)
 
+(require 'indium-workspace)
 (require 'indium-backend)
 (require 'indium-inspector)
 (require 'indium-breakpoint)
@@ -44,6 +45,28 @@
 
 (defvar indium-update-script-source-hook nil
   "Hook run when script source is updated.")
+
+
+;;;###autoload
+(defun indium-connect ()
+  "Open a new connection to a runtime."
+  (interactive)
+  (with-indium-workspace-configuration
+    (pcase (map-elt indium-workspace-configuration 'type)
+      ("node" (indium-connect-to-nodejs))
+      ("chrome" (indium-connect-to-chrome))
+      (_ (user-error "Invalid project type, check the .indium.json project file")))))
+
+;;;###autoload
+(defun indium-launch ()
+  "Start a process (web browser or NodeJS) and attempt to connect to it."
+  (interactive)
+  (with-indium-workspace-configuration
+    (pcase (map-elt indium-workspace-configuration 'type)
+      ("node" (indium-launch-node))
+      ("chrome" (indium-launch-chrome))
+      (_ (user-error "Invalid project type, check the .indium.json project file")))))
+
 (defun indium-quit ()
   "Close the current connection and kill its REPL buffer if any.
 If a process is attached to the connection, kill it as well.

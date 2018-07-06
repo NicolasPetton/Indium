@@ -41,7 +41,7 @@
       ;; Regression for GitHub issue #150
       (expect (indium-nodejs--add-flags "MY_ENV=\"val\" node foo")
 	      :to-equal "MY_ENV=\"val\" node --inspect foo"))
-    (let ((indium-nodejs-inspect-brkt))
+    (let ((indium-nodejs-inspect-brk))
       (expect (indium-nodejs--add-flags "node foo")
 	      :to-equal "node --inspect-brk foo")))
 

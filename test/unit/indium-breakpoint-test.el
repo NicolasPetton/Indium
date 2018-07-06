@@ -112,31 +112,34 @@
         (expect (indium-breakpoint--overlay-on-current-line) :to-be ov))))
 
   (it "can put a breakpoint on the current line"
-    (with-js2-buffer "let a = 1;"
-      (goto-char (point-min))
-      (expect (indium-breakpoint-on-current-line-p) :to-be nil)
-      (indium-breakpoint-add)
-      (expect (indium-breakpoint-on-current-line-p) :to-be-truthy)))
+    (with-indium-test-fs
+      (with-js2-buffer "let a = 1;"
+	(goto-char (point-min))
+	(expect (indium-breakpoint-on-current-line-p) :to-be nil)
+	(indium-breakpoint-add)
+	(expect (indium-breakpoint-on-current-line-p) :to-be-truthy))))
 
   (it "can edit a breakpoint on the current line"
     (spy-on #'read-from-minibuffer :and-return-value "new condition")
     (spy-on #'indium-breakpoint-remove :and-call-through)
     (spy-on #'indium-breakpoint-add :and-call-through)
-    (with-js2-buffer "let a = 1;"
-      (goto-char (point-min))
-      (indium-breakpoint-add "old condition")
-      (indium-breakpoint-edit-condition)
-      (expect #'read-from-minibuffer :to-have-been-called)
-      (expect #'indium-breakpoint-remove :to-have-been-called)
-      (expect #'indium-breakpoint-add :to-have-been-called-with "new condition"))))
+    (with-indium-test-fs
+      (with-js2-buffer "let a = 1;"
+	(goto-char (point-min))
+	(indium-breakpoint-add "old condition")
+	(indium-breakpoint-edit-condition)
+	(expect #'read-from-minibuffer :to-have-been-called)
+	(expect #'indium-breakpoint-remove :to-have-been-called)
+	(expect #'indium-breakpoint-add :to-have-been-called-with "new condition")))))
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"
-    (with-temp-buffer
-      (indium-breakpoint-add)
-      (let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
-        (indium-breakpoint-add)
-        (expect (seq-length (overlays-in (point-min) (point-max))) :to-equal number-of-overlays)))))
+    (with-indium-test-fs
+      (with-temp-buffer
+	(indium-breakpoint-add)
+	(let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
+          (indium-breakpoint-add)
+          (expect (seq-length (overlays-in (point-min) (point-max))) :to-equal number-of-overlays))))))
 
 (describe "Handling overlays in breakpoints"
   (it "adding overlays should store the overlay in the breakpoint"
@@ -162,45 +165,50 @@
 
 (describe "Keeping track of local breakpoints in buffers"
   (it "should track breakpoints when added"
-    (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
-	(indium-breakpoint-add)
-	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 1)
-	(expect (car (map-values indium-breakpoint--local-breakpoints)) :to-be (current-buffer)))))
+    (with-indium-test-fs
+      (with-js2-buffer "let a = 2;"
+	(let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
+	  (indium-breakpoint-add)
+	  (expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 1)
+	  (expect (car (map-values indium-breakpoint--local-breakpoints)) :to-be (current-buffer))))))
 
   (it "should untrack breakpoints when removed"
-    (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
-	(indium-breakpoint-add)
-	(indium-breakpoint-remove)
-	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0))))
+    (with-indium-test-fs
+      (with-js2-buffer "let a = 2;"
+	(let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
+	  (indium-breakpoint-add)
+	  (indium-breakpoint-remove)
+	  (expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0)))))
 
   (it "should untrack breakpoints when killing a buffer"
-    (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
-	(indium-breakpoint-add)
-	(kill-buffer)
-	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0))))
+    (with-indium-test-fs
+      (with-js2-buffer "let a = 2;"
+	(let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
+	  (indium-breakpoint-add)
+	  (kill-buffer)
+	  (expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0)))))
 
   (it "can get breakpoints by id"
-    (let ((indium-breakpoint--local-breakpoints (make-hash-table))
-	  (brk (make-indium-breakpoint :id 'foo)))
-      (map-put indium-breakpoint--local-breakpoints
-	       brk
-	       'bar)
-      (expect (indium-breakpoint-breakpoint-with-id 'foo) :to-be brk))))
+    (with-indium-test-fs
+      (let ((indium-breakpoint--local-breakpoints (make-hash-table))
+	    (brk (make-indium-breakpoint :id 'foo)))
+	(map-put indium-breakpoint--local-breakpoints
+		 brk
+		 'bar)
+	(expect (indium-breakpoint-breakpoint-with-id 'foo) :to-be brk)))))
 
 (describe "Breakpoint resolution"
   (it "should be able to unresolve breakpoints"
-    (with-js2-buffer "let a = 2;"
-      (let ((indium-breakpoint--local-breakpoints (make-hash-table)))
-	(indium-breakpoint-add)
-	(let ((brk (indium-breakpoint-at-point)))
-	  ;; Fake the resolution of the breakpoint
-	  (setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'foo)
-	  (expect (indium-breakpoint-unresolved-p brk) :to-be nil)
-	  (indium-breakpoint--unresolve-all-breakpoints)
-	  (expect (indium-breakpoint-unresolved-p brk) :to-be-truthy))))))
+    (with-indium-test-fs
+      (with-js2-buffer "let a = 2;"
+	(let ((indium-breakpoint--local-breakpoints (make-hash-table)))
+	  (indium-breakpoint-add)
+	  (let ((brk (indium-breakpoint-at-point)))
+	    ;; Fake the resolution of the breakpoint
+	    (setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'foo)
+	    (expect (indium-breakpoint-unresolved-p brk) :to-be nil)
+	    (indium-breakpoint--unresolve-all-breakpoints)
+	    (expect (indium-breakpoint-unresolved-p brk) :to-be-truthy)))))))
 
 (provide 'indium-breakpoint-test)
 ;;; indium-breakpoint-test.el ends here

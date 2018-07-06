@@ -288,7 +288,7 @@ Allowed states: `\"none\"', `\"uncaught\"', `\"all\"'."
   (setq indium-v8-cache-disabled t)
   (indium-v8--set-cache-disabled t))
 
-(defun indium-v8--open-ws-connection (url websocket-url &optional on-open nodejs workspace)
+(defun indium-v8--open-ws-connection (url websocket-url &optional on-open nodejs)
   "Open a websocket connection to URL using WEBSOCKET-URL.
 
 Evaluate ON-OPEN when the websocket is open, before setting up
@@ -298,15 +298,12 @@ In a Chrom{e|ium} session, URL corresponds to the url of a tab,
 and WEBSOCKET-URL to its associated `webSocketDebuggerUrl'.
 
 If NODEJS is non-nil, add a `nodejs' flag to the
-`indium-current-connection' to handle special cases.
-
-If WORKSPACE is non-nil, make it the workspace directory for that
-connection."
+`indium-current-connection' to handle special cases."
   (unless websocket-url
     (user-error "Cannot open connection, another devtools instance might be open"))
   (websocket-open websocket-url
                   :on-open (lambda (ws)
-			     (indium-v8--handle-ws-open ws url nodejs workspace)
+			     (indium-v8--handle-ws-open ws url nodejs)
 			     (when on-open
                                (funcall on-open)))
                   :on-message #'indium-v8--handle-ws-message
@@ -325,16 +322,14 @@ connection."
       (map-put (indium-connection-props conn) 'nodejs t))
     conn))
 
-(defun indium-v8--handle-ws-open (ws url nodejs workspace)
+(defun indium-v8--handle-ws-open (ws url nodejs)
   "Setup indium for a new connection for the websocket WS.
 URL points to the browser tab.
 
-If NODEJS is non-nil, set an extra property in the connection.
-If WORKSPACE is non-nil, make it the workspace used for the connection."
+If NODEJS is non-nil, set an extra property in the connection."
   (setq indium-current-connection (indium-v8--make-connection ws url nodejs))
   (indium-v8--enable-tools)
   (switch-to-buffer (indium-repl-get-buffer-create))
-  (when workspace (cd workspace))
   (run-hooks 'indium-connection-open-hook))
 
 (defun indium-v8--handle-ws-message (_ws frame)
