@@ -102,16 +102,20 @@ Try a maximum of NUM-TRIES."
 				      (indium-chrome--try-connect host (1- num-tries)))))))
 
 ;;;###autoload
-(defun indium-connect-to-chrome ()
-  "Open a connection to a v8 tab."
-  (interactive)
+(defun indium-connect-to-chrome (host port &optional close-existing)
+  "Open a connection to a v8 tab for HOST on PORT.  Close any existing connections first if CLOSE-EXISTING is truthy.
+
+Does nothing if an existing connection exists and CLOSE-EXISTING
+is nil."
+  (interactive (list (read-from-minibuffer "Host: " "127.0.0.1")
+                     (read-from-minibuffer "Port: " (number-to-string indium-chrome-port))
+                     (when indium-current-connection
+                       (yes-or-no-p "This requires closing the current connection.  Are you sure? "))))
   (when (or (null indium-current-connection)
-            (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
+            close-existing)
     (when-indium-connected
       (indium-quit))
-    (let ((host (read-from-minibuffer "Host: " "127.0.0.1"))
-          (port (read-from-minibuffer "Port: " (number-to-string indium-chrome-port))))
-      (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab))))
+    (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab)))
 
 (defun indium-chrome--get-tabs-data (host port callback)
   "Get the list of open tabs on HOST:PORT and evaluate CALLBACK with it."
