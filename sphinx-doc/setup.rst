@@ -3,6 +3,39 @@
 Getting up and running
 ======================
 
+.. _configuration_file:
+
+Project configuration
+---------------------
+
+Place a ``.indium.json`` file in the root folder of your JavaScript project.
+The project file can contain one or many configurations settings for NodeJS (see
+:ref:`nodejs_configuration`) and Chrome/Chromium (see
+:ref:`chrome_configuration`).
+
+Here is a minimalist ``.indium.json`` file.::
+     
+    {
+      "configurations": [
+        {
+	  "name": "Web project",
+	  "type": "chrome"
+	}
+      ]
+    }
+     
+.. _starting_indium:
+     
+Starting Indium
+---------------
+
+Indium can be started in two modes:
+
+- Connect: ``M-x indium-connect`` Connect indium to a running runtime from one
+  of the configurations in the ``.indium.json`` project file.
+- Launch: ``M-x indium-launch`` Start a JavaScript process (Chrome or NodeJS) as
+  specified from the configurations in the ``.indium.json`` project file.
+     
 .. _nodejs:
 
 NodeJS
@@ -28,7 +61,12 @@ you want: ::
 If you install NodeJS using ``nvm``, chances are that Emacs won't have it in its
 ``exec path``. A simple solution is to use the excellent `exec-path-from-shell
 <https://github.com/purcell/exec-path-from-shell>`_ package.
-  
+
+.. _nodejs_configuration:
+
+Configuring Indium for NodeJS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Executing NodeJS from Emacs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -90,10 +128,11 @@ Start Chrome/Chromium with the ``--remote-debugging-port`` flag like the followi
 Make sure that no instance of Chrome is already running, otherwise Chrome will
 simply open a new tab on the existing Chrome instance, and the
 ``remote-debugging-port`` will not be set.
-  
-To connect to a tab, run from Emacs: ::
 
-  M-x indium-connect-to-chrome
+.. _chrome_configuration:
+
+Configuring Indium for Chrome/Chromium
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _local-files:
   
