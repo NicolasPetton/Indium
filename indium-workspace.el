@@ -91,9 +91,16 @@
   "Configuration in the settings file used for connecting.")
 
 (defun indium-workspace-root ()
-  "Lookup the root workspace directory from the current buffer."
-  (locate-dominating-file default-directory
-			  indium-workspace-filename))
+  "Lookup the root workspace directory from the current buffer.
+
+If a connection is already open, return the `project-root' stored
+in that connection.
+
+If no connection is open yet, lookup workspace file and return
+its directory."
+  (or (indium-current-connection-project-root)
+      (locate-dominating-file default-directory
+			      indium-workspace-filename)))
 
 (defun indium-workspace-ensure-setup ()
   "Signal an error no workspace file can be found."

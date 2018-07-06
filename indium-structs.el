@@ -70,6 +70,7 @@
   (scripts (make-hash-table) :type hash-table)
   (frames nil :type list)
   (current-frame nil :type indium-frame)
+  (project-root nil :type string)
   ;; extra properties that can be added by the backend
   (props (make-hash-table) :type hash-table))
 
@@ -92,6 +93,11 @@
   "Return the process attached to the current connection if any."
   (when-indium-connected
     (indium-connection-process indium-current-connection)))
+
+(defun indium-current-connection-project-root ()
+  "Return the root directory of the current connection's project."
+  (when-indium-connected
+    (indium-connection-project-root indium-current-connection)))
 
 (cl-defmethod (setf indium-current-connection-process) (process)
   (when-indium-connected

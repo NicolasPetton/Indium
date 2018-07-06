@@ -316,7 +316,8 @@ If NODEJS is non-nil, add a `nodejs' extra property to the
 connection."
   (let ((conn (make-indium-connection
 	       :backend 'v8
-	       :url url)))
+	       :url url
+	       :project-root (indium-workspace-root))))
     (setf (indium-connection-ws conn) ws)
     (when nodejs
       (map-put (indium-connection-props conn) 'nodejs t))

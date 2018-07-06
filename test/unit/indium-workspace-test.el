@@ -32,59 +32,10 @@
     ("js" ("app.js")))
   "Fake filesystem used in workspace tests.")
 
-(describe "Reading and saving workspace directory list"
-  (it "can add a workspace directory"
-    (let ((indium-workspaces nil))
-      (indium-workspace--add-directory "foobar")
-      (expect indium-workspaces :to-equal '("foobar"))))
-
-  (it "can save and read the workspace file"
-    (with-temp-workspace-file
-      (let ((indium-workspaces nil))
-        (indium-workspace--add-directory "foobar")
-        (indium-workspace--save-workspaces-file)
-        (setq indium-workspaces nil)
-        (indium-workspace--read-workspaces-file)
-        (expect indium-workspaces :to-equal '("foobar")))))
-
-  (it "should read the workspace file when prompting for a workspace"
-    (let ((indium-workspace-use-workspace-file t))
-      (spy-on 'indium-workspace--read-workspaces-file)
-      (spy-on 'y-or-n-p)
-      (spy-on 'completing-read)
-      (indium-workspace-read)
-      (expect #'indium-workspace--read-workspaces-file
-              :to-have-been-called)))
-
-  (it "should write the workspace file when prompting for a workspace"
-    (let ((indium-workspace-use-workspace-file t))
-      (spy-on 'indium-workspace--read-workspaces-file)
-      (spy-on 'indium-workspace--save-workspaces-file)
-      (spy-on 'indium-workspace-root :and-return-value 'foo)
-      (spy-on 'y-or-n-p)
-      (spy-on 'completing-read)
-      (indium-workspace-read)
-      (expect #'indium-workspace--save-workspaces-file
-              :to-have-been-called)))
-
-  (it "should not read or write the workspace file if `indium-workspace-use-workspace-file' is nil"
-    (let ((indium-workspace-use-workspace-file nil))
-      (spy-on 'indium-workspace--read-workspaces-file)
-      (spy-on 'indium-workspace--save-workspaces-file)
-      (spy-on 'indium-workspace-root :and-return-value 'foo)
-      (spy-on 'y-or-n-p)
-      (spy-on 'completing-read)
-      (indium-workspace-read)
-      (expect #'indium-workspace--save-workspaces-file
-              :not :to-have-been-called)
-      (expect #'indium-workspace--read-workspaces-file
-              :not :to-have-been-called)))
-
-  (it "should not signal an error if the workspace file does not exist"
-    (let ((indium-workspace-use-workspace-file t)
-          (indium-workspace-file "foobarbaz"))
-      (expect (indium-workspace--read-workspaces-file)
-              :not :to-throw))))
+(describe "Workspace root"
+  (it "Returns the current connection's project root when there is a connection"
+    (let ((indium-current-connection (make-indium-connection :project-root 'foo)))
+      (expect (indium-workspace-root) :to-be 'foo))))
 
 (describe "Looking up files"
   (it "cannot lookup file when no workspace it set"
