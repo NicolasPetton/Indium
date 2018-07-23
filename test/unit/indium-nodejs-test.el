@@ -45,25 +45,7 @@
     ;; Regression for GitHub issue #150
     (spy-on #'indium-nodejs--command :and-return-value "ENV_VAR=\"VAL\" node foo")
     (expect (indium-nodejs--command-with-flags)
-	    :to-equal "ENV_VAR=\"VAL\" node --inspect-brk foo"))
-
-  (it "should kill the previous connection process when there is one"
-    (let ((indium-current-connection (make-indium-connection
-				      :process 'first-process)))
-      (spy-on #'indium-nodejs--command :and-return-value "node index.js")
-      (spy-on 'make-process :and-return-value 'second-process)
-      (spy-on 'y-or-n-p :and-return-value t)
-
-      (spy-on 'switch-to-buffer)
-      (spy-on 'kill-process)
-      (spy-on 'process-buffer)
-      (spy-on 'process-status :and-return-value 'run)
-      (spy-on 'indium-backend-close-connection)
-
-      (with-js2-file (indium-launch-nodejs))
-
-      (expect #'kill-process :to-have-been-called-with 'first-process)
-      (expect #'indium-backend-close-connection :to-have-been-called))))
+	    :to-equal "ENV_VAR=\"VAL\" node --inspect-brk foo")))
 
 (describe "Connecting to a NodeJS process"
   (it "should find the websocket URL from the process output"

@@ -56,21 +56,25 @@
 (defun indium-connect ()
   "Open a new connection to a runtime."
   (interactive)
-  (with-indium-workspace-configuration
-    (pcase (map-elt indium-workspace-configuration 'type)
-      ("node" (indium-connect-to-nodejs))
-      ("chrome" (indium-connect-to-chrome))
-      (_ (user-error "Invalid project type, check the .indium.json project file")))))
+  (indium-maybe-quit)
+  (unless-indium-connected
+    (with-indium-workspace-configuration
+      (pcase (map-elt indium-workspace-configuration 'type)
+	("node" (indium-connect-to-nodejs))
+	("chrome" (indium-connect-to-chrome))
+	(_ (user-error "Invalid project type, check the .indium.json project file"))))))
 
 ;;;###autoload
 (defun indium-launch ()
   "Start a process (web browser or NodeJS) and attempt to connect to it."
   (interactive)
-  (with-indium-workspace-configuration
-    (pcase (map-elt indium-workspace-configuration 'type)
-      ("node" (indium-launch-nodejs))
-      ("chrome" (indium-launch-chrome))
-      (_ (user-error "Invalid project type, check the .indium.json project file")))))
+  (indium-maybe-quit)
+  (unless-indium-connected
+    (with-indium-workspace-configuration
+      (pcase (map-elt indium-workspace-configuration 'type)
+	("node" (indium-launch-nodejs))
+	("chrome" (indium-launch-chrome))
+	(_ (user-error "Invalid project type, check the .indium.json project file"))))))
 
 (defun indium-quit ()
   "Close the current connection and kill its REPL buffer if any.

@@ -76,6 +76,23 @@
       (indium-reconnect)
        'foo)))
 
+(describe "Killing previous connections when connecting"
+  (it "should kill the previous connection process when there is one"
+    (let ((indium-current-connection (make-indium-connection
+				      :process 'first-process)))
+      (spy-on #'indium-connect-to-nodejs)
+      (spy-on 'y-or-n-p :and-return-value t)
+
+      (spy-on 'kill-process)
+      (spy-on 'process-buffer)
+      (spy-on 'process-status :and-return-value 'run)
+      (spy-on 'indium-backend-close-connection)
+
+      (with-js2-file (indium-launch))
+
+      (expect #'kill-process :to-have-been-called-with 'first-process)
+      (expect #'indium-backend-close-connection :to-have-been-called))))
+
 (describe "Finding the AST node to evaluate"
   (it "can find variable nodes"
     (with-js2-buffer "var foo = 2;\nfoo"

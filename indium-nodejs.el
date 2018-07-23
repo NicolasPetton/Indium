@@ -74,19 +74,15 @@ Execute the command based on `indium-nodejs--command', adding the
 connection on it.
 
 If `indium-nodejs--inspect-brk' is set to non-nil, break the
-execution at the first statement.
-
-If a connection is already open, close it."
-  (indium-maybe-quit)
-  (unless indium-current-connection
-    (let* ((default-directory (indium-workspace-root))
-	   (process (make-process :name "indium-nodejs-process"
-				 :buffer "*node process*"
-				 :filter #'indium-nodejs--process-filter
-				 :command (list shell-file-name
-						shell-command-switch
-						(indium-nodejs--command-with-flags)))))
-      (switch-to-buffer (process-buffer process)))))
+execution at the first statement."
+  (let* ((default-directory (indium-workspace-root))
+	 (process (make-process :name "indium-nodejs-process"
+				:buffer "*node process*"
+				:filter #'indium-nodejs--process-filter
+				:command (list shell-file-name
+					       shell-command-switch
+					       (indium-nodejs--command-with-flags)))))
+    (switch-to-buffer (process-buffer process))))
 
 (defun indium-connect-to-nodejs ()
   "Open a connection to an existing NodeJS process."

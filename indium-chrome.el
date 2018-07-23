@@ -66,13 +66,9 @@
 
 (defun indium-connect-to-chrome ()
   "Open a connection to a Chrome tab."
-  (when (or (null indium-current-connection)
-            (yes-or-no-p "This requires closing the current connection.  Are you sure? "))
-    (when-indium-connected
-      (indium-quit))
-    (let* ((host (indium-chrome--host))
-	   (port (indium-chrome--port)))
-      (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab))))
+  (let* ((host (indium-chrome--host))
+	 (port (indium-chrome--port)))
+    (indium-chrome--get-tabs-data host port #'indium-chrome--connect-to-tab)))
 
 (defun indium-launch-chrome ()
   "Start chrome/chromium with remote debugging enabled."
