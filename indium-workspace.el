@@ -112,10 +112,15 @@ If no connection is open yet, lookup the root directory as follows:
     \"root\") configuration option.
 
   - If no \"root\" option is set, it defaults to the directory
-    containing the \".indium.json\" project file."
-  (or (indium-current-connection-project-root)
-      (indium-workspace--root-from-configuration)
-      (indium-workspace--project-directory)))
+    containing the \".indium.json\" project file.
+
+If the root directory does not exist, signal an error."
+  (let ((root (or (indium-current-connection-project-root)
+		  (indium-workspace--root-from-configuration)
+		  (indium-workspace--project-directory))))
+    (unless (file-directory-p root)
+      (user-error "Project root directory does not exist"))
+    root))
 
 (defun indium-workspace--root-from-configuration ()
   "Return the root directory read from the project configuration.

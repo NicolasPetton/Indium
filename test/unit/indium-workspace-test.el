@@ -34,8 +34,10 @@
 
 (describe "Workspace root"
   (it "Returns the current connection's project root when there is a connection"
-    (let ((indium-current-connection (make-indium-connection :project-root 'foo)))
-      (expect (indium-workspace-root) :to-be 'foo)))
+    (assess-with-filesystem indium-workspace--test-fs
+      (let* ((root (expand-file-name "js"))
+	     (indium-current-connection (make-indium-connection :project-root root)))
+	(expect (indium-workspace-root) :to-be root))))
 
   (it "should default to the project directory when no \"root\" is defined"
     (assess-with-filesystem indium-workspace--test-fs
@@ -43,16 +45,24 @@
 	      (directory-file-name default-directory))))
 
   (it "should take the directory set in the \"root\" option"
-    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"root\": \"foo\"}]}"))
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"root\": \"foo\"}]}")
+			      ("foo" ("index.js")))
       (with-indium-workspace-configuration
 	(expect (directory-file-name (indium-workspace-root)) :to-equal
 		(directory-file-name (expand-file-name "foo" default-directory))))))
 
   (it "webRoot should be an alias for root"
-    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"webRoot\": \"foo\"}]}"))
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"webRoot\": \"foo\"}]}")
+			      ("foo" ("index.js")))
       (with-indium-workspace-configuration
 	(expect (directory-file-name (indium-workspace-root)) :to-equal
 		(directory-file-name (expand-file-name "foo" default-directory)))))))
+
+(describe "Invalid root directory"
+    (it "should signal an error when the root directory does not exist"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"webRoot\": \"foo\"}]}"))
+      (with-indium-workspace-configuration
+	(expect (indium-workspace-root) :to-throw)))))
 
 (describe "Choosing a configuration"
     (it "should not prompt for a configuration when there is only one"
