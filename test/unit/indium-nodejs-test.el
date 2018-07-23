@@ -29,27 +29,29 @@
     (spy-on 'switch-to-buffer)
     (spy-on 'process-buffer)
 
-    (spy-on 'indium-nodejs--add-flags)
-    (indium-run-node "node foo")
-    (expect #'indium-nodejs--add-flags
-            :to-have-been-called-with "node foo"))
+    (spy-on 'indium-nodejs--command-with-flags)
+    (indium-launch-nodejs)
+    (expect #'indium-nodejs--command-with-flags
+            :to-have-been-called-with))
 
-  (it "should append the flag after the reference to \"node\""
-    (let ((indium-nodejs-inspect-brk))
-      (expect (indium-nodejs--add-flags "node foo")
-	      :to-equal "node --inspect foo")
-      ;; Regression for GitHub issue #150
-      (expect (indium-nodejs--add-flags "MY_ENV=\"val\" node foo")
-	      :to-equal "MY_ENV=\"val\" node --inspect foo"))
-    (let ((indium-nodejs-inspect-brk))
-      (expect (indium-nodejs--add-flags "node foo")
-	      :to-equal "node --inspect-brk foo")))
+  (it "should append extra flags"
+    (spy-on #'indium-nodejs--command :and-return-value "node foo")
+    (expect (indium-nodejs--command-with-flags)
+	    :to-equal "node --inspect foo")
+    (spy-on #'indium-nodejs--inspect-brk :and-return-value t)
+    (expect (indium-nodejs--command-with-flags)
+	    :to-equal "node --inspect-brk foo")
+    ;; Regression for GitHub issue #150
+    (spy-on #'indium-nodejs--command :and-return-value "ENV_VAR=\"VAL\" node foo")
+    (expect (indium-nodejs--command-with-flags)
+	    :to-equal "ENV_VAR=\"VAL\" node --inspect-brk foo"))
 
   (it "should kill the previous connection process when there is one"
     (let ((indium-current-connection (make-indium-connection
 				      :process 'first-process)))
+      (spy-on #'indium-nodejs--command :and-return-value "node index.js")
       (spy-on 'make-process :and-return-value 'second-process)
-      (spy-on 'yes-or-no-p :and-return-value t)
+      (spy-on 'y-or-n-p :and-return-value t)
 
       (spy-on 'switch-to-buffer)
       (spy-on 'kill-process)
@@ -57,31 +59,10 @@
       (spy-on 'process-status :and-return-value 'run)
       (spy-on 'indium-backend-close-connection)
 
-      (indium-run-node "node foo")
+      (indium-launch-nodejs)
 
       (expect #'kill-process :to-have-been-called-with 'first-process)
       (expect #'indium-backend-close-connection :to-have-been-called))))
-
-(describe "Setting NodeJS debug flags"
-  (it "should set the `--inspect' flag when `indium-nodejs-inspect-brk' is nil"
-    (let (indium-nodejs-inspect-brk)
-     (expect (indium-nodejs--add-flags "node")
-	     :to-equal "node --inspect")))
-
-  (it "should set the `--inspect-brk' flag when `indium-nodejs-inspect-brk' is non-nil"
-    (let ((indium-nodejs-inspect-brk t))
-     (expect (indium-nodejs--add-flags "node")
-	     :to-equal "node --inspect-brk")))
-
-  (it "should insert the `--inspect' flag after the program name and before the arguments"
-    (let (indium-nodejs-inspect-brk)
-     (expect (indium-nodejs--add-flags "node app.js")
-	     :to-equal "node --inspect app.js")))
-
-  (it "should insert the `--inspect-brk' flag after the program name and before the arguments"
-    (let ((indium-nodejs-inspect-brk t))
-     (expect (indium-nodejs--add-flags "node app.js")
-	     :to-equal "node --inspect-brk app.js"))))
 
 (describe "Connecting to a NodeJS process"
   (it "should find the websocket URL from the process output"
@@ -92,73 +73,17 @@
       (expect #'indium-nodejs--connect
               :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f" 'process))))
 
-(describe "Connecting to a NodeJS process with URL."
-  (it "should connect to process using a url."
-    (spy-on 'indium-nodejs--connect)
-    (let ((url "ws://127.0.0.1:9229/43c07a90-1aed-4753-961d-1d449b21e84f"))
-      (indium-nodejs-connect-to-url url)
-      (expect #'indium-nodejs--connect
-              :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f"))))
-
-(describe "Restarting NodeJS processes"
-  (it "should signal an error when no connection"
-    (let (indium-current-connection)
-      (expect (indium-restart-node) :to-throw 'user-error)))
-
-  (it "should signal an error when not a nodejs connection"
-    (with-fake-indium-connection
-      (expect (indium-restart-node) :to-throw 'user-error)))
-
-  (it "should signal an error when no process is associated to the connection"
-    (with-fake-indium-connection
-      (map-put (indium-current-connection-props) 'nodejs t)
-      (setf (indium-current-connection-process) 'process)
-      (expect (indium-restart-node) :to-throw 'user-error)))
-
-  (it "should signal an error when no node command history"
-    ;; If the nodejs command history is empty, the user has never started a
-    ;; nodejs process through `indium-run-node', in which case we cannot know
-    ;; what command to restart.
-    (with-fake-indium-connection
-      (map-put (indium-current-connection-props) 'nodejs t)
-      (setf (indium-current-connection-process) 'process)
-      (let (indium-nodejs-commands-history)
-	(expect (indium-restart-node) :to-throw 'user-error))))
-
-  (it "should kill the current connection"
-    (with-fake-indium-connection
-      (map-put (indium-current-connection-props) 'nodejs t)
-      (setf (indium-current-connection-process) 'process)
-      (spy-on 'indium-run-node)
-      (spy-on 'indium-quit)
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
-      (let ((indium-nodejs-commands-history '("node foobar")))
-	(indium-restart-node)
-	(expect #'indium-quit :to-have-been-called))))
-
-  (it "should use the REPL buffer as the current buffer"
-    ;; when restarting the process, make sure to be in the current REPL buffer,
-    ;; so that the new process is started from the same current directory.
-    (with-fake-indium-connection
-      (map-put (indium-current-connection-props) 'nodejs t)
-      (setf (indium-current-connection-process) 'process)
-      (spy-on 'indium-run-node)
-      (spy-on 'indium-quit)
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
-      (let ((indium-nodejs-commands-history '("node foobar")))
-	(indium-restart-node)
-	(expect #'indium-repl-get-buffer :to-have-been-called))))
-
-  (it "should start call the first command in the history"
-    (with-fake-indium-connection
-      (map-put (indium-current-connection-props) 'nodejs t)
-      (setf (indium-current-connection-process) 'process)
-      (spy-on 'indium-run-node)
-      (spy-on 'indium-quit)
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
-      (let ((indium-nodejs-commands-history '("node foobar")))
-	(indium-restart-node)
-	(expect #'indium-run-node :to-have-been-called-with "node foobar")))))
+(describe "Connecting to a NodeJS process"
+  (it "should connect to process using a host, port and path."
+    (spy-on 'indium-v8--open-ws-connection)
+    (let ((path "43c07a90-1aed-4753-961d-1d449b21e84f"))
+      (indium-nodejs--connect "localhost" 9229 path)
+      (expect #'indium-v8--open-ws-connection
+              :to-have-been-called-with
+	      (format "file://%s" default-directory)
+	      "ws://localhost:9229/43c07a90-1aed-4753-961d-1d449b21e84f"
+	      nil
+	      t))))
 
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here

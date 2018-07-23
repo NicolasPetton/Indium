@@ -123,49 +123,39 @@
 
 (describe "Adding/removing invalid breakpoints"
   (it "should not try to add duplicate breakpoints"
-    (assess-with-filesystem '("app.js")
-      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
-	(with-current-buffer buf
-	  (insert "let a = 2;")
-	  (indium-add-breakpoint)
-	  (expect (indium-add-breakpoint) :to-throw 'user-error)))))
+    (with-js2-file
+      (insert "let a = 2;")
+      (indium-add-breakpoint)
+      (expect (indium-add-breakpoint) :to-throw 'user-error)))
 
   (it "should not try to remove non-existant breakpoints"
-    (assess-with-filesystem '("app.js")
-      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
-	(with-current-buffer buf
-	  (insert "let a = 2;")
-	  (expect (indium-remove-breakpoint) :to-throw 'user-error)))))
+    (with-js2-file
+      (insert "let a = 2;")
+      (expect (indium-remove-breakpoint) :to-throw 'user-error)))
 
   (it "should not try to edit non-existant breakpoints"
-    (assess-with-filesystem '("app.js")
-      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
-	(with-current-buffer buf
-	  (insert "let a = 2;")
-	  (expect (indium-edit-breakpoint-condition) :to-throw 'user-error)))))
+    (with-js2-file
+      (insert "let a = 2;")
+      (expect (indium-edit-breakpoint-condition) :to-throw 'user-error)))
 
   (it "should not try to add conditional breakpoints twice"
-    (assess-with-filesystem '("app.js")
-      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
-	(with-current-buffer buf
-	  (insert "let a = 2;")
-	  (indium-add-breakpoint)
-	  (expect (indium-add-conditional-breakpoint "true") :to-throw 'user-error))))))
+    (with-js2-file
+      (insert "let a = 2;")
+      (indium-add-breakpoint)
+      (expect (indium-add-conditional-breakpoint "true") :to-throw 'user-error))))
 
 (describe "Adding conditional breakpoints"
   (it "should call `indium-add-breakpoint' with a condition (GH issue #92)"
     (spy-on 'indium-add-breakpoint)
-    (assess-with-filesystem '("app.js")
-      (let ((buf (find-file-noselect (expand-file-name "app.js"))))
-	(with-current-buffer buf
-	  (insert "let a = 2;")
-	  (indium-add-conditional-breakpoint "foo")
-	  (expect #'indium-add-breakpoint :to-have-been-called-with "foo"))))))
+    (with-js2-file
+      (insert "let a = 2;")
+      (indium-add-conditional-breakpoint "foo")
+      (expect #'indium-add-breakpoint :to-have-been-called-with "foo"))))
 
 (describe "Interaction mode"
   (it "should remove breakpoints when killing a buffer"
     (spy-on 'indium-breakpoint-remove-breakpoints-from-current-buffer)
-    (with-js2-buffer "let a = 1;"
+    (with-js2-file
       (indium-add-breakpoint)
       (kill-buffer)
       (expect #'indium-breakpoint-remove-breakpoints-from-current-buffer :to-have-been-called))))

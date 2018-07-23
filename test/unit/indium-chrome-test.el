@@ -27,21 +27,6 @@
 (require 'buttercup)
 (require 'indium-chrome)
 
-(describe "Selecting a workspace"
-  (it "should ask for a workspace when using the HTTP protocol"
-    (spy-on 'websocket-url)
-    (spy-on 'indium-v8--open-ws-connection)
-    (spy-on 'indium-workspace-read)
-    (indium-chrome--connect-to-tab-with-url "http://foo.com" '())
-    (expect #'indium-workspace-read :to-have-been-called))
-
-  (it "should not ask for a workspace when using the file:// protocol"
-    (spy-on 'websocket-url)
-    (spy-on 'indium-v8--open-ws-connection)
-    (spy-on 'indium-workspace-read)
-    (indium-chrome--connect-to-tab-with-url "file:///home/foo" '())
-    (expect #'indium-workspace-read :not :to-have-been-called)))
-
 (describe "Reading tab data"
   (it "should be able to parse tab data"
     (let ((data "HTTP/1.1 200 OK
@@ -87,8 +72,9 @@
     (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
     (spy-on 'make-process)
     (spy-on 'indium-chrome--try-connect)
-    (let ((indium-chrome-port 9999))
-      (indium-run-chrome "foo.html"))
+    (spy-on 'indium-chrome--url :and-return-value "foo.html")
+    (spy-on 'indium-chrome--port :and-return-value 9999)
+    (indium-launch-chrome)
     (expect #'make-process
 	    :to-have-been-called-with
 	    :name "indium-chrome-process"
@@ -98,15 +84,16 @@
     (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
     (spy-on 'make-process)
     (spy-on 'indium-chrome--try-connect)
-    (let ((indium-chrome-port 9999))
-      (indium-run-chrome "foo.html"))
-    (expect #'indium-chrome--try-connect :to-have-been-called-with "127.0.0.1" 10)))
+    (spy-on 'indium-chrome--url :and-return-value "foo.html")
+    (spy-on 'indium-chrome--port :and-return-value 9999)
+    (indium-launch-chrome)
+    (expect #'indium-chrome--try-connect :to-have-been-called-with 10)))
 
 (describe "Connecting to a Chrome process"
   (it "Should wait between connection retries"
     (spy-on 'sleep-for)
     (spy-on 'indium-chrome--get-tabs-data)
-    (indium-chrome--try-connect "foo" 1)
+    (indium-chrome--try-connect 1)
     (expect #'sleep-for :to-have-been-called-with 1))
 
   (it "Should retry if the connection attempt fails"
@@ -116,9 +103,8 @@
 	    :and-call-fake
 	    (lambda (host port callback)
 	      (funcall callback nil)))
-    (indium-chrome--try-connect "foo" 1)
-    (expect #'indium-chrome--try-connect :to-have-been-called-times 2)
-    (expect #'indium-chrome--try-connect :to-have-been-called-with "foo" 0))
+    (indium-chrome--try-connect 1)
+    (expect #'indium-chrome--try-connect :to-have-been-called-times 2))
 
   (it "Should connect to a tab when found"
     (spy-on 'sleep-for)
@@ -127,7 +113,7 @@
 	    :and-call-fake
 	    (lambda (host port callback)
 	      (funcall callback 'tabs)))
-    (indium-chrome--try-connect "foo" 1)
+    (indium-chrome--try-connect 1)
     (expect #'indium-chrome--connect-to-tab :to-have-been-called-with 'tabs)))
 
 (describe "Regression test for GH issue #97"

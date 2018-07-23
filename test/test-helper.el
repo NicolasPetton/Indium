@@ -35,7 +35,8 @@
 (advice-add 'undercover-report :after #'print-coverage-report-safe)
 
 (defvar indium-nodejs--test-fs
-  '((".indium.json" "{\"configurations\": [{\"type\": \"node\", \"command\": \"node\"}]}")))
+  '((".indium.json" "{\"configurations\": [{\"type\": \"node\", \"command\": \"node\"}]}")
+    ("index.js" "console.log('foo')")))
 
 (defun print-coverage-report-safe (&rest _)
   (ignore-errors
@@ -95,6 +96,19 @@ a temporary file, which is removed afterwards."
   (declare (indent 0) (debug t))
   `(assess-with-filesystem indium-nodejs--test-fs
      ,@body))
+
+(defmacro with-js2-file (&rest body)
+  "Evaluate BODY.
+The current buffer is set to the \"index.js\" file from
+`indium-nodejs--test-fs' during the evaluation of BODY."
+  (declare (indent 0))
+  `(with-indium-test-fs
+     (with-current-buffer (find-file-noselect "index.js")
+       (goto-char (point-min))
+       (js2-mode)
+       (js2-parse)
+       (indium-interaction-mode 1)
+       ,@body)))
 
 (defmacro with-indium-nodejs-connection (&rest body)
   "Run BODY within a NodeJS connection."

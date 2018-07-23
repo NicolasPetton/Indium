@@ -28,7 +28,7 @@
 (require 'indium-workspace)
 
 (defvar indium-workspace--test-fs
-  '(".indium"
+  '(".indium.json"
     ("js" ("app.js")))
   "Fake filesystem used in workspace tests.")
 
@@ -39,40 +39,33 @@
 
 (describe "Looking up files"
   (it "cannot lookup file when no workspace it set"
-    (spy-on 'indium-workspace-root :and-return-value nil)
-    (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
     (expect (indium-workspace-lookup-file "http://localhost:9229/foo/bar")
-      :to-be nil))
+	    :to-throw))
 
   (it "can lookup file with .indium marker file"
     (assess-with-filesystem indium-workspace--test-fs
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
       (expect (indium-workspace-lookup-file "http://localhost:9229/js/app.js")
         :to-equal (expand-file-name "js/app.js"))))
 
   (it "should ignore query strings from urls when looking up files"
     (assess-with-filesystem indium-workspace--test-fs
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
       (expect (indium-workspace-lookup-file "http://localhost:9229/js/app.js?foo=bar")
         :to-equal (expand-file-name "js/app.js"))))
 
   (it "cannot find a file that does not exist"
     (assess-with-filesystem indium-workspace--test-fs
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
       (expect (indium-workspace-lookup-file "http://localhost:9229/non-existant-file-name.js")
         :to-be nil))))
 
 (describe "Looking up files safely"
   (it "should fallback to the url when no file can be found"
     (assess-with-filesystem indium-workspace--test-fs
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
       (let ((url "http://localhost:9229/non-existant-file-name.js"))
         (expect (indium-workspace-lookup-file-safe url)
           :to-equal url))))
 
   (it "can lookup files that exist"
     (assess-with-filesystem indium-workspace--test-fs
-      (spy-on 'indium-repl-get-buffer :and-return-value (current-buffer))
       (let ((url "http://localhost:9229/js/app.js")
             (file (expand-file-name "js/app.js")))
         (expect (indium-workspace-lookup-file-safe url)
@@ -82,7 +75,7 @@
   (it "cannot make a url when no workspace is set"
     (with-indium-connection (make-indium-connection :url "http://localhost:9229")
       (expect (indium-workspace-make-url "js/app.js")
-        :to-be nil)))
+              :to-throw)))
 
   (it "can make workspace urls"
     (with-indium-connection (make-indium-connection :url "http://localhost:9229")
