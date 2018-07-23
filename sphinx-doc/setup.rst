@@ -134,6 +134,8 @@ simply open a new tab on the existing Chrome instance, and the
 Configuring Indium for Chrome/Chromium
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+TODO: webRoot and default root directory.
+
 .. _local-files:
   
 Using local files when debugging

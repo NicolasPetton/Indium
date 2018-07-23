@@ -37,8 +37,6 @@
 (require 'indium-v8)
 (require 'indium-workspace)
 
-(declare-function indium-repl-get-buffer "indium-repl.el")
-
 (defgroup indium-nodejs nil
   "Indium NodeJS."
   :prefix "indium-nodejs-"

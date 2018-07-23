@@ -81,7 +81,6 @@
 (require 'indium-structs)
 (require 'indium-backend)
 
-(declare-function indium-repl-get-buffer "indium-repl.el")
 (declare-function indium-connection-nodejs-p "indium-nodejs.el")
 
 

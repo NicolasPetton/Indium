@@ -116,10 +116,5 @@
     (indium-chrome--try-connect 1)
     (expect #'indium-chrome--connect-to-tab :to-have-been-called-with 'tabs)))
 
-(describe "Regression test for GH issue #97"
-  (it "should not create multiple REPL buffers"
-    (let ((buf (indium-repl-get-buffer-create)))
-      (expect (indium-repl-get-buffer-create) :to-be buf))))
-
 (provide 'indium-chrome-test)
 ;;; indium-chrome-test.el ends here

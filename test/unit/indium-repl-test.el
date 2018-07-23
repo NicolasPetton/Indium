@@ -46,5 +46,10 @@
       (indium-repl-pop-buffer)
       (expect #'pop-to-buffer :to-have-been-called-with 'from t))))
 
+(describe "Regression test for GH issue #97"
+  (it "should not create multiple REPL buffers"
+    (let ((buf (indium-repl-get-buffer-create)))
+      (expect (indium-repl-get-buffer-create) :to-be buf))))
+
 (provide 'indium-repl-test)
 ;;; indium-repl-test.el ends here
