@@ -28,21 +28,38 @@
 (require 'indium-workspace)
 
 (defvar indium-workspace--test-fs
-  '(".indium.json"
+  '((".indium.json" "{\"configurations\": [{}]}")
     ("js" ("app.js")))
   "Fake filesystem used in workspace tests.")
 
 (describe "Workspace root"
   (it "Returns the current connection's project root when there is a connection"
     (let ((indium-current-connection (make-indium-connection :project-root 'foo)))
-      (expect (indium-workspace-root) :to-be 'foo))))
+      (expect (indium-workspace-root) :to-be 'foo)))
+
+  (it "should default to the project directory when no \"root\" is defined"
+    (assess-with-filesystem indium-workspace--test-fs
+      (expect (directory-file-name (indium-workspace-root)) :to-equal
+	      (directory-file-name default-directory))))
+
+  (it "should take the directory set in the \"root\" option"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"root\": \"foo\"}]}"))
+      (with-indium-workspace-configuration
+	(expect (directory-file-name (indium-workspace-root)) :to-equal
+		(directory-file-name (expand-file-name "foo" default-directory))))))
+
+  (it "webRoot should be an alias for root"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"webRoot\": \"foo\"}]}"))
+      (with-indium-workspace-configuration
+	(expect (directory-file-name (indium-workspace-root)) :to-equal
+		(directory-file-name (expand-file-name "foo" default-directory)))))))
 
 (describe "Looking up files"
   (it "cannot lookup file when no workspace it set"
     (expect (indium-workspace-lookup-file "http://localhost:9229/foo/bar")
 	    :to-throw))
 
-  (it "can lookup file with .indium marker file"
+  (it "can lookup file with an empty .indium.json marker file"
     (assess-with-filesystem indium-workspace--test-fs
       (expect (indium-workspace-lookup-file "http://localhost:9229/js/app.js")
         :to-equal (expand-file-name "js/app.js"))))

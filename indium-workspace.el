@@ -52,7 +52,8 @@
 ;;; Available settings:
 ;;
 ;; "type": Type of runtime (currently "node" or "chrome" are supported).
-;; "webRoot": Relative path to the root directory from where files are served.
+;; "root": Relative path to the root directory from where files are served.
+;;         Alias: "webRoot".
 ;;
 ;; Chrome-specific settings
 ;;
@@ -90,38 +91,6 @@
 (defvar indium-workspace-configuration nil
   "Configuration in the settings file used for connecting.")
 
-(defun indium-workspace-root ()
-  "Lookup the root workspace directory from the current buffer.
-
-If a connection is already open, return the `project-root' stored
-in that connection.
-
-If no connection is open yet, lookup workspace file and return
-its directory."
-  (or (indium-current-connection-project-root)
-      (locate-dominating-file default-directory
-			      indium-workspace-filename)))
-
-(defun indium-workspace-ensure-setup ()
-  "Signal an error no workspace file can be found."
-  (unless (indium-workspace-root)
-    (error "No file .indium.json found in the current project")))
-
-(defun indium-workspace-settings-file ()
-  "Lookup the filename of the settings file for the current workspace.
-Return nil if not found."
-  (when-let ((root (indium-workspace-root)))
-    (expand-file-name indium-workspace-filename
-		      root)))
-
-(defun indium-workspace-settings ()
-  "Return the workspace settings read from the workspace file."
-  (indium-workspace-ensure-setup)
-  (with-temp-buffer
-    (insert-file-contents (indium-workspace-settings-file))
-    (goto-char (point-min))
-    (json-read)))
-
 (defmacro with-indium-workspace-configuration (&rest body)
   "Promt the users for a configuration and evaluate BODY.
 During the evaluation of BODY, `indium-workspace-configuration'
@@ -131,6 +100,57 @@ is set to the choosen configuration."
 	  (or indium-workspace-configuration
 	      (indium-workspace--read-configuration))))
      ,@body))
+
+(defun indium-workspace-root ()
+  "Lookup the root workspace directory from the current buffer.
+
+If a connection is already open, return the `project-root' stored
+in that connection.
+
+If no connection is open yet, lookup the root directory as follows:
+
+  - The root directory is specified by the \"webRoot\" (alias
+    \"root\") configuration option.
+
+  - If no \"root\" option is set, it defaults to the directory
+    containing the \".indium.json\" project file."
+  (or (indium-current-connection-project-root)
+      (indium-workspace--root-from-configuration)
+      (indium-workspace--project-directory)))
+
+(defun indium-workspace--root-from-configuration ()
+  "Return the root directory read from the project configuration.
+If no root is specified, return nil."
+  (with-indium-workspace-configuration
+    (when-let ((root (or (map-elt indium-workspace-configuration 'root)
+			 (map-elt indium-workspace-configuration 'webRoot))))
+      (expand-file-name root (indium-workspace--project-directory)))))
+
+(defun indium-workspace--project-directory ()
+  "Return the directory containing the \".indium.json\" file."
+  (locate-dominating-file default-directory
+			  indium-workspace-filename))
+
+(defun indium-workspace-ensure-setup ()
+  "Signal an error no workspace file can be found."
+  (unless (indium-workspace--project-directory)
+    (error "No file .indium.json found in the current project")))
+
+(defun indium-workspace-settings-file ()
+  "Lookup the filename of the settings file for the current workspace.
+Return nil if not found."
+  (when-let ((dir (indium-workspace--project-directory)))
+    (expand-file-name indium-workspace-filename
+		      dir)))
+
+(defun indium-workspace-settings ()
+  "Return the workspace settings read from the workspace file."
+  (indium-workspace-ensure-setup)
+  (with-temp-buffer
+    (insert-file-contents (indium-workspace-settings-file))
+    (goto-char (point-min))
+    (ignore-errors
+      (json-read))))
 
 (defun indium-workspace--read-configuration ()
   "Prompt for the configuration used for connecting to a backend.

@@ -28,7 +28,7 @@
 (require 'indium-workspace)
 
 (defvar indium-script--test-fs
-  '(".indium.json"
+  '((".indium.json" "{\"configurations\": [{}]}")
     ("js" ("foo.js" "foo.js.map" "bar.js")))
   "Fake filesystem used in script tests.")
 

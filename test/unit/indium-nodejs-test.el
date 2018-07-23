@@ -30,7 +30,8 @@
     (spy-on 'process-buffer)
 
     (spy-on 'indium-nodejs--command-with-flags)
-    (indium-launch-nodejs)
+
+    (with-js2-file (indium-launch-nodejs))
     (expect #'indium-nodejs--command-with-flags
             :to-have-been-called-with))
 
@@ -59,7 +60,7 @@
       (spy-on 'process-status :and-return-value 'run)
       (spy-on 'indium-backend-close-connection)
 
-      (indium-launch-nodejs)
+      (with-js2-file (indium-launch-nodejs))
 
       (expect #'kill-process :to-have-been-called-with 'first-process)
       (expect #'indium-backend-close-connection :to-have-been-called))))
