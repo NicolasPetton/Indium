@@ -54,6 +54,19 @@
 	(expect (directory-file-name (indium-workspace-root)) :to-equal
 		(directory-file-name (expand-file-name "foo" default-directory)))))))
 
+(describe "Choosing a configuration"
+    (it "should not prompt for a configuration when there is only one"
+      (assess-with-filesystem '((".indium.json" "{\"configurations\": [{}]}"))
+	(spy-on #'completing-read)
+	(indium-workspace--read-configuration)
+	(expect #'completing-read :not :to-have-been-called)))
+
+  (it "should prompt for a configuration when there are many"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"name\": \"a\"}, {\"name\": \"b\"}]}"))
+      (spy-on #'completing-read)
+      (indium-workspace--read-configuration)
+      (expect #'completing-read :to-have-been-called-with "Choose a configuration: " '("a" "b") nil t))))
+
 (describe "Looking up files"
   (it "cannot lookup file when no workspace it set"
     (expect (indium-workspace-lookup-file "http://localhost:9229/foo/bar")

@@ -26,8 +26,57 @@
 
 (require 'indium-interaction)
 
-(describe "Finding the AST node to evaluate"
+(describe "Launching and connecting Indium"
+  (it "should fail to connect when there is no .indium.json file"
+    (assess-with-filesystem '()
+      (expect (indium-connect) :to-throw)))
 
+  (it "should fail to connect with an invalid project type"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"type\": \"foo\"}]}"))
+      (expect (indium-connect) :to-throw)))
+
+  (it "should call `indium-connect-to-nodejs' for node projects"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"type\": \"node\"}]}"))
+      (spy-on #'indium-connect-to-nodejs)
+      (indium-connect)
+      (expect #'indium-connect-to-nodejs :to-have-been-called-times 1)))
+
+  (it "should call `indium-connect-to-chrome' for chrome projects"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"type\": \"chrome\"}]}"))
+      (spy-on #'indium-connect-to-chrome)
+      (indium-connect)
+      (expect #'indium-connect-to-chrome :to-have-been-called-times 1)))
+
+  (it "should fail to launch when there is no .indium.json file"
+    (assess-with-filesystem '()
+      (expect (indium-launch) :to-throw)))
+
+  (it "should fail to launch with an invalid project type"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"type\": \"foo\"}]}"))
+      (expect (indium-launch) :to-throw)))
+
+  (it "should call `indium-launch-nodejs' for node projects"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"type\": \"node\"}]}"))
+      (spy-on #'indium-launch-nodejs)
+      (indium-launch)
+      (expect #'indium-launch-nodejs :to-have-been-called-times 1)))
+
+  (it "should call `indium-launch-chrome' for chrome projects"
+    (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"type\": \"chrome\"}]}"))
+      (spy-on #'indium-launch-chrome)
+      (indium-launch)
+      (expect #'indium-launch-chrome :to-have-been-called-times 1)))
+
+  (it "should fail to reconnect when there is no active connection"
+    (expect (indium-reconnect) :to-throw))
+
+  (it "should call `indium-backend-reconnect' when reconnecting"
+    (let ((indium-current-connection (make-indium-connection :backend 'foo)))
+      (spy-on #'indium-backend-reconnect)
+      (indium-reconnect)
+       'foo)))
+
+(describe "Finding the AST node to evaluate"
   (it "can find variable nodes"
     (with-js2-buffer "var foo = 2;\nfoo"
       (expect (js2-node-string (indium-interaction-node-before-point))
