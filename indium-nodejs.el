@@ -66,7 +66,7 @@ The command is read from the workspace configuration file."
       (user-error "No NodeJS command specified in the .indium.json file"))
     command))
 
-(defun indium-launch-node ()
+(defun indium-launch-nodejs ()
   "Start a NodeJS process.
 
 Execute the command based on `indium-nodejs--command', adding the

@@ -63,7 +63,7 @@
   (interactive)
   (with-indium-workspace-configuration
     (pcase (map-elt indium-workspace-configuration 'type)
-      ("node" (indium-launch-node))
+      ("node" (indium-launch-nodejs))
       ("chrome" (indium-launch-chrome))
       (_ (user-error "Invalid project type, check the .indium.json project file")))))
 
