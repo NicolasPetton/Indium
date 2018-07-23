@@ -51,12 +51,12 @@
 (defcustom indium-nodejs-default-host
   "localhost"
   "Default NodeJS remote debugger host."
-  :type '(string))
+  :type 'string)
 
 (defcustom indium-nodejs-default-port
   9229
   "Default NodeJS remote debugger port."
-  :type '(integer))
+  :type 'integer)
 
 (defun indium-nodejs--command ()
   "Return the command to be run to start a node process.
