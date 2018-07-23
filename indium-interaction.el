@@ -43,6 +43,11 @@
 (declare-function indium-backend-deactivate-breakpoints "indium-backend.el")
 (declare-function indium-workspace-make-url "indium-workspace.el")
 
+(declare-function indium-connect-to-chrome "indium-chrome.el")
+(declare-function indium-connect-to-nodejs "indium-nodejs.el")
+(declare-function indium-launch-chrome "indium-chrome.el")
+(declare-function indium-launch-nodejs "indium-nodejs.el")
+
 (defvar indium-update-script-source-hook nil
   "Hook run when script source is updated.")
 
