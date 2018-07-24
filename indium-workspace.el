@@ -107,16 +107,17 @@
   "Name of the configuration file containing the Indium project settings.")
 
 (defvar indium-workspace-configuration nil
-  "Configuration in the settings file used for connecting.")
+  "Configuration in the settings file used for connecting.
+Do not set this variable directly.")
 
 (defmacro with-indium-workspace-configuration (&rest body)
   "Promt the users for a configuration and evaluate BODY.
 During the evaluation of BODY, `indium-workspace-configuration'
 is set to the choosen configuration."
   (declare (indent 0) (debug t))
-  `(let ((indium-workspace-configuration
-	  (or indium-workspace-configuration
-	      (indium-workspace--read-configuration))))
+  `(progn
+     (unless indium-workspace-configuration
+       (indium-workspace-read-configuration))
      ,@body))
 
 (defun indium-workspace-root ()
@@ -144,10 +145,9 @@ If the root directory does not exist, signal an error."
 (defun indium-workspace--root-from-configuration ()
   "Return the root directory read from the project configuration.
 If no root is specified, return nil."
-  (with-indium-workspace-configuration
-    (when-let ((root (or (map-elt indium-workspace-configuration 'root)
-			 (map-elt indium-workspace-configuration 'webRoot))))
-      (expand-file-name root (indium-workspace--project-directory)))))
+  (when-let ((root (or (map-elt indium-workspace-configuration 'root)
+		       (map-elt indium-workspace-configuration 'webRoot))))
+    (expand-file-name root (indium-workspace--project-directory))))
 
 (defun indium-workspace--project-directory ()
   "Return the directory containing the \".indium.json\" file."
@@ -175,9 +175,10 @@ Return nil if not found."
     (ignore-errors
       (json-read))))
 
-(defun indium-workspace--read-configuration ()
+(defun indium-workspace-read-configuration ()
   "Prompt for the configuration used for connecting to a backend.
-If the settings file contains only one configuration, return it."
+Set `indium-workspace-configuration' to the choosen configuration.
+If the settings file contains only one configuration, set it."
   (let* ((settings (indium-workspace-settings))
 	 (configurations (map-elt settings 'configurations))
 	 (configuration-names (seq-map (lambda (configuration)
@@ -185,16 +186,17 @@ If the settings file contains only one configuration, return it."
 				       configurations)))
     (unless configurations
       (user-error "No configuration provided in the project file"))
-    (if (= (seq-length configurations) 1)
-	(seq-elt configurations 0)
-      (let ((name (completing-read "Choose a configuration: "
-				   configuration-names
-				   nil
-				   t)))
-	(seq-find (lambda (configuration)
-		    (string-equal (map-elt configuration 'name)
-				  name))
-		  configurations)))))
+    (setq indium-workspace-configuration
+	  (if (= (seq-length configurations) 1)
+	      (seq-elt configurations 0)
+	    (let ((name (completing-read "Choose a configuration: "
+					 configuration-names
+					 nil
+					 t)))
+	      (seq-find (lambda (configuration)
+			  (string-equal (map-elt configuration 'name)
+					name))
+			configurations))))))
 
 
 

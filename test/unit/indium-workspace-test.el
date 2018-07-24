@@ -33,6 +33,9 @@
   "Fake filesystem used in workspace tests.")
 
 (describe "Workspace root"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
   (it "Returns the current connection's project root when there is a connection"
     (assess-with-filesystem indium-workspace--test-fs
       (let* ((root (expand-file-name "js"))
@@ -59,22 +62,28 @@
 		(directory-file-name (expand-file-name "foo" default-directory)))))))
 
 (describe "Invalid root directory"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
     (it "should signal an error when the root directory does not exist"
     (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"webRoot\": \"foo\"}]}"))
       (with-indium-workspace-configuration
 	(expect (indium-workspace-root) :to-throw)))))
 
 (describe "Choosing a configuration"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
     (it "should not prompt for a configuration when there is only one"
       (assess-with-filesystem '((".indium.json" "{\"configurations\": [{}]}"))
 	(spy-on #'completing-read)
-	(indium-workspace--read-configuration)
+	(indium-workspace-read-configuration)
 	(expect #'completing-read :not :to-have-been-called)))
 
   (it "should prompt for a configuration when there are many"
     (assess-with-filesystem '((".indium.json" "{\"configurations\": [{\"name\": \"a\"}, {\"name\": \"b\"}]}"))
       (spy-on #'completing-read)
-      (indium-workspace--read-configuration)
+      (indium-workspace-read-configuration)
       (expect #'completing-read :to-have-been-called-with "Choose a configuration: " '("a" "b") nil t))))
 
 (describe "Looking up files"
@@ -112,6 +121,9 @@
           :to-equal file)))))
 
 (describe "Making workspace urls from file names"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
   (it "cannot make a url when no workspace is set"
     (with-indium-connection (make-indium-connection :url "http://localhost:9229")
       (expect (indium-workspace-make-url "js/app.js")
@@ -156,6 +168,9 @@
 	  (expect #'convert-standard-filename :to-have-been-called-with file))))))
 
 (describe "File protocol"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
   (it "can lookup files using the file:// protocol"
     (assess-with-filesystem indium-workspace--test-fs
       (with-indium-connection (make-indium-connection :url "file:///foo/bar/index.html")

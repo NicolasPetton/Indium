@@ -58,11 +58,11 @@
   (interactive)
   (indium-maybe-quit)
   (unless-indium-connected
-    (with-indium-workspace-configuration
-      (pcase (map-elt indium-workspace-configuration 'type)
-	("node" (indium-connect-to-nodejs))
-	("chrome" (indium-connect-to-chrome))
-	(_ (user-error "Invalid project type, check the .indium.json project file"))))))
+    (indium-workspace-read-configuration)
+    (pcase (map-elt indium-workspace-configuration 'type)
+      ("node" (indium-connect-to-nodejs))
+      ("chrome" (indium-connect-to-chrome))
+      (_ (user-error "Invalid project type, check the .indium.json project file")))))
 
 ;;;###autoload
 (defun indium-launch ()
@@ -70,11 +70,11 @@
   (interactive)
   (indium-maybe-quit)
   (unless-indium-connected
-    (with-indium-workspace-configuration
-      (pcase (map-elt indium-workspace-configuration 'type)
-	("node" (indium-launch-nodejs))
-	("chrome" (indium-launch-chrome))
-	(_ (user-error "Invalid project type, check the .indium.json project file"))))))
+    (indium-workspace-read-configuration)
+    (pcase (map-elt indium-workspace-configuration 'type)
+      ("node" (indium-launch-nodejs))
+      ("chrome" (indium-launch-chrome))
+      (_ (user-error "Invalid project type, check the .indium.json project file")))))
 
 (defun indium-quit ()
   "Close the current connection and kill its REPL buffer if any.
@@ -93,7 +93,8 @@ When called interactively, prompt for a confirmation first."
 		 (memq (process-status process)
 		       '(run stop open listen)))
 	(kill-process process))
-      (setq indium-current-connection nil))))
+      (setq indium-current-connection nil)
+      (setq indium-workspace-configuration nil))))
 
 (defun indium-maybe-quit ()
   "Close the current connection.

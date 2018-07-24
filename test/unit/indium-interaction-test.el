@@ -27,6 +27,9 @@
 (require 'indium-interaction)
 
 (describe "Launching and connecting Indium"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
   (it "should fail to connect when there is no .indium.json file"
     (assess-with-filesystem '()
       (expect (indium-connect) :to-throw)))
@@ -77,6 +80,9 @@
        'foo)))
 
 (describe "Killing previous connections when connecting"
+  (after-each
+    (when-indium-connected (indium-quit)))
+
   (it "should kill the previous connection process when there is one"
     (let ((indium-current-connection (make-indium-connection
 				      :process 'first-process)))
@@ -92,6 +98,26 @@
 
       (expect #'kill-process :to-have-been-called-with 'first-process)
       (expect #'indium-backend-close-connection :to-have-been-called))))
+
+(describe "Setting indium-workspace-connection"
+  (after-each
+    (setq indium-workspace-configuration nil))
+
+  (it "should should set `indium-workspace-connection' to nil when disconnecting"
+    (setq indium-workspace-configuration '(type . "node"))
+    (let ((indium-current-connection (make-indium-connection
+				      :process 'first-process)))
+      (spy-on #'indium-connect-to-nodejs)
+      (spy-on 'y-or-n-p :and-return-value t)
+
+      (spy-on 'kill-process)
+      (spy-on 'process-buffer)
+      (spy-on 'process-status :and-return-value 'run)
+      (spy-on 'indium-backend-close-connection)
+
+      (indium-quit)
+
+      (expect indium-workspace-configuration :to-be nil))))
 
 (describe "Finding the AST node to evaluate"
   (it "can find variable nodes"
