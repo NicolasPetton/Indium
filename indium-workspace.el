@@ -62,10 +62,10 @@
 ;;         Default value:
 ;;
 ;;         {
-;;           "webpack:///./~/*": "${root}/node_modules/*",
-;;           "webpack:///./*":   "${root}/*",
-;;           "webpack:///*":     "*",
-;;           "webpack:///src/*": "${root}/*"
+;;           "webpack:///./~/": "${root}/node_modules/",
+;;           "webpack:///./":   "${root}/",
+;;           "webpack:///":     "/",
+;;           "webpack:///src/": "${root}/"
 ;;         }
 ;;
 ;; Chrome-specific settings:

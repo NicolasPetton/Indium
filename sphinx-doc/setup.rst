@@ -1,4 +1,5 @@
-.. _up-and-running:
+
+.. _setup:
 
 Getting up and running
 ======================
@@ -23,7 +24,89 @@ Here is a minimalist ``.indium.json`` file.::
 	}
       ]
     }
-     
+
+.. _general_configuration:
+
+General configuration
+---------------------
+
+The ``.indium.json`` file can contain as many configurations as needed, and mix
+any supported configuration types.
+
+The currently supported ``type`` values are ``"chrome"`` and ``"node"``.
+
+The root directory of the source files is by default set to the directory where
+this ``.indium.json`` file is placed, but it can be overridden with the ``root``
+(or the ``webRoot`` alias) option::
+
+  {
+    "configurations": [
+      {
+        "type": "chrome",
+	"root": "src"
+      }
+    ]
+  }
+
+Custom sourcemap path overrides can be set with ``sourceMapPathOverrides``, see
+:ref:`sourcemaps` for mode information on sourcemaps and debugging.
+
+.. _chrome_configuration:
+
+Chrome/Chromium configuration options
+-------------------------------------
+
+:host: Host on which Chrome is running (defaults to ``"localhost"``).
+:port: Port on which Chrome is running (defaults to ``9222``).
+:url: Url to open when running ``indium-launch``.
+
+
+Example configuration::
+  
+    {
+      "configurations": [
+        {
+	  "name": "Web project",
+	  "type": "chrome",
+	  "host": 192.168.22.1,
+	  "url": "http://192.168.22.1/myproject/index.html",
+	  "port": 9222
+	}
+      ]
+    }
+
+.. _nodejs_configuration:
+
+NodeJS configuration options
+----------------------------
+
+:command:
+   Nodejs command to start a new process.  The ``--inspect`` flag will be
+   added automatically.
+	   
+:inspect-brk:
+   Whether Indium should break at the first statement (true by
+   default).
+
+:host:
+   Host on which the Node inspector is listening (defaults to ``"localhost"``).
+       
+:port:
+   Port on which the Node inspector is listening (defaults to 9229).
+
+Here is an example configuration for debugging Gulp tasks::
+
+  {
+    "configurations": [
+      {
+        "name": "Gulp",
+        "type": "node",
+        "command": "node ./node_modules/gulp/bin/gulp.js",
+        "inspect-brk": true
+      }
+    ]
+  }
+
 .. _starting_indium:
      
 Starting Indium
@@ -35,16 +118,13 @@ Indium can be started in two modes:
   of the configurations in the ``.indium.json`` project file.
 - Launch: ``M-x indium-launch`` Start a JavaScript process (Chrome or NodeJS) as
   specified from the configurations in the ``.indium.json`` project file.
-     
-.. _nodejs:
 
-NodeJS
-------
+.. _nodejs_requirements:
+
+NodeJS requirements
+-------------------
 
 Nodejs >= ``8.x`` is required for Indium to work. 
-
-Installing a recent version of NodeJS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your distribution ships an old version of NodeJS, you can install a more
 recent version using `nvm <https://github.com/creationix/nvm>`_: ::
@@ -62,60 +142,10 @@ If you install NodeJS using ``nvm``, chances are that Emacs won't have it in its
 ``exec path``. A simple solution is to use the excellent `exec-path-from-shell
 <https://github.com/purcell/exec-path-from-shell>`_ package.
 
-.. _nodejs_configuration:
+.. _chrome_requirements:
 
-Configuring Indium for NodeJS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Executing NodeJS from Emacs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Indium can start NodeJS processes and connect to them automatically.
-This is the preferred way of using Indium with NodeJS.
-
-Start a process with ``M-x indium-run-node``.  Once the process is ready, Indium
-will connect to it and open a REPL buffer.
-
-The output from the NodeJS process is appended to the ``*nodejs process*`` buffer.
-
-When a nodejs process has been started with ``indium-run-node``, it can be
-restarted with ``indium-restart-node``.
-
-.. NOTE:: Indium will append the ``--inspect`` flag to the command-line
-          arguments automatically, so you do not need to provide them.
-
-If you wish to break the execution at the first statement, set
-``indium-nodejs-inspect-break`` to ``t``.
-   
-Connecting to a Nodejs process
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To connect to an existing NodeJS process, make sure that process was started
-with the ``--inspect`` flag: ::
-
-    node --inspect myfile.js
-    
-If you wish to break on the first line of the application code, start node using: ::
-
-    node --inspect --debug-brk myfile.js
-    
-Node will tell you to open an URL in Chrome: ::
-
-    chrome-devtools://inspector.html?...&ws=127.0.0.1:PORT/PATH
-    
-Evaluate ``M-x indium-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH``,
-``PORT`` and ``PATH`` are the ones from the `ws` parameter of the above URL
-or using ``M-x indium-nodejs-connect-to-url RET 127.0.0.1:PORT/PATH`` (in this case,
-if the ``Port`` is not specified, it will default to `9229`.
-
-Connecting Indium to the node process will open a debugger on the first line of
-the application code if you passed the CLI argument ``--debug-brk``.
-
-
-.. _chrome:
-
-Chrome/Chromium
----------------
+Chrome/Chromium requirements
+----------------------------
 
 Chrome/Chromium >= ``60.0`` is required for Indium to properly work (debugging
 protocol ``v1.2``).
@@ -128,57 +158,3 @@ Start Chrome/Chromium with the ``--remote-debugging-port`` flag like the followi
 Make sure that no instance of Chrome is already running, otherwise Chrome will
 simply open a new tab on the existing Chrome instance, and the
 ``remote-debugging-port`` will not be set.
-
-.. _chrome_configuration:
-
-Configuring Indium for Chrome/Chromium
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: webRoot and default root directory.
-
-.. _local-files:
-  
-Using local files when debugging
---------------------------------
-
-Indium can use local files when debugging, or to set breakpoints.
-
-.. HINT:: When using ``NodeJS``, or when the connected tab uses the ``file://``
-          URL, Indium will by itself use local files from disk.  In this case
-          there is nothing to setup.
-
-   
-If the Chrome connection uses the ``http://`` or ``https://`` protocol, you will
-have to tell Indium where to find the corresponding JavaScript files on disk by
-setting up a workspace.
-
-To do that, place an empty ``.indium`` marker file in the root folder where your
-**web server serves static files**.
-
-The root folder where the ``.indium`` file should be put is not always the
-directory that contains your JavaScript files. It should be the root folder
-containing static files. Most of the time, it is at least one level above.
-
-Given the following project structure: ::
-
-   project/ (current directory)
-      www/
-         index.html
-         css/
-            style.css
-         js/
-            app.js
-         .indium
-
-Indium will lookup the file ``www/js/app.js`` for the URL
-"http://localhost:3000/js/app.js".
-
-.. WARNING:: In order for this setup to work, make sure to call
-            ``indium-connect-to-chrome`` from somewhere within the workspace
-            directory!
-
-Configuring Webpack for the debugger
-------------------------------------
-
-When Webpack is used to bundle JavaScript files, it is currently required to
-configure it to emit absolute file paths for sourcemaps, see :ref:`webpack`.

@@ -7,7 +7,7 @@ Starting a REPL
 ---------------
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see :ref:`up-and-running`).
+connection is made (see :ref:`setup`).
 
 .. image:: screenshots/repl.png
 

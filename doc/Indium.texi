@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.2.0, Feb 28, 2018
+Indium 1.2.0, Jul 24, 2018
 
 Nicolas Petton
 
@@ -110,16 +110,13 @@ Installation
 
 Getting up and running
 
-* NodeJS:: 
-* Chrome/Chromium:: 
-* Using local files when debugging:: 
-* Configuring Webpack for the debugger:: 
-
-NodeJS
-
-* Installing a recent version of NodeJS:: 
-* Executing NodeJS from Emacs:: 
-* Connecting to a Nodejs process:: 
+* Project configuration:: 
+* General configuration:: 
+* Chrome/Chromium configuration options:: 
+* NodeJS configuration options:: 
+* Starting Indium:: 
+* NodeJS requirements:: 
+* Chrome/Chromium requirements:: 
 
 The REPL
 
@@ -143,7 +140,10 @@ The stepping debugger
 
 * Using sourcemaps:: 
 * Blackboxing scripts:: 
-* Sourcemaps and Webpack:: 
+
+Using sourcemaps
+
+* Overriding sourcemap paths:: 
 
 The inspector
 
@@ -241,36 +241,168 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup doc}@anchor{7}@anchor{setup getting-up-and-running}@anchor{8}@anchor{setup up-and-running}@anchor{9}
+@anchor{setup doc}@anchor{7}@anchor{setup setup}@anchor{8}@anchor{setup getting-up-and-running}@anchor{9}
 @section Getting up and running
 
 
 @menu
-* NodeJS:: 
-* Chrome/Chromium:: 
-* Using local files when debugging:: 
-* Configuring Webpack for the debugger:: 
+* Project configuration:: 
+* General configuration:: 
+* Chrome/Chromium configuration options:: 
+* NodeJS configuration options:: 
+* Starting Indium:: 
+* NodeJS requirements:: 
+* Chrome/Chromium requirements:: 
 
 @end menu
 
-@node NodeJS,Chrome/Chromium,,Getting up and running
-@anchor{setup id1}@anchor{a}@anchor{setup nodejs}@anchor{b}
-@subsection NodeJS
+@node Project configuration,General configuration,,Getting up and running
+@anchor{setup project-configuration}@anchor{a}@anchor{setup configuration-file}@anchor{b}
+@subsection Project configuration
+
+
+Place a @code{.indium.json} file in the root folder of your JavaScript project.
+The project file can contain one or many configurations settings for NodeJS (see
+@ref{c,,NodeJS configuration options}) and Chrome/Chromium (see
+@ref{d,,Chrome/Chromium configuration options}).
+
+Here is a minimalist @code{.indium.json} file.:
+
+@example
+@{
+  "configurations": [
+    @{
+      "name": "Web project",
+      "type": "chrome"
+    @}
+  ]
+@}
+@end example
+
+@node General configuration,Chrome/Chromium configuration options,Project configuration,Getting up and running
+@anchor{setup id1}@anchor{e}@anchor{setup general-configuration}@anchor{f}
+@subsection General configuration
+
+
+The @code{.indium.json} file can contain as many configurations as needed, and mix
+any supported configuration types.
+
+The currently supported @code{type} values are @code{"chrome"} and @code{"node"}.
+
+The root directory of the source files is by default set to the directory where
+this @code{.indium.json} file is placed, but it can be overridden with the @code{root}
+(or the @code{webRoot} alias) option:
+
+@example
+@{
+  "configurations": [
+    @{
+      "type": "chrome",
+      "root": "src"
+    @}
+  ]
+@}
+@end example
+
+Custom sourcemap path overrides can be set with @code{sourceMapPathOverrides}, see
+@ref{10,,Using sourcemaps} for mode information on sourcemaps and debugging.
+
+@node Chrome/Chromium configuration options,NodeJS configuration options,General configuration,Getting up and running
+@anchor{setup chrome-configuration}@anchor{d}@anchor{setup chrome-chromium-configuration-options}@anchor{11}
+@subsection Chrome/Chromium configuration options
+
+
+@*host: 
+Host on which Chrome is running (defaults to @code{"localhost"}).
+
+
+@*port: 
+Port on which Chrome is running (defaults to @code{9222}).
+
+
+@*url: 
+Url to open when running @code{indium-launch}.
+
+
+Example configuration:
+
+@example
+@{
+  "configurations": [
+    @{
+      "name": "Web project",
+      "type": "chrome",
+      "host": 192.168.22.1,
+      "url": "http://192.168.22.1/myproject/index.html",
+      "port": 9222
+    @}
+  ]
+@}
+@end example
+
+@node NodeJS configuration options,Starting Indium,Chrome/Chromium configuration options,Getting up and running
+@anchor{setup nodejs-configuration}@anchor{c}@anchor{setup nodejs-configuration-options}@anchor{12}
+@subsection NodeJS configuration options
+
+
+@*command: 
+Nodejs command to start a new process.  The @code{--inspect} flag will be
+added automatically.
+
+
+@*inspect-brk: 
+Whether Indium should break at the first statement (true by
+default).
+
+
+@*host: 
+Host on which the Node inspector is listening (defaults to @code{"localhost"}).
+
+
+@*port: 
+Port on which the Node inspector is listening (defaults to 9229).
+
+
+Here is an example configuration for debugging Gulp tasks:
+
+@example
+@{
+  "configurations": [
+    @{
+      "name": "Gulp",
+      "type": "node",
+      "command": "node ./node_modules/gulp/bin/gulp.js",
+      "inspect-brk": true
+    @}
+  ]
+@}
+@end example
+
+@node Starting Indium,NodeJS requirements,NodeJS configuration options,Getting up and running
+@anchor{setup starting-indium}@anchor{13}@anchor{setup id2}@anchor{14}
+@subsection Starting Indium
+
+
+Indium can be started in two modes:
+
+
+@itemize -
+
+@item 
+Connect: @code{M-x indium-connect} Connect indium to a running runtime from one
+of the configurations in the @code{.indium.json} project file.
+
+@item 
+Launch: @code{M-x indium-launch} Start a JavaScript process (Chrome or NodeJS) as
+specified from the configurations in the @code{.indium.json} project file.
+@end itemize
+
+@node NodeJS requirements,Chrome/Chromium requirements,Starting Indium,Getting up and running
+@anchor{setup nodejs-requirements}@anchor{15}@anchor{setup id3}@anchor{16}
+@subsection NodeJS requirements
 
 
 Nodejs >= @code{8.x} is required for Indium to work.
-
-@menu
-* Installing a recent version of NodeJS:: 
-* Executing NodeJS from Emacs:: 
-* Connecting to a Nodejs process:: 
-
-@end menu
-
-@node Installing a recent version of NodeJS,Executing NodeJS from Emacs,,NodeJS
-@anchor{setup installing-a-recent-version-of-nodejs}@anchor{c}
-@subsubsection Installing a recent version of NodeJS
-
 
 If your distribution ships an old version of NodeJS, you can install a more
 recent version using nvm@footnote{https://github.com/creationix/nvm}:
@@ -291,67 +423,9 @@ $ node --version
 If you install NodeJS using @code{nvm}, chances are that Emacs won’t have it in its
 @code{exec path}. A simple solution is to use the excellent exec-path-from-shell@footnote{https://github.com/purcell/exec-path-from-shell} package.
 
-@node Executing NodeJS from Emacs,Connecting to a Nodejs process,Installing a recent version of NodeJS,NodeJS
-@anchor{setup executing-nodejs-from-emacs}@anchor{d}
-@subsubsection Executing NodeJS from Emacs
-
-
-Indium can start NodeJS processes and connect to them automatically.
-This is the preferred way of using Indium with NodeJS.
-
-Start a process with @code{M-x indium-run-node}.  Once the process is ready, Indium
-will connect to it and open a REPL buffer.
-
-The output from the NodeJS process is appended to the @code{*nodejs process*} buffer.
-
-When a nodejs process has been started with @code{indium-run-node}, it can be
-restarted with @code{indium-restart-node}.
-
-@cartouche
-@quotation Note 
-Indium will append the @code{--inspect} flag to the command-line
-arguments automatically, so you do not need to provide them.
-@end quotation
-@end cartouche
-
-If you wish to break the execution at the first statement, set
-@code{indium-nodejs-inspect-brk} to @code{t}.
-
-@node Connecting to a Nodejs process,,Executing NodeJS from Emacs,NodeJS
-@anchor{setup connecting-to-a-nodejs-process}@anchor{e}
-@subsubsection Connecting to a Nodejs process
-
-
-To connect to an existing NodeJS process, make sure that process was started
-with the @code{--inspect} flag:
-
-@example
-node --inspect myfile.js
-@end example
-
-If you wish to break on the first line of the application code, start node using:
-
-@example
-node --inspect --debug-brk myfile.js
-@end example
-
-Node will tell you to open an URL in Chrome:
-
-@example
-chrome-devtools://inspector.html?...&ws=127.0.0.1:PORT/PATH
-@end example
-
-Evaluate @code{M-x indium-connect-to-nodejs RET 127.0.0.1 RET PORT RET PATH},
-@code{PORT} and @code{PATH} are the ones from the @cite{ws} parameter of the above URL
-or using @code{M-x indium-nodejs-connect-to-url RET 127.0.0.1:PORT/PATH} (in this case,
-if the @code{Port} is not specified, it will default to @cite{9229}.
-
-Connecting Indium to the node process will open a debugger on the first line of
-the application code if you passed the CLI argument @code{--debug-brk}.
-
-@node Chrome/Chromium,Using local files when debugging,NodeJS,Getting up and running
-@anchor{setup chrome-chromium}@anchor{f}@anchor{setup chrome}@anchor{10}
-@subsection Chrome/Chromium
+@node Chrome/Chromium requirements,,NodeJS requirements,Getting up and running
+@anchor{setup chrome-chromium-requirements}@anchor{17}@anchor{setup chrome-requirements}@anchor{18}
+@subsection Chrome/Chromium requirements
 
 
 Chrome/Chromium >= @code{60.0} is required for Indium to properly work (debugging
@@ -367,72 +441,8 @@ Make sure that no instance of Chrome is already running, otherwise Chrome will
 simply open a new tab on the existing Chrome instance, and the
 @code{remote-debugging-port} will not be set.
 
-To connect to a tab, run from Emacs:
-
-@example
-M-x indium-connect-to-chrome
-@end example
-
-@node Using local files when debugging,Configuring Webpack for the debugger,Chrome/Chromium,Getting up and running
-@anchor{setup local-files}@anchor{11}@anchor{setup using-local-files-when-debugging}@anchor{12}
-@subsection Using local files when debugging
-
-
-Indium can use local files when debugging, or to set breakpoints.
-
-@cartouche
-@quotation Hint 
-When using @code{NodeJS}, or when the connected tab uses the @code{file://}
-URL, Indium will by itself use local files from disk.  In this case
-there is nothing to setup.
-@end quotation
-@end cartouche
-
-If the Chrome connection uses the @code{http://} or @code{https://} protocol, you will
-have to tell Indium where to find the corresponding JavaScript files on disk by
-setting up a workspace.
-
-To do that, place an empty @code{.indium} marker file in the root folder where your
-@strong{web server serves static files}.
-
-The root folder where the @code{.indium} file should be put is not always the
-directory that contains your JavaScript files. It should be the root folder
-containing static files. Most of the time, it is at least one level above.
-
-Given the following project structure:
-
-@example
-project/ (current directory)
-   www/
-      index.html
-      css/
-         style.css
-      js/
-         app.js
-      .indium
-@end example
-
-Indium will lookup the file @code{www/js/app.js} for the URL
-“@indicateurl{http://localhost:3000/js/app.js}”.
-
-@cartouche
-@quotation Warning 
-In order for this setup to work, make sure to call
-@code{indium-connect-to-chrome} from somewhere within the workspace
-directory!
-@end quotation
-@end cartouche
-
-@node Configuring Webpack for the debugger,,Using local files when debugging,Getting up and running
-@anchor{setup configuring-webpack-for-the-debugger}@anchor{13}
-@subsection Configuring Webpack for the debugger
-
-
-When Webpack is used to bundle JavaScript files, it is currently required to
-configure it to emit absolute file paths for sourcemaps, see @ref{14,,Blackboxing scripts}.
-
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl doc}@anchor{15}@anchor{repl repl}@anchor{16}@anchor{repl the-repl}@anchor{17}
+@anchor{repl doc}@anchor{19}@anchor{repl repl}@anchor{1a}@anchor{repl the-repl}@anchor{1b}
 @section The REPL
 
 
@@ -444,12 +454,12 @@ configure it to emit absolute file paths for sourcemaps, see @ref{14,,Blackboxin
 @end menu
 
 @node Starting a REPL,Using the REPL,,The REPL
-@anchor{repl starting-a-repl}@anchor{18}
+@anchor{repl starting-a-repl}@anchor{1c}
 @subsection Starting a REPL
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{9,,Getting up and running}).
+connection is made (see @ref{8,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -468,13 +478,13 @@ JS syntax highlighting
 Pretty printing and preview of printed values
 
 @item 
-Access to the object inspector (see @ref{19,,The inspector})
+Access to the object inspector (see @ref{1d,,The inspector})
 @end itemize
 
 @image{repl2,,,,png}
 
 @node Using the REPL,Code evaluation & context,Starting a REPL,The REPL
-@anchor{repl using-the-repl}@anchor{1a}
+@anchor{repl using-the-repl}@anchor{1e}
 @subsection Using the REPL
 
 
@@ -485,7 +495,7 @@ Access to the object inspector (see @ref{19,,The inspector})
 @end menu
 
 @node Keybindings,Reconnecting from the REPL buffer,,Using the REPL
-@anchor{repl keybindings}@anchor{1b}
+@anchor{repl keybindings}@anchor{1f}
 @subsubsection Keybindings
 
 
@@ -561,7 +571,7 @@ Instert the next input in the history.
 
 
 @node Reconnecting from the REPL buffer,,Keybindings,Using the REPL
-@anchor{repl reconnecting-from-the-repl-buffer}@anchor{1c}
+@anchor{repl reconnecting-from-the-repl-buffer}@anchor{20}
 @subsubsection Reconnecting from the REPL buffer
 
 
@@ -571,7 +581,7 @@ connection, and another one to kill Emacs buffers using this connection (the
 REPL buffer, inspectors & debuggers).
 
 @node Code evaluation & context,,Using the REPL,The REPL
-@anchor{repl code-evaluation-context}@anchor{1d}
+@anchor{repl code-evaluation-context}@anchor{21}
 @subsection Code evaluation & context
 
 
@@ -583,7 +593,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation doc}@anchor{1e}@anchor{code-evaluation interaction-in-js-buffers}@anchor{1f}@anchor{code-evaluation interaction}@anchor{20}
+@anchor{code-evaluation doc}@anchor{22}@anchor{code-evaluation interaction}@anchor{23}@anchor{code-evaluation interaction-in-js-buffers}@anchor{24}
 @section Interaction in JS buffers
 
 
@@ -608,7 +618,7 @@ add or remove breakpoints from your buffers.
 @end menu
 
 @node Evaluating and inspecting,Switching to the REPL buffer,,Interaction in JS buffers
-@anchor{code-evaluation evaluating-and-inspecting}@anchor{21}
+@anchor{code-evaluation evaluating-and-inspecting}@anchor{25}
 @subsection Evaluating and inspecting
 
 
@@ -625,7 +635,7 @@ Here’s a list of available keybindings:
 
 @item 
 @code{C-c M-i}: Inspect the result of the evaluation of an expression (see
-@ref{19,,The inspector}).
+@ref{1d,,The inspector}).
 
 @item 
 @code{C-c M-:}: Prompt for an expression to evaluate and inspect.
@@ -638,20 +648,20 @@ Here’s a list of available keybindings:
 @end itemize
 
 @node Switching to the REPL buffer,Adding and removing breakpoints,Evaluating and inspecting,Interaction in JS buffers
-@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{22}
+@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{26}
 @subsection Switching to the REPL buffer
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{16,,The REPL}).
+switch back to the REPL buffer (see @ref{1a,,The REPL}).
 
 @node Adding and removing breakpoints,Live code update hot-swapping JavaScript sources,Switching to the REPL buffer,Interaction in JS buffers
-@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{23}
+@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{27}
 @subsection Adding and removing breakpoints
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{11,,Using local files when debugging}).
+(see local-files).
 
 
 @itemize -
@@ -687,9 +697,9 @@ You need to first make sure that Indium is set up correctly to use local files
 The left fringe or margin can also be clicked to add or remove breakpoints.
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
-Indium debugger pops up (see @ref{24,,The stepping debugger}).
+Indium debugger pops up (see @ref{28,,The stepping debugger}).
 
-Since Indium 0.7, breakpoints are supported in source files with an associated sourcemap, see @ref{25,,Using sourcemaps}.
+Since Indium 0.7, breakpoints are supported in source files with an associated sourcemap, see @ref{10,,Using sourcemaps}.
 
 @cartouche
 @quotation Note 
@@ -699,7 +709,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end cartouche
 
 @node Live code update hot-swapping JavaScript sources,,Adding and removing breakpoints,Interaction in JS buffers
-@anchor{code-evaluation live-code-update-hot-swapping-javascript-sources}@anchor{26}
+@anchor{code-evaluation live-code-update-hot-swapping-javascript-sources}@anchor{29}
 @subsection Live code update (hot-swapping JavaScript sources)
 
 
@@ -716,7 +726,7 @@ This feature currently in only available for Chrome & Chromium.
 @end cartouche
 
 To enable live updates, make sure Indium is set up to use local files (see
-@ref{11,,Using local files when debugging}).
+local-files).
 
 
 @itemize -
@@ -745,31 +755,58 @@ window.addEventListener("patch", (event) => @{
 @end example
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger doc}@anchor{27}@anchor{debugger debugger}@anchor{24}@anchor{debugger the-stepping-debugger}@anchor{28}
+@anchor{debugger the-stepping-debugger}@anchor{2a}@anchor{debugger doc}@anchor{2b}@anchor{debugger debugger}@anchor{28}
 @section The stepping debugger
 
 
 @menu
 * Using sourcemaps:: 
 * Blackboxing scripts:: 
-* Sourcemaps and Webpack:: 
 
 @end menu
 
 @node Using sourcemaps,Blackboxing scripts,,The stepping debugger
-@anchor{debugger using-sourcemaps}@anchor{29}@anchor{debugger sourcemaps}@anchor{25}
+@anchor{debugger using-sourcemaps}@anchor{2c}@anchor{debugger sourcemaps}@anchor{10}
 @subsection Using sourcemaps
 
 
 Since version 0.7, Indium uses sourcemap files by default.
 
 For sourcemaps to work properly with Chrome/Chromium, make sure that a
-workspace is correctly set (see @ref{11,,Using local files when debugging}).
+workspace is correctly set (see @ref{8,,Getting up and running}).
 
 If you wish to disable sourcemaps when debugging, set @code{indium-script-enable-sourcemaps} to @code{nil}.
 
-@node Blackboxing scripts,Sourcemaps and Webpack,Using sourcemaps,The stepping debugger
-@anchor{debugger blackboxing-scripts}@anchor{2a}@anchor{debugger webpack}@anchor{14}
+@menu
+* Overriding sourcemap paths:: 
+
+@end menu
+
+@node Overriding sourcemap paths,,,Using sourcemaps
+@anchor{debugger overriding-sourcemap-paths}@anchor{2d}@anchor{debugger webpack}@anchor{2e}
+@subsubsection Overriding sourcemap paths
+
+
+Some sourcemaps cannot be used as is and need path rewriting to map to locations on disks.
+
+Indium provides the configuration option @code{sourceMapPathOverrides} for
+providing custom sourcemap paths.
+
+The default mapping works well for Webpack projects:
+
+@example
+@{
+  "webpack:///./~/": "$@{root@}/node_modules/",
+  "webpack:///./":   "$@{root@}/",
+  "webpack:///":     "/",
+  "webpack:///src/": "$@{root@}/"
+@}
+@end example
+
+Overriding the @code{sourceMapPathOverrides} option will erase the default mapping.
+
+@node Blackboxing scripts,,Using sourcemaps,The stepping debugger
+@anchor{debugger blackboxing-scripts}@anchor{2f}
 @subsection Blackboxing scripts
 
 
@@ -778,33 +815,14 @@ expression of script paths to blackbox when debugging.
 
 Blackboxed scripts are skipped when stepping in the debugger.
 
-@node Sourcemaps and Webpack,,Blackboxing scripts,The stepping debugger
-@anchor{debugger sourcemaps-and-webpack}@anchor{2b}
-@subsection Sourcemaps and Webpack
-
-
-When using Webpack to bundle JavaScript files, Indium will only be able to use
-sourcemaps if Webpack is configured to emit absolute file paths.
-
-Here is an example configuration snippet to be inserted in @cite{webpack.config.json}
-
-@example
-...
-output : @{
-  ...
-  devtoolModuleFilenameTemplate: '[absolute-resource-path]',
-  devtoolFallbackModuleFilenameTemplate: '[absolute-resource-path]?[hash]'
-@}
-@end example
-
 @node The inspector,Network,The stepping debugger,Table of contents
-@anchor{inspector doc}@anchor{2c}@anchor{inspector inspector}@anchor{19}@anchor{inspector the-inspector}@anchor{2d}
+@anchor{inspector doc}@anchor{30}@anchor{inspector the-inspector}@anchor{31}@anchor{inspector inspector}@anchor{1d}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{16,,The REPL}), the debugger (see @ref{24,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{20,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{1a,,The REPL}), the debugger (see @ref{28,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{23,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -818,7 +836,7 @@ object links from the REPL buffer.
 @end menu
 
 @node Using the inspector,,,The inspector
-@anchor{inspector using-the-inspector}@anchor{2e}
+@anchor{inspector using-the-inspector}@anchor{32}
 @subsection Using the inspector
 
 
@@ -878,7 +896,7 @@ Jump to the previous object in the inspector
 
 
 @node Network,Listing parsed scripts,The inspector,Table of contents
-@anchor{network doc}@anchor{2f}@anchor{network network}@anchor{30}@anchor{network id1}@anchor{31}
+@anchor{network network}@anchor{33}@anchor{network doc}@anchor{34}@anchor{network id1}@anchor{35}
 @section Network
 
 
@@ -898,13 +916,13 @@ You can make the cache setting permament by setting @cite{indium-v8-cache-disabl
 @end example
 
 @node Listing parsed scripts,,Network,Table of contents
-@anchor{listing-scripts doc}@anchor{32}@anchor{listing-scripts listing-scripts}@anchor{33}@anchor{listing-scripts listing-parsed-scripts}@anchor{34}
+@anchor{listing-scripts listing-parsed-scripts}@anchor{36}@anchor{listing-scripts doc}@anchor{37}@anchor{listing-scripts listing-scripts}@anchor{38}
 @section Listing parsed scripts
 
 
 Indium includes the command @code{indium-list-scripts} to list all JavaScript
 scripts parsed by the runtime.  When using a workspace, local file can be
-visited from entries in the list (see @ref{11,,Using local files when debugging}).
+visited from entries in the list (see local-files).
 
 @menu
 * Using the listing buffer:: 
@@ -912,7 +930,7 @@ visited from entries in the list (see @ref{11,,Using local files when debugging}
 @end menu
 
 @node Using the listing buffer,,,Listing parsed scripts
-@anchor{listing-scripts using-the-listing-buffer}@anchor{35}
+@anchor{listing-scripts using-the-listing-buffer}@anchor{39}
 @subsection Using the listing buffer
 
 
@@ -964,7 +982,7 @@ Jump to the previous script
 
 
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{36}
+@anchor{index indices-and-tables}@anchor{3a}
 @chapter Indices and tables
 
 
