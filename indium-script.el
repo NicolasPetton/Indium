@@ -215,14 +215,14 @@ If the sourcemap url is not a data url, return nil."
 Paths might be either absolute, or relative to the SCRIPT's
 directory.  To make things simpler with sourcemaps manipulation,
 make all source paths absolute."
-  (seq-do (lambda (mapping)
-	    (when-let ((source (indium-source-mapping-source mapping)))
-	      (unless (file-name-absolute-p source)
-		(setf (indium-source-mapping-source mapping)
-		      (expand-file-name source
-					(file-name-directory
-					 (indium-script-get-file script t)))))))
-	  (indium-sourcemap-generated-mappings sourcemap)))
+  (let ((path (file-name-directory
+	       (indium-script-get-file script t))))
+   (seq-do (lambda (mapping)
+	     (when-let ((source (indium-source-mapping-source mapping)))
+	       (unless (file-name-absolute-p source)
+		 (setf (indium-source-mapping-source mapping)
+		       (expand-file-name source path)))))
+	   (indium-sourcemap-generated-mappings sourcemap))))
 
 (defun indium-script--sourcemap-file (script)
   "Return the local sourcemap file associated with SCRIPT.
