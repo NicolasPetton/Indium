@@ -71,14 +71,14 @@
                              (names . [])
                              (mappings . ";;;;;;kBAAe;AAAA,SAAM,QAAQ,GAAR,CAAY,aAAZ,CAAN;AAAA,C")))
            (sourcemap (indium-sourcemap--decode sourcemap-json)))
-     (with-fake-indium-connection
-     (indium-script-add-script-parsed
-      "1" "http://localhost/js/foo.js"
-      (concat "data:application/json;charset=utf-8;base64,"
-              (base64-encode-string (json-encode sourcemap-json))))
-     (let ((script (indium-script-find-by-id "1")))
-       (expect (indium-script--sourcemap-from-data-url script)
-               :to-equal sourcemap)))))
+      (with-fake-indium-connection
+	(indium-script-add-script-parsed
+	 "1" "http://localhost/js/foo.js"
+	 (concat "data:application/json;charset=utf-8;base64,"
+		 (base64-encode-string (json-encode sourcemap-json))))
+	(let ((script (indium-script-find-by-id "1")))
+	  (expect (indium-script--sourcemap-from-data-url script)
+		  :to-equal sourcemap)))))
 
   (it "should be able to parse a sourcemap data url for a script (url-encoded)"
     (let* ((sourcemap-json '((version . 3)
@@ -87,14 +87,14 @@
                              (names . [])
                              (mappings . ";;;;;;kBAAe;AAAA,SAAM,QAAQ,GAAR,CAAY,aAAZ,CAAN;AAAA,C")))
            (sourcemap (indium-sourcemap--decode sourcemap-json)))
-     (with-fake-indium-connection
-     (indium-script-add-script-parsed
-      "1" "http://localhost/js/foo.js"
-      (concat "data:application/json;charset=utf-8,"
-              (url-hexify-string (json-encode sourcemap-json))))
-     (let ((script (indium-script-find-by-id "1")))
-       (expect (indium-script--sourcemap-from-data-url script)
-               :to-equal sourcemap))))))
+      (with-fake-indium-connection
+	(indium-script-add-script-parsed
+	 "1" "http://localhost/js/foo.js"
+	 (concat "data:application/json;charset=utf-8,"
+		 (url-hexify-string (json-encode sourcemap-json))))
+	(let ((script (indium-script-find-by-id "1")))
+	  (expect (indium-script--sourcemap-from-data-url script)
+		  :to-equal sourcemap))))))
 
 (describe "Adding scripts"
   (it "should not multiple scripts with the same url"
@@ -110,7 +110,7 @@
     (let* ((script (make-indium-script :url "/bar/script.js"))
 	   (entry (make-indium-source-mapping :source "./baz.js"))
 	   (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
-      (indium-script--absolute-sourcemap-sources map script)
+      (indium-script--transform-sourcemap-sources map script)
       (expect (indium-source-mapping-source entry)
 	      :to-equal "/foo/bar/baz.js")))
 
@@ -119,9 +119,73 @@
     (let* ((script (make-indium-script :url "/bar/script.js"))
 	   (entry (make-indium-source-mapping :source "/baz.js"))
 	   (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
-      (indium-script--absolute-sourcemap-sources map script)
+      (indium-script--transform-sourcemap-sources map script)
       (expect (indium-source-mapping-source entry)
 	      :to-equal "/baz.js"))))
+
+(describe "Handling sourcemap path overrides"
+  (it "should expand root token in path overrides"
+    (spy-on 'indium-workspace-root :and-return-value "/my/project")
+    (expect (indium-script--expand-path-override "foo/bar")
+	    :to-equal "foo/bar")
+    (expect (indium-script--expand-path-override "${root}/foo/bar")
+	    :to-equal "/my/project/foo/bar")
+    (expect (indium-script--expand-path-override "${webRoot}/foo/bar")
+	    :to-equal "/my/project/foo/bar"))
+
+  (it "should apply default sourcemap path overrides"
+    (assess-with-filesystem indium-script--test-fs
+
+      (let* ((script (make-indium-script :url "/js/foo.js"))
+      	     (entry (make-indium-source-mapping :source "webpack:///./js/foo.js"))
+      	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
+      	(indium-script--transform-sourcemap-sources map script)
+      	(expect (indium-source-mapping-source entry)
+      		:to-equal (expand-file-name "./js/foo.js")))
+
+      (let* ((script (make-indium-script :url "/js/foo.js"))
+      	     (entry (make-indium-source-mapping :source "webpack:///src/js/foo.js"))
+      	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
+      	(indium-script--transform-sourcemap-sources map script)
+      	(expect (indium-source-mapping-source entry)
+      		:to-equal (expand-file-name "./js/foo.js")))
+
+      (let* ((script (make-indium-script :url "/node_modules/foo/index.js"))
+      	     (entry (make-indium-source-mapping :source "webpack:///./~/foo/index.js"))
+      	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
+      	(indium-script--transform-sourcemap-sources map script)
+      	(expect (indium-source-mapping-source entry)
+      		:to-equal (expand-file-name "./node_modules/foo/index.js")))
+
+      (let* ((script (make-indium-script :url "/foo.js"))
+      	     (entry (make-indium-source-mapping :source "webpack:///foo.js"))
+      	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
+      	(indium-script--transform-sourcemap-sources map script)
+      	(expect (indium-source-mapping-source entry)
+      		:to-equal "/foo.js"))))
+
+  (it "should convert root directories whenapplying sourcemap path overrides"
+    (assess-with-filesystem indium-script--test-fs
+
+      (let* ((indium-workspace-configuration '((root . "js")))
+	     (script (make-indium-script :url "/js/foo.js"))
+      	     (entry (make-indium-source-mapping :source "webpack:///./foo.js"))
+      	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
+      	(indium-script--transform-sourcemap-sources map script)
+      	(expect (indium-source-mapping-source entry)
+      		:to-equal (expand-file-name "./js/foo.js")))))
+
+  (it "should apply custom sourcemap path overrides"
+    (assess-with-filesystem indium-script--test-fs
+      (let* ((indium-workspace-configuration
+	      '((webRoot . "js")
+		(sourceMapPathOverrides . (("foo://" . "${webRoot}/foo")))))
+	     (script (make-indium-script :url "/js/foo/bar.js"))
+      	     (entry (make-indium-source-mapping :source "foo:///bar.js"))
+      	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
+      	(indium-script--transform-sourcemap-sources map script)
+      	(expect (indium-source-mapping-source entry)
+      		:to-equal (expand-file-name "./js/foo/bar.js"))))))
 
 (describe "Downloading sourcemap files"
   (it "should return nil when download is not possible"

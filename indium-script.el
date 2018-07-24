@@ -25,6 +25,8 @@
 ;;; Code:
 
 (require 'seq)
+(require 'map)
+(require 'rx)
 (require 'indium-backend)
 (require 'indium-structs)
 (require 'indium-workspace)
@@ -43,6 +45,15 @@
 (defcustom indium-script-enable-sourcemaps t
   "When non-nil, use sourcemaps when debugging."
   :type 'boolean)
+
+(defvar indium-script-default-sourcemap-path-overrides
+  '(("webpack:///./~/" . "${root}/node_modules/")
+    ("webpack:///src/" . "${root}/")
+    ("webpack:///./"   . "${root}/")
+    ("webpack:///"     . "/"))
+  "Sourcemap mappings that are included by default in Indium.
+Any override in the workspace configuration will override this
+defaults.")
 
 (defun indium-location-url (location)
   "Lookup the url associated with LOCATION's file."
@@ -181,7 +192,7 @@ If the sourcemap file cannot be downloaded either, return nil."
                                    (indium-script--absolute-sourcemap-url script))))
                     (indium-sourcemap-from-string str)))))
       (when-let (sourcemap (indium-script-sourcemap-cache script))
-	(indium-script--absolute-sourcemap-sources sourcemap script)))
+	(indium-script--transform-sourcemap-sources sourcemap script)))
     (indium-script-sourcemap-cache script)))
 
 (defun indium-script--sourcemap-from-data-url (script)
@@ -209,20 +220,65 @@ If the sourcemap url is not a data url, return nil."
         (goto-char (point-min))
         (indium-sourcemap--decode (json-read))))))
 
-(defun indium-script--absolute-sourcemap-sources (sourcemap script)
-  "Convert all relative source paths in SOURCEMAP to absolute ones.
+(defun indium-script--sourcemap-path-overrides ()
+  "Return the sourcemap path overrides from the workspace settings.
+If no overrides are defined, return the default ones."
+  (map-elt indium-workspace-configuration 'sourceMapPathOverrides
+	   indium-script-default-sourcemap-path-overrides))
 
-Paths might be either absolute, or relative to the SCRIPT's
+(defun indium-script--transform-sourcemap-sources (sourcemap script)
+  "Transform source mappings in SOURCEMAP to locations on disk.
+
+Some source mappings might not be usable as is an need
+transformation to map to source paths on disk.
+
+The transformation map is read from
+`indium-script--sourcemap-path-overrides'.
+
+Paths relative to SCRIPT are also converted to absolute paths
+based on the directory path of SCRIPT."
+  (let ((dir (file-name-directory (indium-script-get-file script t))))
+    (seq-do (lambda (mapping)
+	      (when (indium-source-mapping-source mapping)
+		(indium-script--apply-sourcemap-path-overrides mapping)
+		(indium-script--apply-absolute-sourcemap-path mapping dir)))
+	    (indium-sourcemap-generated-mappings sourcemap))))
+
+(defun indium-script--apply-sourcemap-path-overrides (mapping)
+  "Mutate MAPPING by applying sourcemap path overrides on its source."
+  (when (indium-source-mapping-source mapping)
+    (map-apply (lambda (prefix transformation)
+		 (let ((source (indium-source-mapping-source mapping)))
+		   (save-match-data
+		     (when (string-match prefix source)
+		       (setf (indium-source-mapping-source mapping)
+			     (replace-match
+			      (indium-script--expand-path-override transformation)
+			      nil t source))))))
+	       (indium-script--sourcemap-path-overrides))))
+
+(defun indium-script--expand-path-override (path)
+  "Return PATH expanded.
+
+Occurrences of ${root} (alias ${webRoot}) are replaced with the
+absolute path of the root directory of the project as returned
+by `indium-workspace-root'."
+  (save-match-data
+    (if (string-match (rx (or "${root}" "${webRoot}")) path)
+	(expand-file-name (replace-match (indium-workspace-root) nil t path))
+      path)))
+
+(defun indium-script--apply-absolute-sourcemap-path (mapping dir)
+  "Mutate MAPPING by setting its source to an absolute path based on DIR.
+Do nothing if MAPPING's source is already an absolute path.
+
+Mapping paths can be either absolute, or relative to a SCRIPT's
 directory.  To make things simpler with sourcemaps manipulation,
 make all source paths absolute."
-  (let ((path (file-name-directory
-	       (indium-script-get-file script t))))
-   (seq-do (lambda (mapping)
-	     (when-let ((source (indium-source-mapping-source mapping)))
-	       (unless (file-name-absolute-p source)
-		 (setf (indium-source-mapping-source mapping)
-		       (expand-file-name source path)))))
-	   (indium-sourcemap-generated-mappings sourcemap))))
+  (when-let ((source (indium-source-mapping-source mapping)))
+    (unless (file-name-absolute-p source)
+      (setf (indium-source-mapping-source mapping)
+	    (expand-file-name source dir)))))
 
 (defun indium-script--sourcemap-file (script)
   "Return the local sourcemap file associated with SCRIPT.

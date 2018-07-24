@@ -52,25 +52,44 @@
 ;;; Available settings:
 ;;
 ;; "type": Type of runtime (currently "node" or "chrome" are supported).
+;;
 ;; "root": Relative path to the root directory from where files are served.
 ;;         Alias: "webRoot".
 ;;
-;; Chrome-specific settings
+;; "sourceMapPathOverrides": Custom sourcemap mappings.  Maps source paths to
+;;         locations on disk.
+;;
+;;         Default value:
+;;
+;;         {
+;;           "webpack:///./~/*": "${root}/node_modules/*",
+;;           "webpack:///./*":   "${root}/*",
+;;           "webpack:///*":     "*",
+;;           "webpack:///src/*": "${root}/*"
+;;         }
+;;
+;; Chrome-specific settings:
 ;;
 ;; "host": Host on which Chrome is running (defaults to "localhost").
-;; "port": Port on which Chrome is running (defaults to 9222).
-;; "url": Url to open when running `indium-run-chrome'.
 ;;
-;; Nodejs-specific settings
+;; "port": Port on which Chrome is running (defaults to 9222).
+;;
+;; "url": Url to open when running `indium-launch-chrome'.
+;;
+;; Nodejs-specific settings:
 ;;
 ;; "command": Nodejs command to start a new process.  The `--inspect' flag will
 ;;            be added automatically.
+;;
 ;; "inspect-brk": Whether Indium should break at the first statement (true by
 ;;            default).
+;;
 ;; "host":    Host on which the Node inspector is listening (defaults to "localhost").
-;; "port":    Port on which the Node inspector is listening (defaults to 9229).
+;;
+;; "port": Port on which the Node inspector is listening (defaults to 9229).
 
 ;;; Code:
+
 
 (require 'url)
 (require 'seq)
