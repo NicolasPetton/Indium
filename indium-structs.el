@@ -45,6 +45,7 @@
 
 (declare-function indium-script-get-file "indium-script.el")
 (declare-function indium-script-find-by-id "indium-script.el")
+(declare-function indium-script-generated-location "indium-script.el")
 
 (defmacro when-indium-connected (&rest body)
   "Evaluate BODY if there is a current Indium connection."
@@ -155,6 +156,12 @@
   (column 0 :type number :read-only t)
   (file nil :type string :read-only t))
 
+(defun indium-location-at-point ()
+  "Return an `indium-location' for the position at point."
+  (make-indium-location :file buffer-file-name
+			:line (1- (line-number-at-pos))
+			:column (current-column)))
+
 (cl-defstruct indium-frame
   (id nil :type string :read-only t)
   ;; TODO: make a scope a struct as well.
@@ -167,20 +174,14 @@
 (cl-defstruct (indium-breakpoint
 	       (:constructor nil)
 	       (:constructor make-indium-breakpoint
-			     (&key id
-				   line
-				   column
-				   file
+			     (&key original-location
 				   condition
 				   overlay
-				   &aux (location (make-indium-location
-						   :line line
-						   :column column
-						   :file file)))))
+				   id)))
   (id nil :type string)
   (overlay nil)
-  (local-file buffer-file-name :type string)
-  (location nil :type indium-location :read-only t)
+  (resolved nil)
+  (original-location nil :type indium-location :read-only t)
   (condition "" :type string))
 
 (defun indium-breakpoint-buffer (breakpoint)
@@ -188,13 +189,47 @@
   (when-let ((ov (indium-breakpoint-overlay breakpoint)))
     (overlay-buffer ov)))
 
-(defun indium-breakpoint-unresolved-p (breakpoint)
-  "Return non-nil if BREAKPOINT is not yet resolved in the runtime."
+(defun indium-breakpoint-generated-location (breakpoint)
+  "Return the generated location for BREAKPOINT."
+  (indium-script-generated-location
+   (indium-breakpoint-original-location breakpoint)))
+
+(defun indium-breakpoint-unregistered-p (breakpoint)
+  "Return non-nil if BREAKPOINT is not registered in the backend."
   (null (indium-breakpoint-id breakpoint)))
 
-(defun indium-breakpoint-unresolve (breakpoint)
-  "Remove the resolution information from BREAKPOINT."
-  (setf (indium-breakpoint-id breakpoint) nil))
+(defun indium-breakpoint-registered-p (breakpoint)
+  "Return non-nil if BREAKPOINT is registered in the backend."
+  (not (indium-breakpoint-unregistered-p breakpoint)))
+
+(defun indium-breakpoint-unresolved-p (breakpoint)
+  "Return non-nil if BREAKPOINT is not yet resolved in the runtime."
+  (not (indium-breakpoint-resolved breakpoint)))
+
+(defun indium-breakpoint-can-be-resolved-p (breakpoint)
+  "Return non-nil if BREAKPOINT can be resolved.
+
+A breakpoint can be resolved if re-registering it in the backend
+could lead to its resolution, eg:
+
+- The breakpoint is not yet registered at all
+
+- The breakpoint is registered but its generated location is
+  different from its original location, meaning that a new script
+  was parsed, where the breakpoint should be set."
+  (and (indium-breakpoint-unresolved-p breakpoint)
+       (or (indium-breakpoint-unregistered-p breakpoint)
+	   (not (equal (indium-breakpoint-original-location breakpoint)
+		       (indium-breakpoint-generated-location breakpoint))))))
+
+(defun indium-breakpoint-register (breakpoint id)
+  "Register BREAKPOINT by giving it a backend ID."
+  (setf (indium-breakpoint-id breakpoint) id))
+
+(defun indium-breakpoint-unregister (breakpoint)
+  "Remove the registration & resolution information from BREAKPOINT."
+  (setf (indium-breakpoint-id breakpoint) nil)
+  (setf (indium-breakpoint-resolved breakpoint) nil))
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here

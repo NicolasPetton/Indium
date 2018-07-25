@@ -116,7 +116,7 @@ Evaluate CALLBACK on the filtered candidates."
 
 (cl-defmethod indium-backend-register-breakpoint ((_backend (eql v8)) breakpoint &optional callback)
   "Request the addition of BREAKPOINT."
-  (let* ((location (indium-breakpoint-location breakpoint))
+  (let* ((location (indium-breakpoint-generated-location breakpoint))
 	 (file (indium-location-file location))
 	 (url file))
     (unless url
@@ -133,7 +133,7 @@ Evaluate CALLBACK on the filtered candidates."
               (locations (map-elt result 'locations))
 	      (location (seq--elt-safe locations 0))
               (line (map-elt location 'lineNumber)))
-	 (setf (indium-breakpoint-id breakpoint) id)
+	 (indium-breakpoint-register breakpoint id)
 	 (if line
 	     (let ((script (indium-script-find-by-id
 			    (map-elt location 'scriptId)))

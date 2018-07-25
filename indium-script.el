@@ -169,12 +169,10 @@ sourcemap."
 	location))))
 
 (defun indium-script-generated-location-at-point ()
-  "Return a location for the position of POINT.
+  "Return a location for the position of point.
 If no location can be found, return nil."
   (indium-script-generated-location
-   (make-indium-location :file buffer-file-name
-			 :line (1- (line-number-at-pos))
-			 :column (current-column))))
+   (indium-location-at-point)))
 
 (defun indium-script-sourcemap (script)
   "Return the sourcemap object associated with SCRIPT.

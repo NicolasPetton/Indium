@@ -56,15 +56,16 @@
   (it "Should be able to make breakpoints"
     (let ((brk (make-indium-breakpoint
 		:id 'id
-		:line 5
-		:column 2
-		:file "foo.js")))
+		:original-location (make-indium-location
+				    :line 5
+				    :column 2
+				    :file "foo.js"))))
       (expect (indium-breakpoint-id brk) :to-be 'id)
-      (expect (indium-location-file (indium-breakpoint-location brk))
+      (expect (indium-location-file (indium-breakpoint-original-location brk))
 	      :to-equal "foo.js")
-      (expect (indium-location-line (indium-breakpoint-location brk))
+      (expect (indium-location-line (indium-breakpoint-original-location brk))
 	      :to-equal 5)
-      (expect (indium-location-column (indium-breakpoint-location brk))
+      (expect (indium-location-column (indium-breakpoint-original-location brk))
 	      :to-equal 2))))
 
 (provide 'indium-structs-test)

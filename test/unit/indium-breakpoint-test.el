@@ -191,16 +191,54 @@
 		 'bar)
 	(expect (indium-breakpoint-breakpoint-with-id 'foo) :to-be brk)))))
 
+(describe "Breakpoint registration"
+  (it "should be able to unregister breakpoints"
+    (with-js2-file
+      (let ((indium-breakpoint--local-breakpoints (make-hash-table)))
+	(indium-breakpoint-add)
+	(let ((brk (indium-breakpoint-at-point)))
+	  ;; Fake the registration of the breakpoint
+	  (setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'foo)
+	  (expect (indium-breakpoint-registered-p brk) :to-be-truthy)
+	  (indium-breakpoint--unregister-all-breakpoints)
+	  (expect (indium-breakpoint-registered-p brk) :to-be nil))))))
+
 (describe "Breakpoint resolution"
+  (it "breakpoints should not be resolvable when already resolved"
+    (let ((brk (make-indium-breakpoint)))
+      (setf (indium-breakpoint-resolved brk) t)
+      (expect (indium-breakpoint-can-be-resolved-p brk)
+	      :to-be nil)))
+
+  (it "breakpoints should be resolvable when they are not registered"
+    (expect (indium-breakpoint-can-be-resolved-p (make-indium-breakpoint))
+	    :to-be-truthy))
+
+  (it "breakpoints should be resolvable when registered and different generated location"
+    (let ((brk (make-indium-breakpoint)))
+      (spy-on 'indium-breakpoint-generated-location :and-return-value 'foo)
+      (indium-breakpoint-register brk 'id)
+      (expect (indium-breakpoint-can-be-resolved-p brk)
+	      :to-be-truthy)))
+
+  (it "breakpoints not should be resolvable when registered and same generated location"
+    (let ((brk (make-indium-breakpoint :original-location 'foo)))
+      (indium-breakpoint-register brk 'id)
+      (spy-on 'indium-breakpoint-generated-location :and-return-value 'foo)
+      (expect (indium-breakpoint-can-be-resolved-p brk)
+	      :to-be nil)))
+
   (it "should be able to unresolve breakpoints"
     (with-js2-file
       (let ((indium-breakpoint--local-breakpoints (make-hash-table)))
 	(indium-breakpoint-add)
 	(let ((brk (indium-breakpoint-at-point)))
-	  ;; Fake the resolution of the breakpoint
+	  ;; Fake the registration of the breakpoint
 	  (setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'foo)
+	  ;; Fake the resolution of the breakpoint
+	  (setf (indium-breakpoint-resolved brk) t)
 	  (expect (indium-breakpoint-unresolved-p brk) :to-be nil)
-	  (indium-breakpoint--unresolve-all-breakpoints)
+	  (indium-breakpoint--unregister-all-breakpoints)
 	  (expect (indium-breakpoint-unresolved-p brk) :to-be-truthy))))))
 
 (provide 'indium-breakpoint-test)
