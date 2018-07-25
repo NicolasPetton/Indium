@@ -4,13 +4,10 @@
 [![build status](http://gitlab.petton.fr/nico/Indium/badges/master/build.svg)](http://gitlab.petton.fr/nico/Indium/commits/master)
 [![coverage report](https://gitlab.petton.fr/nico/Indium/badges/master/coverage.svg)](https://gitlab.petton.fr/nico/Indium/commits/master)
 [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](http://indium.readthedocs.io/en/latest/?badge=latest)
-[![Gratipay Team](https://img.shields.io/gratipay/team/indium.svg?maxAge=2592000)](https://gratipay.com/indium/)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/indium-emacs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 <img align="right" src="img/indium.png" alt="logo">
 
 A JavaScript development environment for Emacs.
-
-[![Support via Gratipay](https://cdn.rawgit.com/gratipay/gratipay-badge/2.3.0/dist/gratipay.png)](https://gratipay.com/NicolasPetton/)
 
 Indium connects to a browser tab or nodejs process and provides many features for
 JavaScript development, including:
