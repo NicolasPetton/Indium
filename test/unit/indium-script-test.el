@@ -110,7 +110,8 @@
     (let* ((script (make-indium-script :url "/bar/script.js"))
 	   (entry (make-indium-source-mapping :source "./baz.js"))
 	   (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
-      (indium-script--transform-sourcemap-sources map script)
+      (assess-with-filesystem indium-script--test-fs
+	(indium-script--transform-sourcemap-sources map script))
       (expect (indium-source-mapping-source entry)
 	      :to-equal "/foo/bar/baz.js")))
 
@@ -119,7 +120,8 @@
     (let* ((script (make-indium-script :url "/bar/script.js"))
 	   (entry (make-indium-source-mapping :source "/baz.js"))
 	   (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
-      (indium-script--transform-sourcemap-sources map script)
+      (assess-with-filesystem indium-script--test-fs
+       (indium-script--transform-sourcemap-sources map script))
       (expect (indium-source-mapping-source entry)
 	      :to-equal "/baz.js"))))
 

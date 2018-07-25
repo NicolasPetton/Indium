@@ -222,9 +222,25 @@ If the sourcemap url is not a data url, return nil."
 
 (defun indium-script--sourcemap-path-overrides ()
   "Return the sourcemap path overrides from the workspace settings.
-If no overrides are defined, return the default ones."
-  (map-elt indium-workspace-configuration 'sourceMapPathOverrides
-	   indium-script-default-sourcemap-path-overrides))
+If no overrides are defined, return the default ones.
+
+Override paths are expanded."
+  (let ((overrides (map-elt indium-workspace-configuration 'sourceMapPathOverrides
+			    indium-script-default-sourcemap-path-overrides)))
+    (map-apply (lambda (regexp transformation)
+		 (cons regexp (indium-script--expand-path-override transformation)))
+	       overrides)))
+
+(defun indium-script--expand-path-override (path)
+  "Return PATH expanded.
+
+Occurrences of ${root} (alias ${webRoot}) are replaced with the
+absolute path of the root directory of the project as returned
+by `indium-workspace-root'."
+  (save-match-data
+    (if (string-match (rx (or "${root}" "${webRoot}")) path)
+	(expand-file-name (replace-match (indium-workspace-root) nil t path))
+      path)))
 
 (defun indium-script--transform-sourcemap-sources (sourcemap script)
   "Transform source mappings in SOURCEMAP to locations on disk.
@@ -237,36 +253,28 @@ The transformation map is read from
 
 Paths relative to SCRIPT are also converted to absolute paths
 based on the directory path of SCRIPT."
-  (let ((dir (file-name-directory (indium-script-get-file script t))))
+  (let ((dir (file-name-directory (indium-script-get-file script t)))
+	(overrides (indium-script--sourcemap-path-overrides)))
     (seq-do (lambda (mapping)
 	      (when (indium-source-mapping-source mapping)
-		(indium-script--apply-sourcemap-path-overrides mapping)
+		(indium-script--apply-sourcemap-path-overrides mapping overrides)
 		(indium-script--apply-absolute-sourcemap-path mapping dir)))
 	    (indium-sourcemap-generated-mappings sourcemap))))
 
-(defun indium-script--apply-sourcemap-path-overrides (mapping)
-  "Mutate MAPPING by applying sourcemap path overrides on its source."
+(defun indium-script--apply-sourcemap-path-overrides (mapping overrides)
+  "Mutate MAPPING by applying sourcemap path overrides on its source.
+OVERRIDES is an alist of '(REGEXP . OVERRIDE) transformation rules."
   (when (indium-source-mapping-source mapping)
-    (map-apply (lambda (prefix transformation)
+    (map-apply (lambda (regexp transformation)
 		 (let ((source (indium-source-mapping-source mapping)))
-		   (save-match-data
-		     (when (string-match prefix source)
-		       (setf (indium-source-mapping-source mapping)
-			     (replace-match
-			      (indium-script--expand-path-override transformation)
-			      nil t source))))))
-	       (indium-script--sourcemap-path-overrides))))
-
-(defun indium-script--expand-path-override (path)
-  "Return PATH expanded.
-
-Occurrences of ${root} (alias ${webRoot}) are replaced with the
-absolute path of the root directory of the project as returned
-by `indium-workspace-root'."
-  (save-match-data
-    (if (string-match (rx (or "${root}" "${webRoot}")) path)
-	(expand-file-name (replace-match (indium-workspace-root) nil t path))
-      path)))
+		   (unless (file-name-absolute-p source)
+		     (save-match-data
+		       (when (string-match regexp source)
+			 (setf (indium-source-mapping-source mapping)
+			       (replace-match
+				transformation
+				nil t source)))))))
+	       overrides)))
 
 (defun indium-script--apply-absolute-sourcemap-path (mapping dir)
   "Mutate MAPPING by setting its source to an absolute path based on DIR.
