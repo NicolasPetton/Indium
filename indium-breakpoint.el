@@ -120,7 +120,7 @@ An icon is added to the left fringe."
   (let ((ov (indium-breakpoint--ensure-overlay)))
     (overlay-put ov
                  'before-string
-                 (indium-breakpoint--fringe-icon))
+                 (indium-breakpoint--fringe-icon breakpoint))
     (overlay-put ov
 		 'indium-breakpoint
 		 breakpoint)
@@ -187,10 +187,13 @@ An icon is added to the left fringe."
        (indium-backend-register-breakpoint (indium-current-connection-backend)
 					   brk)))))
 
-(defun indium-breakpoint--fringe-icon ()
-  "Return the fringe icon used for breakpoints."
+(defun indium-breakpoint--fringe-icon (breakpoint)
+  "Return the fringe icon used for BREAKPOINT."
   (propertize "b" 'display
-              (list 'left-fringe 'indium-breakpoint 'indium-breakpoint-face)))
+              (list 'left-fringe (if (indium-breakpoint-resolved breakpoint)
+				     'indium-breakpoint-resolved
+				   'indium-breakpoint-unresolved)
+		    'indium-breakpoint-face)))
 
 (defun indium-breakpoint--overlay-on-current-line ()
   "Return the breakpoint overlay on the current-line.
@@ -233,8 +236,10 @@ overlay."
 	(funcall fn brk ov)))))
 
 (when (and (fboundp 'define-fringe-bitmap) (display-images-p))
-  (define-fringe-bitmap 'indium-breakpoint
-    "\x3c\x7e\xff\xff\xff\xff\x7e\x3c"))
+  (define-fringe-bitmap 'indium-breakpoint-resolved
+    "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
+  (define-fringe-bitmap 'indium-breakpoint-unresolved
+  "\x3c\x42\x81\x81\x81\x81\x42\x3c"))
 
 (provide 'indium-breakpoint)
 ;;; indium-breakpoint.el ends here
