@@ -481,7 +481,8 @@ inspectors."
    '((method . "Debugger.enable"))
    (lambda (&rest _)
      (indium-v8-set-pause-on-exceptions "uncaught")
-     (indium-v8--set-blackbox-patterns indium-debugger-blackbox-regexps))))
+     (when indium-debugger-blackbox-regexps
+       (indium-v8--set-blackbox-patterns indium-debugger-blackbox-regexps)))))
 
 (defun indium-v8--set-blackbox-patterns (regexps)
   "Replace previous blackbox patterns with passed REGEXPS."
