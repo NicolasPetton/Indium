@@ -42,9 +42,11 @@
 
 (defun indium-chrome--default-executable ()
   "Return a default executable based on the OS."
-  (if (string-equal system-type "darwin")
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    "chromium"))
+  (cond ((string-equal system-type "darwin")
+	 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+	((string-equal system-type "windows-nt")
+	 "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe")
+	(t "chromium")))
 
 (defcustom indium-chrome-executable
   (indium-chrome--default-executable)
