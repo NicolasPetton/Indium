@@ -12,7 +12,8 @@ for JavaScript development, including:
 * JavaScript evaluation in JS buffers with ``indium-interaction-mode``;
 * a stepping Debugger, similar to ``edebug``, or ``cider``.
 
-This documentation can be read online at https://indium.readthedocs.io.
+This documentation can be read online at https://indium.readthedocs.io and in
+Info format (within Emacs with ``(info "Indium")``).
 
 It is also available in Info format and can be consulted from within Emacs with
 ``C-h i m indium RET``.
