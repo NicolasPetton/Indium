@@ -44,7 +44,8 @@
 
 (describe "V8 connection handling"
   (it "should be active if the websocket is open"
-    (spy-on 'websocket-openp :and-return-value t)
+    (spy-on 'wsc-connection-open-p :and-return-value t)
+    (spy-on 'indium-connection-ws :and-return-value 'ws)
     (with-fake-indium-connection
       (expect (indium-backend-active-connection-p 'v8) :to-be-truthy)))
 
@@ -53,19 +54,19 @@
      (expect (indium-backend-active-connection-p 'v8) :to-be nil)))
 
   (it "should close the socket when closing the connection"
-    (spy-on 'websocket-close)
+    (spy-on 'wsc-close)
     (with-indium-connection (indium-connection-create :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
       (indium-backend-close-connection 'v8)
-      (expect #'websocket-close :to-have-been-called-with 'ws))))
+      (expect #'wsc-close :to-have-been-called-with 'ws))))
 
 (describe "Sending requests"
   (it "should not send requests if the connection is closed"
-    (spy-on 'websocket-send-test)
+    (spy-on 'wsc-send)
     (spy-on 'message)
     (with-fake-indium-connection
       (indium-v8--send-request 'foo)
-      (expect #'websocket-send-test :not :to-have-been-called)))
+      (expect #'wsc-send :not :to-have-been-called)))
 
   (it "should display a warning message if the connection is closed"
     (spy-on 'message)
@@ -74,17 +75,17 @@
       (expect #'message :to-have-been-called-with "Socket connection closed")))
 
   (it "should send requests if the connection is active"
-    (spy-on 'websocket-send-text)
+    (spy-on 'wsc-send)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
     (spy-on 'indium-v8--next-request-id :and-return-value 'id)
     (with-indium-connection (indium-connection-create :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
       (indium-v8--send-request '((message . "message")))
-      (expect #'websocket-send-text :to-have-been-called-with
+      (expect #'wsc-send :to-have-been-called-with
               'ws (json-encode '((id . id) (message . "message"))))))
 
   (it "should register callbacks when sending requests"
-    (spy-on 'websocket-send-text)
+    (spy-on 'wsc-send)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
     (spy-on 'indium-v8--next-request-id :and-return-value 'id)
     (with-indium-connection (indium-connection-create :backend 'v8)

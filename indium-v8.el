@@ -36,11 +36,11 @@
 
 ;;; Code:
 
-(require 'websocket)
 (require 'json)
 (require 'map)
 (require 'seq)
 
+(require 'wsc)
 (require 'indium-backend)
 (require 'indium-structs)
 (require 'indium-repl)
@@ -71,16 +71,17 @@
 (cl-defmethod indium-backend-active-connection-p ((_backend (eql v8)))
   "Return non-nil if the current connection is active."
   (when-indium-connected
-    (websocket-openp (indium-connection-ws indium-current-connection))))
+    (when-let ((wsc-connection (indium-connection-ws indium-current-connection)))
+     (wsc-connection-open-p wsc-connection))))
 
 (cl-defmethod indium-backend-close-connection ((_backend (eql v8)))
   "Close the websocket associated with the current connection."
-  (websocket-close (indium-connection-ws indium-current-connection))
+  (wsc-close (indium-connection-ws indium-current-connection))
   (run-hooks 'indium-connection-closed-hook))
 
 (cl-defmethod indium-backend-reconnect ((_backend (eql v8)))
   (let ((url (indium-current-connection-url))
-	(ws-url (websocket-url (indium-connection-ws indium-current-connection))))
+	(ws-url (wsc-connection-url (indium-connection-ws indium-current-connection))))
     ;; close all buffers related to the closed
     ;; connection the first
     (indium-quit)
@@ -301,14 +302,13 @@ If NODEJS is non-nil, add a `nodejs' flag to the
 `indium-current-connection' to handle special cases."
   (unless websocket-url
     (user-error "Cannot open connection, another devtools instance might be open"))
-  (websocket-open websocket-url
-                  :on-open (lambda (ws)
-			     (indium-v8--handle-ws-open ws url nodejs)
-			     (when on-open
-                               (funcall on-open)))
-                  :on-message #'indium-v8--handle-ws-message
-                  :on-close #'indium-v8--handle-ws-closed
-                  :on-error #'indium-v8--handle-ws-error))
+  (wsc-open websocket-url
+            (lambda (ws)
+	      (indium-v8--handle-ws-open ws url nodejs)
+	      (when on-open
+                (funcall on-open)))
+            #'indium-v8--handle-ws-message
+            #'indium-v8--handle-ws-closed))
 
 (defun indium-v8--make-connection (ws url &optional nodejs)
   "Return a new connection for WS and URL.
@@ -333,9 +333,9 @@ If NODEJS is non-nil, set an extra property in the connection."
   (switch-to-buffer (indium-repl-get-buffer-create))
   (run-hooks 'indium-connection-open-hook))
 
-(defun indium-v8--handle-ws-message (_ws frame)
-  "Handle a websocket message FRAME."
-  (let* ((message (indium-v8--read-ws-message frame))
+(defun indium-v8--handle-ws-message (message)
+  "Handle a websocket MESSAGE."
+  (let* ((message (json-read-from-string message))
          (error (map-elt message 'error))
          (method (map-elt message 'method))
          (request-id (map-elt message 'id))
@@ -419,11 +419,6 @@ MESSAGE explains why the connection has been closed."
   "Cleanup function called when the connection socket is closed."
   (run-hooks 'indium-connection-closed-hook))
 
-(defun indium-v8--handle-ws-error (_ws _action error)
-  "Display an error message for an exception in a websocket callback handling.
-ERROR should be a description of the exception."
-  (message "Exception in websocket callback! %s" error))
-
 (defun indium-v8--send-request (request &optional callback)
   "Send REQUEST to the current connection.
 Evaluate CALLBACK with the response.
@@ -435,13 +430,9 @@ If the current connection is closed, display a message."
 		(map-put (indium-current-connection-callbacks)
 			 id
 			 callback))
-	(websocket-send-text (indium-connection-ws indium-current-connection)
-			     (json-encode (cons `(id . ,id) request))))
+	(wsc-send (indium-connection-ws indium-current-connection)
+		  (json-encode (cons `(id . ,id) request))))
     (message "Socket connection closed")))
-
-(defun indium-v8--read-ws-message (frame)
-  "Parse the payload from the websocket FRAME."
-  (json-read-from-string (websocket-frame-payload frame)))
 
 (defun indium-v8--enable-tools ()
   "Enable developer tools for the current tab.

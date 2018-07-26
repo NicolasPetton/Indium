@@ -24,7 +24,6 @@ ci-dependencies:
 	# Install dependencies in ~/.emacs.d/elpa
 	$(BATCH) \
 	--funcall package-refresh-contents \
-	--eval "(package-install 'websocket)" \
 	--eval "(package-install 'company)" \
 	--eval "(package-install 'undercover)" \
 	--eval "(package-install 'buttercup)" \
