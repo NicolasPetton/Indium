@@ -19,11 +19,13 @@ JavaScript development, including:
 - JavaScript evaluation in JS buffers with `indium-interaction-mode`;
 - a stepping Debugger, similar to `edebug`, or `cider`.
 
-![REPL](./screenshots/debugger.gif)
-
 **Installation instruction and other documentation can be found on [readthedocs](https://indium.readthedocs.io).**
 
 ## Screenshots
+
+The stepping debugger
+
+![Debugger](./screenshots/debugger.gif)
 
 The REPL with company-mode
 
@@ -35,7 +37,7 @@ The REPL showing clickable output
 
 The inspector
 
-![REPL](./screenshots/inspector.png)
+![Inspector](./screenshots/inspector.png)
 
 ## Missing features
 
