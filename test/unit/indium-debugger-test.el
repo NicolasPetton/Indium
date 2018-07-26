@@ -137,7 +137,14 @@
     (with-fake-indium-connection
       (spy-on 'indium-backend-resume)
       (indium-debugger-resume)
-      (expect #'indium-backend-resume :to-have-been-called-with 'fake))))
+      (expect #'indium-backend-resume :to-have-been-called-with 'fake)))
+
+  (it "should call the backend when jumping to a location"
+    (with-fake-indium-connection
+      (spy-on 'indium-backend-continue-to-location)
+      (spy-on 'indium-script-generated-location-at-point :and-return-value 'location)
+      (indium-debugger-here)
+      (expect #'indium-backend-continue-to-location :to-have-been-called-with 'fake 'location))))
 
 (provide 'indium-debugger-test)
 ;;; indium-debugger-test.el ends here
