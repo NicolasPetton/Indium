@@ -47,6 +47,7 @@
 (declare-function indium-connect-to-nodejs "indium-nodejs.el")
 (declare-function indium-launch-chrome "indium-chrome.el")
 (declare-function indium-launch-nodejs "indium-nodejs.el")
+(declare-function indium-debugger-select-frame "indium-debugger.el")
 
 (defvar indium-update-script-source-hook nil
   "Hook run when script source is updated.")
@@ -299,7 +300,7 @@ hitting a breakpoint."
 	     indium-breakpoint--local-breakpoints))
 
 (defun indium--get-breakpoint-xref-match (breakpoint buffer)
-  "Return the source line where BREAKPOINT is set."
+  "Return the source line where BREAKPOINT is set in BUFFER."
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
