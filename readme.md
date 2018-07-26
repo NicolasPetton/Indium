@@ -19,6 +19,8 @@ JavaScript development, including:
 - JavaScript evaluation in JS buffers with `indium-interaction-mode`;
 - a stepping Debugger, similar to `edebug`, or `cider`.
 
+## Documentation
+
 **Installation instruction and other documentation can be found on [readthedocs](https://indium.readthedocs.io).**
 
 ## Screenshots
