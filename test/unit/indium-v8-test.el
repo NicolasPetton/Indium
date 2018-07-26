@@ -172,19 +172,21 @@
 
 (describe "Location conversion"
   (it "can convert a location struct into a v8 location"
-    (let ((location (make-indium-location :line 10 :column 5)))
+    (let ((location (make-indium-location :line 10 :column 5 :file "/foo/bar.js")))
+      (spy-on #'indium-script-find-from-location :and-return-value nil)
       (expect (indium-v8--convert-to-v8-location location)
 	      :to-equal '((columnNumber . 5)
 			  (lineNumber . 10)))))
 
   (it "can convert a location struct with file into a v8 location"
-    (let ((location (make-indium-location :line 10 :column 5 :file "foo")))
-      (spy-on #'indium-location-url :and-return-value "foo")
-      (spy-on #'indium-script-find-from-file :and-return-value (make-indium-script :id "1"))
-      (expect (indium-v8--convert-to-v8-location location)
-	      :to-equal '((scriptId . "1")
-			  (columnNumber . 5)
-			  (lineNumber . 10))))))
+    (with-fake-indium-connection
+      (let ((location (make-indium-location :line 10 :column 5 :file "foo")))
+	(spy-on #'indium-location-url :and-return-value "foo")
+	(spy-on #'indium-script-find-from-location :and-return-value (make-indium-script :id "1"))
+	(expect (indium-v8--convert-to-v8-location location)
+		:to-equal '((scriptId . "1")
+			    (columnNumber . 5)
+			    (lineNumber . 10)))))))
 
 (provide 'indium-v8-test)
 ;;; indium-v8-test.el ends here

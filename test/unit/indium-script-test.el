@@ -56,6 +56,23 @@
 		       (indium-script-all-scripts-with-sourcemap))
 	      :to-equal '("2"))))
 
+    (it "should be able to find scripts by location with file"
+      (spy-on 'indium-script-find-from-file :and-return-value 'script)
+      (spy-on 'indium-script-find-from-url)
+      (let* ((location (make-indium-location :file "foo"))
+	     (script (indium-script-find-from-location location)))
+	(expect #'indium-script-find-from-file :to-have-been-called-with "foo")
+	(expect #'indium-script-find-from-url :not :to-have-been-called)
+	(expect script :to-be 'script)))
+
+    (it "should be able to find scripts by location with url"
+      (spy-on 'indium-script-find-from-file)
+      (spy-on 'indium-script-find-from-url :and-return-value 'script)
+      (let* ((location (make-indium-location :file "foo"))
+	     (script (indium-script-find-from-location location)))
+	(expect #'indium-script-find-from-url :to-have-been-called-with "foo")
+	(expect script :to-be 'script)))
+
   (it "should be able to find the sourcemap file for a script"
     (assess-with-filesystem indium-script--test-fs
       (with-fake-indium-connection

@@ -670,8 +670,7 @@ If INTERNAL-PROPERTIES is non-nil, also add them."
       (map-put result 'lineNumber line))
     (when-let ((column (indium-location-column location)))
       (map-put result 'columnNumber column))
-    (when-let ((file (indium-location-file location))
-	       (script (indium-script-find-from-file file)))
+    (when-let ((script (indium-script-find-from-location location)))
       (map-put result 'scriptId (indium-script-id script)))
     result))
 

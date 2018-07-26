@@ -91,6 +91,15 @@ If not such script was parsed, return nil."
 If no local file can be found and IGNORE-EXISTENCE is nil, return nil."
   (indium-workspace-lookup-file (indium-script-url script) ignore-existence))
 
+(defun indium-script-find-from-location (location)
+  "Return the script associated to LOCATION.
+
+LOCATION can either be a buffer location or a
+generated (sourcemap) script location."
+  (let ((file (indium-location-file location)))
+    (or (indium-script-find-from-file file)
+	(indium-script-find-from-url file))))
+
 (defun indium-script-find-from-url (url)
   "Lookup a script for URL.
 Return nil if no script can be found."
