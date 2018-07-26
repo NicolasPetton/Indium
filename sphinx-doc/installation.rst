@@ -4,7 +4,7 @@ Installation
 .. NOTE:: If you already have installed ``Jade``, you should read the
           :ref:`migration-from-jade` page first.
 
-Indium supports ``Emacs 25.1+``, works with ``Chrome`` (debugging protocol
+Indium supports ``Emacs 25.3+``, works with ``Chrome`` (debugging protocol
 ``v1.2``, see :ref:`chrome_requirements`) and ``NodeJS``, see
 :ref:`nodejs_requirements`.
 
