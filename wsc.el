@@ -104,9 +104,7 @@ If non-nil, evaluate ON-CLOSE when a the connection is closed."
 	    ;; The process might not be running, so ignore errors
 	    (ignore-errors
 	      (wsc--send-frame 8))))
-      (kill-buffer input-buffer)
-      (when-let ((handler (wsc-connection-on-close connection)))
-	(funcall handler connection)))))
+      (kill-buffer input-buffer))))
 
 (defun wsc-send (connection data)
   "Send DATA to the WebSocket process associated to CONNECTION."
