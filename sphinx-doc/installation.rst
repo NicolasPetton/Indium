@@ -4,8 +4,9 @@ Installation
 .. NOTE:: If you already have installed ``Jade``, you should read the
           :ref:`migration-from-jade` page first.
 
-Indium supports ``Emacs 25.1+``, ``Chrome 54.0+`` (debugging protocol ``v1.2``)
-and ``NodeJS 7+``.
+Indium supports ``Emacs 25.1+``, works with ``Chrome`` (debugging protocol
+``v1.2``, see :ref:`chrome_requirements`) and ``NodeJS``, see
+:ref:`nodejs_requirements`.
 
 Indium is availabe on `MELPA <https://melpa.org>`_, `MELPA Stable
 <https://stable.melpa/org>`_.
