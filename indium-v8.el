@@ -76,7 +76,9 @@
 
 (cl-defmethod indium-backend-close-connection ((_backend (eql v8)))
   "Close the websocket associated with the current connection."
-  (wsc-close (indium-connection-ws indium-current-connection))
+  (let ((connection (indium-connection-ws indium-current-connection)))
+   (when (wsc-connection-open-p connection)
+     (wsc-close connection)))
   (run-hooks 'indium-connection-closed-hook))
 
 (cl-defmethod indium-backend-reconnect ((_backend (eql v8)))

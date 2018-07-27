@@ -56,9 +56,11 @@
   (it "should close the socket when closing the connection"
     (spy-on 'wsc-close)
     (with-indium-connection (indium-connection-create :backend 'v8)
-      (map-put (indium-current-connection-props) 'ws 'ws)
-      (indium-backend-close-connection 'v8)
-      (expect #'wsc-close :to-have-been-called-with 'ws))))
+      (let ((ws (wsc-connection-create)))
+	(setf (wsc-connection-state ws) :open)
+	(map-put (indium-current-connection-props) 'ws ws)
+	(indium-backend-close-connection 'v8)
+	(expect #'wsc-close :to-have-been-called-with ws)))))
 
 (describe "Sending requests"
   (it "should not send requests if the connection is closed"
