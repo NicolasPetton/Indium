@@ -37,7 +37,7 @@
 
 (describe "V8 connection websocket"
   (it "should be able to set a websocket"
-    (let ((conn (make-indium-connection)))
+    (let ((conn (indium-connection-create)))
       (setf (indium-connection-ws conn) 'foo)
       (expect (indium-connection-ws conn)
 	      :to-be 'foo))))
@@ -49,12 +49,12 @@
       (expect (indium-backend-active-connection-p 'v8) :to-be-truthy)))
 
   (it "should be inactive if the websocket is closed"
-    (let ((indium-current-connection (make-indium-connection :backend 'v8)))
+    (let ((indium-current-connection (indium-connection-create :backend 'v8)))
      (expect (indium-backend-active-connection-p 'v8) :to-be nil)))
 
   (it "should close the socket when closing the connection"
     (spy-on 'websocket-close)
-    (with-indium-connection (make-indium-connection :backend 'v8)
+    (with-indium-connection (indium-connection-create :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
       (indium-backend-close-connection 'v8)
       (expect #'websocket-close :to-have-been-called-with 'ws))))
@@ -77,7 +77,7 @@
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
     (spy-on 'indium-v8--next-request-id :and-return-value 'id)
-    (with-indium-connection (make-indium-connection :backend 'v8)
+    (with-indium-connection (indium-connection-create :backend 'v8)
       (map-put (indium-current-connection-props) 'ws 'ws)
       (indium-v8--send-request '((message . "message")))
       (expect #'websocket-send-text :to-have-been-called-with
@@ -87,7 +87,7 @@
     (spy-on 'websocket-send-text)
     (spy-on 'indium-backend-active-connection-p :and-return-value t)
     (spy-on 'indium-v8--next-request-id :and-return-value 'id)
-    (with-indium-connection (make-indium-connection :backend 'v8)
+    (with-indium-connection (indium-connection-create :backend 'v8)
       (indium-v8--send-request '((message . "message")) 'callback)
       (expect (map-elt (indium-current-connection-callbacks) 'id) :to-equal 'callback))))
 
@@ -98,7 +98,7 @@
     (spy-on 'indium-breakpoint--update-after-script-parsed)
     (spy-on 'test-hook-run)
     (add-hook 'indium-script-parsed-hook 'test-hook-run)
-    (with-indium-connection (make-indium-connection :backend 'v8)
+    (with-indium-connection (indium-connection-create :backend 'v8)
       (indium-v8--handle-script-parsed '(params))
       (remove-hook 'indium-script-parsed-hook 'test-hook-run)
       (expect #'test-hook-run :to-have-been-called-with 'script))))
@@ -128,8 +128,8 @@
 
   (it "calls Debugger.evaluateOnCallFrame when there is stack frame"
     (spy-on 'indium-v8--send-request)
-    (with-indium-connection (make-indium-connection
-			     :current-frame (make-indium-frame :id 1))
+    (with-indium-connection (indium-connection-create
+			     :current-frame (indium-frame-create :id 1))
       (indium-backend-evaluate 'v8 "foo")
       (expect #'indium-v8--send-request :to-have-been-called-with
               '((method . "Debugger.evaluateOnCallFrame")
@@ -172,7 +172,7 @@
 
 (describe "Location conversion"
   (it "can convert a location struct into a v8 location"
-    (let ((location (make-indium-location :line 10 :column 5 :file "/foo/bar.js")))
+    (let ((location (indium-location-create :line 10 :column 5 :file "/foo/bar.js")))
       (spy-on #'indium-script-find-from-location :and-return-value nil)
       (expect (indium-v8--convert-to-v8-location location)
 	      :to-equal '((columnNumber . 5)
@@ -180,9 +180,9 @@
 
   (it "can convert a location struct with file into a v8 location"
     (with-fake-indium-connection
-      (let ((location (make-indium-location :line 10 :column 5 :file "foo")))
+      (let ((location (indium-location-create :line 10 :column 5 :file "foo")))
 	(spy-on #'indium-location-url :and-return-value "foo")
-	(spy-on #'indium-script-find-from-location :and-return-value (make-indium-script :id "1"))
+	(spy-on #'indium-script-find-from-location :and-return-value (indium-script-create :id "1"))
 	(expect (indium-v8--convert-to-v8-location location)
 		:to-equal '((scriptId . "1")
 			    (columnNumber . 5)

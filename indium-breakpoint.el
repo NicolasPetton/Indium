@@ -42,8 +42,8 @@
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
   (if-let ((location (indium-location-at-point)))
-      (let* ((brk (make-indium-breakpoint :original-location location
-					  :condition (or condition ""))))
+      (let* ((brk (indium-breakpoint-create :original-location location
+					    :condition (or condition ""))))
 	(map-put indium-breakpoint--local-breakpoints brk (current-buffer))
 	(indium-breakpoint--add-overlay brk)
 	(when-indium-connected

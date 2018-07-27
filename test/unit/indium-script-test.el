@@ -59,7 +59,7 @@
     (it "should be able to find scripts by location with file"
       (spy-on 'indium-script-find-from-file :and-return-value 'script)
       (spy-on 'indium-script-find-from-url)
-      (let* ((location (make-indium-location :file "foo"))
+      (let* ((location (indium-location-create :file "foo"))
 	     (script (indium-script-find-from-location location)))
 	(expect #'indium-script-find-from-file :to-have-been-called-with "foo")
 	(expect #'indium-script-find-from-url :not :to-have-been-called)
@@ -68,7 +68,7 @@
     (it "should be able to find scripts by location with url"
       (spy-on 'indium-script-find-from-file)
       (spy-on 'indium-script-find-from-url :and-return-value 'script)
-      (let* ((location (make-indium-location :file "foo"))
+      (let* ((location (indium-location-create :file "foo"))
 	     (script (indium-script-find-from-location location)))
 	(expect #'indium-script-find-from-url :to-have-been-called-with "foo")
 	(expect script :to-be 'script)))
@@ -124,7 +124,7 @@
 (describe "Handling sourcemap files"
   (it "should convert all sourcemap entry paths to absolute paths"
     (spy-on 'indium-workspace-lookup-file :and-return-value "/foo/bar/script.js")
-    (let* ((script (make-indium-script :url "/bar/script.js"))
+    (let* ((script (indium-script-create :url "/bar/script.js"))
 	   (entry (make-indium-source-mapping :source "./baz.js"))
 	   (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       (assess-with-filesystem indium-script--test-fs
@@ -134,7 +134,7 @@
 
   (it "should not convert sourcemap entries paths that are absolute"
     (spy-on 'indium-workspace-lookup-file :and-return-value "/foo/bar/script.js")
-    (let* ((script (make-indium-script :url "/bar/script.js"))
+    (let* ((script (indium-script-create :url "/bar/script.js"))
 	   (entry (make-indium-source-mapping :source "/baz.js"))
 	   (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       (assess-with-filesystem indium-script--test-fs
@@ -155,28 +155,28 @@
   (it "should apply default sourcemap path overrides"
     (assess-with-filesystem indium-script--test-fs
 
-      (let* ((script (make-indium-script :url "/js/foo.js"))
+      (let* ((script (indium-script-create :url "/js/foo.js"))
       	     (entry (make-indium-source-mapping :source "webpack:///./js/foo.js"))
       	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       	(indium-script--transform-sourcemap-sources map script)
       	(expect (indium-source-mapping-source entry)
       		:to-equal (expand-file-name "./js/foo.js")))
 
-      (let* ((script (make-indium-script :url "/js/foo.js"))
+      (let* ((script (indium-script-create :url "/js/foo.js"))
       	     (entry (make-indium-source-mapping :source "webpack:///src/js/foo.js"))
       	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       	(indium-script--transform-sourcemap-sources map script)
       	(expect (indium-source-mapping-source entry)
       		:to-equal (expand-file-name "./js/foo.js")))
 
-      (let* ((script (make-indium-script :url "/node_modules/foo/index.js"))
+      (let* ((script (indium-script-create :url "/node_modules/foo/index.js"))
       	     (entry (make-indium-source-mapping :source "webpack:///./~/foo/index.js"))
       	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       	(indium-script--transform-sourcemap-sources map script)
       	(expect (indium-source-mapping-source entry)
       		:to-equal (expand-file-name "./node_modules/foo/index.js")))
 
-      (let* ((script (make-indium-script :url "/foo.js"))
+      (let* ((script (indium-script-create :url "/foo.js"))
       	     (entry (make-indium-source-mapping :source "webpack:///foo.js"))
       	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       	(indium-script--transform-sourcemap-sources map script)
@@ -187,7 +187,7 @@
     (assess-with-filesystem indium-script--test-fs
 
       (let* ((indium-workspace-configuration '((root . "js")))
-	     (script (make-indium-script :url "/js/foo.js"))
+	     (script (indium-script-create :url "/js/foo.js"))
       	     (entry (make-indium-source-mapping :source "webpack:///./foo.js"))
       	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       	(indium-script--transform-sourcemap-sources map script)
@@ -199,7 +199,7 @@
       (let* ((indium-workspace-configuration
 	      '((webRoot . "js")
 		(sourceMapPathOverrides . (("foo://" . "${webRoot}/foo")))))
-	     (script (make-indium-script :url "/js/foo/bar.js"))
+	     (script (indium-script-create :url "/js/foo/bar.js"))
       	     (entry (make-indium-source-mapping :source "foo:///bar.js"))
       	     (map (make-indium-sourcemap :generated-mappings (make-vector 1 entry))))
       	(indium-script--transform-sourcemap-sources map script)

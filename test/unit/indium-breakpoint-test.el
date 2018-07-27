@@ -30,7 +30,7 @@
 (describe "Breakpoint position when editing buffers (GH issue #82)"
   (it "should keep the breakpoint on the original line when adding a line before"
     (with-js2-buffer "let a = true;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	;; add a line before the current line with the breakpoint overlay
 	(goto-char (point-min))
@@ -43,7 +43,7 @@
     ;; When inserting a line before, deleting a breakpoint resulted in an
     ;; overlay being added on the next line.
     (with-js2-buffer "let a = true;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	;; add a line before the current line with the breakpoint overlay
 	(goto-char (point-min))
@@ -60,7 +60,7 @@
     ;; overlay being added on the next line when the line where the breakpoint
     ;; was added had been split.
     (with-js2-buffer "let a = true;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	;; add a line before the current line with the breakpoint overlay
 	(goto-char 5)
@@ -75,21 +75,21 @@
 (describe "Making markers (tests for issue #79)"
   (it "should put breakpoint overlays on the entire line"
     (with-js2-buffer "let a = true;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	(expect (overlay-start ov) :to-equal (point-at-bol))
 	(expect (overlay-end ov) :to-equal (point-at-eol)))))
 
   (it "should be able to access breakpoints on empty lines"
     (with-js2-buffer ""
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	(expect (indium-breakpoint--overlay-on-current-line)
 		:to-be ov))))
 
   (it "should be able to remove overlays on empty lines"
     (with-js2-buffer ""
-      (let ((brk (make-indium-breakpoint)))
+      (let ((brk (indium-breakpoint-create)))
 	(indium-breakpoint--add-overlay brk))
       (expect (indium-breakpoint--overlay-on-current-line) :not :to-be nil)
       (indium-breakpoint--remove-overlay)
@@ -97,7 +97,7 @@
 
   (it "can get a breakpoint overlays on the current line when it changed"
     (with-js2-buffer "let a = 1;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	(goto-char (point-min))
 	(insert "\n")
@@ -107,7 +107,7 @@
 (describe "Accessing breakpoints"
   (it "can get a breakpoint overlay on the current line"
     (with-js2-file
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
         (expect (indium-breakpoint--overlay-on-current-line) :to-be ov))))
 
@@ -141,20 +141,20 @@
 (describe "Handling overlays in breakpoints"
   (it "adding overlays should store the overlay in the breakpoint"
     (with-js2-buffer "let a = 2;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	(expect (indium-breakpoint-overlay brk) :to-be ov))))
 
   (it "removing overlays should remove them from breakpoints"
     (with-js2-buffer "let a = 2;"
-      (let* ((brk (make-indium-breakpoint))
+      (let* ((brk (indium-breakpoint-create))
 	     (ov (indium-breakpoint--add-overlay brk)))
 	(indium-breakpoint--remove-overlay)
 	(expect (indium-breakpoint-overlay brk) :to-be nil))))
 
   (it "should access breakpoint buffers"
     (with-js2-buffer "let a = 2;"
-      (let* ((brk (make-indium-breakpoint)))
+      (let* ((brk (indium-breakpoint-create)))
 	(indium-breakpoint--add-overlay brk)
 	(expect (indium-breakpoint-buffer brk) :to-be (current-buffer))
 	(indium-breakpoint--remove-overlay)
@@ -185,7 +185,7 @@
   (it "can get breakpoints by id"
     (with-indium-test-fs
       (let ((indium-breakpoint--local-breakpoints (make-hash-table))
-	    (brk (make-indium-breakpoint :id 'foo)))
+	    (brk (indium-breakpoint-create :id 'foo)))
 	(map-put indium-breakpoint--local-breakpoints
 		 brk
 		 'bar)
@@ -205,24 +205,24 @@
 
 (describe "Breakpoint resolution"
   (it "breakpoints should not be resolvable when already resolved"
-    (let ((brk (make-indium-breakpoint)))
+    (let ((brk (indium-breakpoint-create)))
       (setf (indium-breakpoint-resolved brk) t)
       (expect (indium-breakpoint-can-be-resolved-p brk)
 	      :to-be nil)))
 
   (it "breakpoints should be resolvable when they are not registered"
-    (expect (indium-breakpoint-can-be-resolved-p (make-indium-breakpoint))
+    (expect (indium-breakpoint-can-be-resolved-p (indium-breakpoint-create))
 	    :to-be-truthy))
 
   (it "breakpoints should be resolvable when registered and different generated location"
-    (let ((brk (make-indium-breakpoint)))
+    (let ((brk (indium-breakpoint-create)))
       (spy-on 'indium-breakpoint-generated-location :and-return-value 'foo)
       (indium-breakpoint-register brk 'id)
       (expect (indium-breakpoint-can-be-resolved-p brk)
 	      :to-be-truthy)))
 
   (it "breakpoints not should be resolvable when registered and same generated location"
-    (let ((brk (make-indium-breakpoint :original-location 'foo)))
+    (let ((brk (indium-breakpoint-create :original-location 'foo)))
       (indium-breakpoint-register brk 'id)
       (spy-on 'indium-breakpoint-generated-location :and-return-value 'foo)
       (expect (indium-breakpoint-can-be-resolved-p brk)

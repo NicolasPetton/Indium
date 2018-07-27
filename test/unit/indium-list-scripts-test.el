@@ -32,13 +32,13 @@
 (describe "Making tabulated list entries"
   (it "Should be able to make entries"
     (spy-on 'indium-script-get-file :and-return-value nil)
-    (let* ((script (make-indium-script :id "1" :url "foo.html"))
+    (let* ((script (indium-script-create :id "1" :url "foo.html"))
 	   (entry (indium-list-scripts--make-entry script)))
       (expect entry :to-equal '("1" ["foo.html"]))))
 
   (it "Should make an entry with a button when there is a local file"
     (spy-on 'indium-script-get-file :and-return-value "bar.html")
-    (let* ((script (make-indium-script :id "1" :url "foo.html"))
+    (let* ((script (indium-script-create :id "1" :url "foo.html"))
 	   (entry (indium-list-scripts--make-entry script)))
       (expect (cadr (elt (cadr entry) 0)) :to-equal 'action))))
 

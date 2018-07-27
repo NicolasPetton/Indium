@@ -314,7 +314,7 @@ If NODEJS is non-nil, add a `nodejs' flag to the
   "Return a new connection for WS and URL.
 If NODEJS is non-nil, add a `nodejs' extra property to the
 connection."
-  (let ((conn (make-indium-connection
+  (let ((conn (indium-connection-create
 	       :backend 'v8
 	       :url url
 	       :project-root (indium-workspace-root))))
@@ -676,9 +676,9 @@ If INTERNAL-PROPERTIES is non-nil, also add them."
 
 (defun indium-v8--convert-from-v8-location (location)
   "Return a location struct built from a v8 LOCATION."
-  (make-indium-location-from-script-id :line (map-elt location 'lineNumber)
-				       :column (map-elt location 'columnNumber)
-				       :script-id (map-elt location 'scriptId)))
+  (indium-location-from-script-id :line (map-elt location 'lineNumber)
+				  :column (map-elt location 'columnNumber)
+				  :script-id (map-elt location 'scriptId)))
 
 (defun indium-v8--frames (list)
   "Return a list of frames built from LIST."
@@ -690,7 +690,7 @@ If INTERNAL-PROPERTIES is non-nil, also add them."
 		 ;; stack frames
 		 (when-let ((script (indium-script-find-by-id
 				     (map-nested-elt frame '(location scriptId)))))
-		   (make-indium-frame
+		   (indium-frame-create
 		    :scope-chain (indium-v8--scope-chain frame)
 		    :location (indium-v8--convert-from-v8-location
 			       (map-elt frame 'location))

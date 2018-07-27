@@ -62,7 +62,8 @@
 (defvar indium-current-connection nil
   "Current connection to the browser tab.")
 
-(cl-defstruct (indium-connection)
+(cl-defstruct (indium-connection (:constructor indium-connection-create)
+				 (:copier nil))
   (backend nil :type symbol :read-only t)
   (url nil :type string :read-only t)
   ;; Optional process attached to the connection (used by NodeJS)
@@ -136,7 +137,8 @@
   (when-indium-connected
     (setf (indium-connection-current-frame indium-current-connection) frame)))
 
-(cl-defstruct indium-script
+(cl-defstruct (indium-script (:constructor indium-script-create)
+			     (:copier nil))
   (id nil :type string :read-only t)
   (url nil :type string :read-only t)
   (sourcemap-url nil :type string :read-only t)
@@ -146,23 +148,26 @@
   (sourcemap-cache nil))
 
 (cl-defstruct
-    (indium-location
-     (:constructor make-indium-location-from-script-id
-		   (&key (script-id "")
-			 line
-			 column
-			 &aux (file (indium-script-get-file (indium-script-find-by-id script-id))))))
+    (indium-location (:constructor indium-location-create)
+		     (:constructor indium-location-from-script-id
+				   (&key (script-id "")
+					 line
+					 column
+					 &aux (file (indium-script-get-file
+						     (indium-script-find-by-id script-id)))))
+		     (:copier nil))
   (line 0 :type number :read-only t)
   (column 0 :type number :read-only t)
   (file nil :type string :read-only t))
 
 (defun indium-location-at-point ()
   "Return an `indium-location' for the position at point."
-  (make-indium-location :file buffer-file-name
-			:line (1- (line-number-at-pos))
-			:column (current-column)))
+  (indium-location-create :file buffer-file-name
+			  :line (1- (line-number-at-pos))
+			  :column (current-column)))
 
-(cl-defstruct indium-frame
+(cl-defstruct (indium-frame (:constructor indium-frame-create)
+			    (:copier nil))
   (id nil :type string :read-only t)
   ;; TODO: make a scope a struct as well.
   (scope-chain nil :type list :read-only t)
@@ -172,8 +177,7 @@
   (function-name nil :type string))
 
 (cl-defstruct (indium-breakpoint
-	       (:constructor nil)
-	       (:constructor make-indium-breakpoint
+	       (:constructor indium-breakpoint-create
 			     (&key original-location
 				   condition
 				   overlay

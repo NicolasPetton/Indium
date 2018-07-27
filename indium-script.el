@@ -71,9 +71,9 @@ parsed scripts with the same URL."
   (when-let ((script (indium-script-find-from-url url)))
     (map-delete (indium-current-connection-scripts)
   		(intern (indium-script-id script))))
-  (let ((script (make-indium-script :id id
-				    :url url
-				    :sourcemap-url sourcemap-url)))
+  (let ((script (indium-script-create :id id
+				      :url url
+				      :sourcemap-url sourcemap-url)))
     ;; TODO Should use `indum-current-connection-scripts' but I get a
     ;; compilation warning.
     (map-put (indium-connection-scripts indium-current-connection)
@@ -147,9 +147,9 @@ If SCRIPT has no sourcemap, return LOCATION."
 				   (1+ (indium-location-line location))
 				   (1+ (indium-location-column location))))
 	       (file (plist-get original-location :source)))
-          (make-indium-location :file file
-				:line (max 0 (1- (plist-get original-location :line)))
-				:column (plist-get original-location :column))
+          (indium-location-create :file file
+				  :line (max 0 (1- (plist-get original-location :line)))
+				  :column (plist-get original-location :column))
 	location)
     location))
 
@@ -170,9 +170,9 @@ sourcemap."
 							(indium-location-file location)
 							(1+ (indium-location-line location))
 							0)))
-			      (make-indium-location :file (indium-script-url script)
-						    :line (max 0 (1- (plist-get generated-location :line)))
-						    :column (plist-get generated-location :column))))
+			      (indium-location-create :file (indium-script-url script)
+						      :line (max 0 (1- (plist-get generated-location :line)))
+						      :column (plist-get generated-location :column))))
 			(indium-script-all-scripts-with-sourcemap))
 	      location)
 	location))))

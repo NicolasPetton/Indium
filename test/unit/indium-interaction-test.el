@@ -74,7 +74,7 @@
     (expect (indium-reconnect) :to-throw))
 
   (it "should call `indium-backend-reconnect' when reconnecting"
-    (let ((indium-current-connection (make-indium-connection :backend 'foo)))
+    (let ((indium-current-connection (indium-connection-create :backend 'foo)))
       (spy-on #'indium-backend-reconnect)
       (indium-reconnect)
        'foo)))
@@ -84,7 +84,7 @@
     (when-indium-connected (indium-quit)))
 
   (it "should kill the previous connection process when there is one"
-    (let ((indium-current-connection (make-indium-connection
+    (let ((indium-current-connection (indium-connection-create
 				      :process 'first-process)))
       (spy-on #'indium-connect-to-nodejs)
       (spy-on 'y-or-n-p :and-return-value t)
@@ -105,7 +105,7 @@
 
   (it "should should set `indium-workspace-connection' to nil when disconnecting"
     (setq indium-workspace-configuration '(type . "node"))
-    (let ((indium-current-connection (make-indium-connection
+    (let ((indium-current-connection (indium-connection-create
 				      :process 'first-process)))
       (spy-on #'indium-connect-to-nodejs)
       (spy-on 'y-or-n-p :and-return-value t)

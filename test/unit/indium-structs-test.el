@@ -31,13 +31,13 @@
 
 (describe "Setting current connection slots"
   (it "should be able to set the frames"
-    (with-indium-connection (make-indium-connection)
+    (with-indium-connection (indium-connection-create)
       (setf (indium-current-connection-frames) 'foo)
       (expect (indium-current-connection-frames)
 	      :to-be 'foo)))
 
   (it "should be able to set the current frame"
-    (with-indium-connection (make-indium-connection)
+    (with-indium-connection (indium-connection-create)
       (setf (indium-current-connection-current-frame) 'foo)
       (expect (indium-current-connection-current-frame)
 	      :to-be 'foo))))
@@ -46,7 +46,7 @@
   (it "should be able to make locations from script ids"
     (spy-on 'indium-script-get-file :and-return-value "foo.js")
     (spy-on 'indium-script-find-by-id :and-return-value "id")
-    (let ((loc (make-indium-location-from-script-id
+    (let ((loc (indium-location-from-script-id
 		:script-id "id"
 		:line 2
 		:column 3)))
@@ -54,9 +54,9 @@
       (expect (indium-location-file loc) :to-equal "foo.js")))
 
   (it "Should be able to make breakpoints"
-    (let ((brk (make-indium-breakpoint
+    (let ((brk (indium-breakpoint-create
 		:id 'id
-		:original-location (make-indium-location
+		:original-location (indium-location-create
 				    :line 5
 				    :column 2
 				    :file "foo.js"))))

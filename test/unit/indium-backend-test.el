@@ -32,7 +32,7 @@
       (expect (indium-backend-active-connection-p 'fake) :to-be-truthy)))
 
   (it "should not be active unless a websocket is open"
-    (with-indium-connection (make-indium-connection :backend 'v8)
+    (with-indium-connection (indium-connection-create :backend 'v8)
       (expect (indium-backend-active-connection-p 'v8) :to-be nil))))
 
 (provide 'indium-backend-test)

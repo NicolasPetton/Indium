@@ -39,7 +39,7 @@
   (it "Returns the current connection's project root when there is a connection"
     (assess-with-filesystem indium-workspace--test-fs
       (let* ((root (expand-file-name "js"))
-	     (indium-current-connection (make-indium-connection :project-root root)))
+	     (indium-current-connection (indium-connection-create :project-root root)))
 	(expect (indium-workspace-root) :to-be root))))
 
   (it "should default to the project directory when no \"root\" is defined"
@@ -125,30 +125,30 @@
     (setq indium-workspace-configuration nil))
 
   (it "cannot make a url when no workspace is set"
-    (with-indium-connection (make-indium-connection :url "http://localhost:9229")
+    (with-indium-connection (indium-connection-create :url "http://localhost:9229")
       (expect (indium-workspace-make-url "js/app.js")
               :to-throw)))
 
   (it "can make workspace urls"
-    (with-indium-connection (make-indium-connection :url "http://localhost:9229")
+    (with-indium-connection (indium-connection-create :url "http://localhost:9229")
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
           :to-equal "http://localhost:9229/js/app.js"))))
 
   (it "should strip query strings from computing urls"
-    (with-indium-connection (make-indium-connection :url "http://localhost:9229?foo=bar")
+    (with-indium-connection (indium-connection-create :url "http://localhost:9229?foo=bar")
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
           :to-equal "http://localhost:9229/js/app.js"))))
 
   (it "should strip paths based on the .indium marker when computing urls"
-    (with-indium-connection (make-indium-connection :url "http://localhost:9229/foo/bar")
+    (with-indium-connection (indium-connection-create :url "http://localhost:9229/foo/bar")
       (assess-with-filesystem indium-workspace--test-fs
         (expect (indium-workspace-make-url "js/app.js")
 		:to-equal "http://localhost:9229/js/app.js"))))
 
   (it "should use the file path if the connection uses nodejs when computing urls"
-    (with-indium-connection (make-indium-connection)
+    (with-indium-connection (indium-connection-create)
       (map-put (indium-current-connection-props)
 	       'nodejs t)
       (assess-with-filesystem indium-workspace--test-fs
@@ -158,7 +158,7 @@
 
   ;; Regression test for GitHub issue #144
   (it "should use Windows file paths file path with nodejs on Windows"
-    (with-indium-connection (make-indium-connection)
+    (with-indium-connection (indium-connection-create)
       (map-put (indium-current-connection-props)
 	       'nodejs t)
       (spy-on #'convert-standard-filename :and-call-through)
@@ -173,7 +173,7 @@
 
   (it "can lookup files using the file:// protocol"
     (assess-with-filesystem indium-workspace--test-fs
-      (with-indium-connection (make-indium-connection :url "file:///foo/bar/index.html")
+      (with-indium-connection (indium-connection-create :url "file:///foo/bar/index.html")
         (let* ((file (expand-file-name "js/app.js"))
                (url (format "file://%s" file)))
           (expect (indium-workspace-lookup-file url)
@@ -181,7 +181,7 @@
 
   (it "can make a url when using the file protocol"
     (assess-with-filesystem indium-workspace--test-fs
-      (with-indium-connection (make-indium-connection :url "file:///foo/bar/index.html")
+      (with-indium-connection (indium-connection-create :url "file:///foo/bar/index.html")
        (let* ((file (expand-file-name "js/app.js")))
          (expect (indium-workspace-make-url file)
            :to-equal (format "file://%s" file)))))))
