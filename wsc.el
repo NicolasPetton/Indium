@@ -65,7 +65,8 @@
   (key (wsc--make-key))
   (on-message nil)
   (on-open nil)
-  (on-close nil))
+  (on-close nil)
+  (next-callbacks nil))
 
 (defun wsc-connection-open-p (connection)
   "Return non-nil if CONNECTION's state is open."
@@ -151,7 +152,21 @@ OUTPUT is always appended to the PROCESS buffer."
     (let* ((wsc--current-process process)
 	   (state (wsc-connection-state (wsc--current-connection))))
       (goto-char (point-min))
-      (wsc--handle-output state))))
+      (wsc--handle-output state)))
+  ;; Do not call on-message, etc. callbacks within the process buffer, as they
+  ;; could manipulate that buffer by mistake.
+  (wsc--call-next-callbacks (process-get process :wsc-connection)))
+
+(defun wsc--call-next-callbacks (connection)
+  "Call all registede frame callbacks for CONNECTION.
+
+When frames are handled, callbacks are installed to be triggered
+after all frame handling have completed."
+  (when-let ((callbacks (wsc-connection-next-callbacks connection)))
+    (unwind-protect
+	(dolist (callback callbacks)
+	  (funcall callback))
+      (setf (wsc-connection-next-callbacks connection) nil))))
 
 (defun wsc--handle-output (state)
   "Handle new output based on the STATE of a connection.
@@ -179,7 +194,8 @@ erase it from the process buffer."
     (erase-buffer)
     (when-let ((connection (wsc--current-connection))
 	       (handler (wsc-connection-on-open connection)))
-      (funcall handler (wsc--current-connection)))))
+      (push (apply-partially handler (wsc--current-connection))
+	    (wsc-connection-next-callbacks connection)))))
 
 (defun wsc--handle-data ()
   "Handle incoming data in the process buffer.
@@ -187,9 +203,10 @@ erase it from the process buffer."
 Read data frame by frame as long as frames can be read from the
 process buffer."
   (save-excursion
-    (when-let ((headers (wsc--read-frame-headers)))
-      (apply #'wsc--handle-frame headers)
-      (wsc--handle-data))))
+    (let ((headers (wsc--read-frame-headers)))
+      (while headers
+	(apply #'wsc--handle-frame headers)
+	(setq headers (wsc--read-frame-headers))))))
 
 (defun wsc--handle-frame (final opcode length)
   "Handle a new frame output based on the value of OPCODE.
@@ -227,15 +244,16 @@ buffer."
 
 (defun wsc--handle-text-frame (payload)
   "Handle an unfragmented text data frame with PAYLOAD."
-  (when-let ((handler (wsc-connection-on-message
-		       (wsc--current-connection))))
-    (funcall handler payload)))
+  (when-let ((connection (wsc--current-connection))
+	     (handler (wsc-connection-on-message connection)))
+    (push (apply-partially handler payload)
+	  (wsc-connection-next-callbacks connection))))
 
 (defun wsc--handle-continuation-frame (_payload)
   "Handle a final continuation frame."
   (when-let ((handler (wsc-connection-on-message
 		       (wsc--current-connection))))
-    (funcall handler (wsc--read-fragmented-frame-payloads))))
+    (wsc--read-fragmented-frame-payloads)))
 
 (defun wsc--handle-ping-frame ()
   "Handle a ping frame by sending a pong frame."
