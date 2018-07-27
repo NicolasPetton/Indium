@@ -25,7 +25,7 @@
 ;;
 ;; There is currently no support for:
 ;; - fragmented frames
-;; - seding or receiving binary data
+;; - sending or receiving binary data
 ;; - protocol extensions
 
 ;;; Code:
