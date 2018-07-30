@@ -69,13 +69,13 @@
       (expect #'ignore :to-have-been-called)
       (remove-hook 'indium-connection-open-hook #'ignore)))
 
-  (it "should create a REPL buffer upon connection"
-    (with-indium-test-fs
-      (spy-on 'indium-workspace-root :and-return-value default-directory)
-      (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
-      (indium-launch)
-      (sleep-for 2)
-      (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil)))
+  ;; (it "should create a REPL buffer upon connection"
+  ;;   (with-indium-test-fs
+  ;;     (spy-on 'indium-workspace-root :and-return-value default-directory)
+  ;;     (expect (get-buffer (indium-repl-buffer-name)) :to-be nil)
+  ;;     (indium-launch)
+  ;;     (sleep-for 2)
+  ;;     (expect (get-buffer (indium-repl-buffer-name)) :not :to-be nil)))
 
   (provide 'indium-nodejs-integration-test))
 ;;; indium-nodejs-integration-test.el ends here
