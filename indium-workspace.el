@@ -156,7 +156,7 @@ If no root is specified, return nil."
 
 (defun indium-workspace-ensure-setup ()
   "Signal an error no workspace file can be found."
-  (unless (indium-workspace--project-directory)
+  (unless (indium-workspace-root)
     (error "No file .indium.json found in the current project")))
 
 (defun indium-workspace-settings-file ()
