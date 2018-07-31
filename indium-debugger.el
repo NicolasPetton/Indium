@@ -47,7 +47,7 @@
   :group 'indium)
 
 (defcustom indium-debugger-major-mode
-  #'js2-mode
+  #'js-mode
   "Major mode used in debugger buffers."
   :group 'indium-debugger
   :type 'function)
