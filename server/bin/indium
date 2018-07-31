@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+const port = process.argv[2];
+
+if(!port) {
+	throw new Error("Missing port argument");
+}
+
+require("../index.js")(port);
