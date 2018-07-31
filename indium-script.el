@@ -235,7 +235,10 @@ Override paths are expanded."
   (let ((overrides (map-elt indium-workspace-configuration 'sourceMapPathOverrides
 			    indium-script-default-sourcemap-path-overrides)))
     (map-apply (lambda (regexp transformation)
-		 (cons regexp (indium-script--expand-path-override transformation)))
+		 (cons (if (symbolp regexp)
+			   (symbol-name regexp)
+			 regexp)
+		       (indium-script--expand-path-override transformation)))
 	       overrides)))
 
 (defun indium-script--expand-path-override (path)
