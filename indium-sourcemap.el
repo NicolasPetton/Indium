@@ -27,8 +27,8 @@
 ;; This file was initially written for kite <https://github.com/jscheid/kite> by
 ;; Julian Scheid.
 ;;
-;; This package providers helper functions for decoding source maps
-;; and looking up mappings in them.
+;; This package provides helper functions for decoding source maps and looking
+;; up mappings in them.
 ;;
 ;; It is mostly a transliteration of Mozilla's code found at
 ;; https://github.com/mozilla/source-map/
