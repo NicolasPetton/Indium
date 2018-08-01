@@ -1,9 +1,0 @@
-{
-	"configurations": [
-		{
-			"name": "node",
-			"type": "node",
-			"command": "node ./test.js"
-		}
-	]
-}

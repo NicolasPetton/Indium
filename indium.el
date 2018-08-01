@@ -31,10 +31,11 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'indium-chrome)
-(require 'indium-nodejs)
+(require 'indium-client)
 (require 'indium-scratch)
-(require 'indium-list-scripts)
+(require 'indium-debugger)
+(require 'indium-interaction)
+(require 'indium-list-sources)
 
 (provide 'indium)
 ;;; indium.el ends here

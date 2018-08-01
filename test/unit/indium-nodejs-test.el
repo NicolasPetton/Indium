@@ -18,6 +18,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'buttercup)
@@ -25,48 +27,29 @@
 
 (describe "Executing NodeJS processes"
   (it "should set the correct flags when executing nodejs"
-    (spy-on 'make-process)
-    (spy-on 'switch-to-buffer)
-    (spy-on 'process-buffer)
+    (spy-on #'make-process)
+    (spy-on #'set-process-query-on-exit-flag)
+    (spy-on #'set-process-sentinel)
+    (spy-on #'set-process-filter)
+    (spy-on #'switch-to-buffer)
+    (spy-on #'process-buffer)
 
-    (spy-on 'indium-nodejs--command-with-flags)
+    (spy-on #'indium-nodejs--command-with-flags)
 
-    (with-js2-file (indium-launch-nodejs))
+    (with-js2-file
+      (indium-launch-nodejs '((command . "node index.js")
+			      (inspect-brk . t))))
     (expect #'indium-nodejs--command-with-flags
-            :to-have-been-called-with))
+            :to-have-been-called-with "node index.js" t))
 
   (it "should append extra flags"
-    (spy-on #'indium-nodejs--command :and-return-value "node foo")
-    (expect (indium-nodejs--command-with-flags)
+    (expect (indium-nodejs--command-with-flags "node foo" nil)
 	    :to-equal "node --inspect foo")
-    (spy-on #'indium-nodejs--inspect-brk :and-return-value t)
-    (expect (indium-nodejs--command-with-flags)
+    (expect (indium-nodejs--command-with-flags "node foo" t)
 	    :to-equal "node --inspect-brk foo")
     ;; Regression for GitHub issue #150
-    (spy-on #'indium-nodejs--command :and-return-value "ENV_VAR=\"VAL\" node foo")
-    (expect (indium-nodejs--command-with-flags)
+    (expect (indium-nodejs--command-with-flags "ENV_VAR=\"VAL\" node foo" t)
 	    :to-equal "ENV_VAR=\"VAL\" node --inspect-brk foo")))
-
-(describe "Connecting to a NodeJS process"
-  (it "should find the websocket URL from the process output"
-    (spy-on 'indium-nodejs--connect)
-    (let ((output "To start debugging, open the following URL in Chrome:
-    chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=127.0.0.1:9229/43c07a90-1aed-4753-961d-1d449b21e84f"))
-      (indium-nodejs--connect-to-process 'process output)
-      (expect #'indium-nodejs--connect
-              :to-have-been-called-with "127.0.0.1" "9229" "43c07a90-1aed-4753-961d-1d449b21e84f" 'process))))
-
-(describe "Connecting to a NodeJS process"
-  (it "should connect to process using a host, port and path."
-    (spy-on 'indium-v8--open-ws-connection)
-    (let ((path "43c07a90-1aed-4753-961d-1d449b21e84f"))
-      (indium-nodejs--connect "localhost" 9229 path)
-      (expect #'indium-v8--open-ws-connection
-              :to-have-been-called-with
-	      (format "file://%s" default-directory)
-	      "ws://localhost:9229/43c07a90-1aed-4753-961d-1d449b21e84f"
-	      nil
-	      t))))
 
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here

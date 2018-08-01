@@ -30,19 +30,20 @@
 (require 'buttercup)
 
 (describe "Switching from and to the REPL buffer"
-  (it "should throw an error if there's no REPL buffer"
-    (spy-on 'indium-repl-get-buffer :and-return-value nil)
+  (it "should throw an error when not connected"
+    (spy-on #'indium-client-process-live-p :and-return-value nil)
     (expect (indium-switch-to-repl-buffer) :to-throw 'user-error))
 
-  (it "should be able to switch to the REPL buffer"
-    (spy-on 'indium-repl-get-buffer :and-return-value 'repl)
-    (spy-on 'pop-to-buffer)
+  (it "should be able to switch to the REPL buffer when connected"
+    (spy-on #'indium-client-process-live-p :and-return-value t)
+    (spy-on #'pop-to-buffer)
     (indium-switch-to-repl-buffer)
-    (expect #'pop-to-buffer :to-have-been-called-with 'repl t))
+    (expect #'pop-to-buffer :to-have-been-called))
 
   (it "should be able to switch back from the REPL buffer"
+    (spy-on #'indium-client-process-live-p :and-return-value t)
+    (spy-on 'pop-to-buffer)
     (let ((indium-repl-switch-from-buffer 'from))
-      (spy-on 'pop-to-buffer)
       (indium-repl-pop-buffer)
       (expect #'pop-to-buffer :to-have-been-called-with 'from t))))
 

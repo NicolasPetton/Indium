@@ -24,25 +24,34 @@
 ;;; Code:
 
 (require 'js2-mode)
+(require 'js2-refactor)
 (require 'subr-x)
 (require 'seq)
+
 (require 'indium-render)
 
-(declare-function indium-debugger-get-current-scopes "indium-debugger" ())
-(declare-function indium-debugger-get-scope-properties "indium-debugger" (scope callback))
+(declare-function indium-debugger-get-current-scopes "indium-debugger.el" ())
+(declare-function indium-debugger-get-scopes-properties "indium-debugger.el" (scope callback))
+(declare-function indium-debugger-get-buffer-create "indium-debugger.el" ())
 
 (defun indium-debugger-litable-setup-buffer ()
   "Render locals in the current buffer."
-  (let ((scope (car (indium-debugger-get-current-scopes))))
-    (indium-debugger-get-scope-properties
-     scope
-     (lambda (properties _)
-       ;; This is just cosmetic, don't break the session
-       (ignore-errors
-         (js2-mode-wait-for-parse
-          (lambda ()
-            (js2-visit-ast js2-mode-ast
-                           (indium-debugger-litable-make-visitor properties)))))))))
+  (indium-debugger-get-scopes-properties
+   (indium-debugger-get-current-scopes)
+   (lambda (properties _)
+     ;; This is just cosmetic, don't break the session
+     (ignore-errors
+       (with-current-buffer (indium-debugger-get-buffer-create)
+	 (js2-mode-wait-for-parse
+	  (lambda ()
+	    (with-current-buffer (indium-debugger-get-buffer-create)
+              (js2-visit-ast (indium-debugger-litable--scope-node)
+			     (indium-debugger-litable-make-visitor properties))))))))))
+
+(defun indium-debugger-litable--scope-node ()
+  "Return the scope node from point."
+  (or (js2r--closest #'js2-function-node-p)
+       js2-mode-ast))
 
 (defun indium-debugger-litable-unset-buffer ()
   "Remove locals from the current buffer."
@@ -75,6 +84,7 @@
   (let ((parent (js2-node-parent node)))
     (and parent (js2-name-node-p node)
          (or (js2-var-init-node-p parent)
+	     (js2-object-prop-node-p parent)
              (js2-assign-node-p parent)))))
 
 (defun indium-debugger-litable-visit-var-init-node (node properties)
@@ -89,7 +99,7 @@
                                                  (js2-node-abs-end node)))
            (property (seq-find (lambda (property)
                                  (string= name
-                                          (map-elt property 'name)))
+					  (indium-property-name property)))
                                properties)))
       (indium-debugger-litable-add-value-overlay node property)))
 
@@ -115,7 +125,7 @@ Ignore if the object name of NODE is not in the current scope."
     (let ((inhibit-read-only t)
           (ov (indium-debugger-litable--get-overlay-at-pos))
           (contents (string-trim (indium-render-property-to-string property)))
-          (name (map-elt property 'name)))
+	  (name (indium-property-name property)))
       (unless (seq-contains (overlay-get ov 'indium-properties) name)
         ;; The overlay is already used to display exception details, so do not
         ;; append anything to it.
@@ -142,7 +152,10 @@ If the display string overflows, trim it to avoid truncating the line."
   (save-excursion
     (goto-char (point-at-eol))
     (if (>= (+ (seq-length string) (current-column)) (window-width))
-        (let ((width (- (window-width) (current-column) 1)))
+        (let* ((line-number-width (if (fboundp 'line-number-display-width)
+				      (line-number-display-width 'columns)
+				    0))
+	       (width (- (window-width) (current-column) line-number-width 1)))
           (truncate-string-to-width string width 0 nil "..."))
       string)))
 

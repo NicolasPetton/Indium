@@ -34,144 +34,60 @@
 (require 'seq)
 (require 'subr-x)
 
-(require 'indium-v8)
-(require 'indium-workspace)
+(declare-function indium-client-connect "indium-client.el")
 
-(defgroup indium-nodejs nil
-  "Indium NodeJS."
-  :prefix "indium-nodejs-"
-  :group 'indium)
-
-(defcustom indium-nodejs-default-inspect-brk t
-  "When non-nil, break the execution at the first statement."
-  :type 'boolean)
-
-(defcustom indium-nodejs-default-host
-  "localhost"
-  "Default NodeJS remote debugger host."
-  :type 'string)
-
-(defcustom indium-nodejs-default-port
-  9229
-  "Default NodeJS remote debugger port."
-  :type 'integer)
-
-(defun indium-nodejs--command ()
-  "Return the command to be run to start a node process.
-The command is read from the workspace configuration file."
-  (let ((command (map-elt indium-workspace-configuration 'command)))
-    (unless command
-      (user-error "No NodeJS command specified in the .indium.json file"))
-    command))
-
-(defun indium-launch-nodejs ()
+(defun indium-launch-nodejs (conf)
   "Start a NodeJS process.
 
-Execute the command based on `indium-nodejs--command', adding the
-`--inspect' flag.  When the process is ready, open an Indium
-connection on it.
+Execute the command specified in CONF, adding the `--inspect'
+flag.  When the process is ready, open an Indium connection on
+it.
 
-If `indium-nodejs--inspect-brk' is set to non-nil, break the
+If the configuration setting `inspect-brk' is non-nil, break the
 execution at the first statement."
-  (let* ((default-directory (indium-workspace-root))
-	 (process (make-process :name "indium-nodejs-process"
-				:buffer "*node process*"
-				:filter #'indium-nodejs--process-filter
-				:command (list shell-file-name
-					       shell-command-switch
-					       (indium-nodejs--command-with-flags)))))
-    (switch-to-buffer (process-buffer process))))
+  (let-alist conf
+    (unless .command
+      (user-error "No NodeJS command specified in the .indium.json file"))
+    (let* ((default-directory .resolvedRoot)
+	   (filter (indium-nodejs--process-filter-function conf))
+	   (process (make-process :name "indium-nodejs-process"
+				  :buffer "*node process*"
+				  :filter filter
+				  :command (list shell-file-name
+						 shell-command-switch
+						 (indium-nodejs--command-with-flags
+						  .command
+						  .inspect-brk)))))
+      (switch-to-buffer (process-buffer process)))))
 
-(defun indium-connect-to-nodejs ()
-  "Open a connection to an existing NodeJS process."
-  (let* ((host (indium-nodejs--host))
-	 (port (indium-nodejs--port))
-	 (default-directory (indium-workspace-root)))
-    (indium-nodejs--get-process-id host
-				   port
-				   (lambda (id)
-				     (indium-nodejs--connect host port id)))))
 
+(defun indium-nodejs--command-with-flags (command inspect-brk)
+  "Return COMMAND with flags to start the V8 inspector.
 
-(defun indium-nodejs--host ()
-  "Return the debugging host for a NodeJS process.
-The host is either read from the workpace configuration file or
-`indium-nodejs-default-host'."
-  (map-elt indium-workspace-configuration 'host indium-nodejs-default-host))
-
-(defun indium-nodejs--port ()
-  "Return the debugging port for a NodeJS process.
-The port is either read from the workpace configuration file or
-`indium-nodejs-default-port'."
-  (map-elt indium-workspace-configuration 'port indium-nodejs-default-port))
-
-(defun indium-nodejs--inspect-brk ()
-  "Return non nil if the option `--inspect-brk' should be used.
-The setting is either read from the workpace configuration file or
-`indium-nodejs-default-inspect-brk'."
-  (map-elt indium-workspace-configuration 'inspect-brk))
-
-
-(defun indium-nodejs--get-process-id (host port callback)
-  "Get the id of the websocket path at HOST:PORT and evaluate CALLBACK with it."
-  (url-retrieve (format "http://%s:%s/json/list" host port)
-		(lambda (status)
-		  (funcall callback (if (eq :error (car status))
-					nil
-				      (indium-nodejs--read-process-id))))))
-
-(defun indium-nodejs--read-process-id ()
-  "Return the process id read from the JSON data in the current buffer."
-    (when (save-match-data
-          (looking-at "^HTTP/.* 200 OK$"))
-    (goto-char (point-min))
-    (search-forward "\n\n")
-    (delete-region (point-min) (point))
-    (map-elt (seq-elt (json-read) 0) 'id)))
-
-
-(defun indium-nodejs--connect (host port path &optional process)
-  "Ask the user for a websocket url HOST:PORT/PATH and connects to it.
-When PROCESS is non-nil, attach it to the connection."
-  (indium-maybe-quit)
-  (unless indium-current-connection
-    (let ((websocket-url (format "ws://%s:%s/%s" host port path))
-          (url (format "file://%s" default-directory)))
-      (indium-v8--open-ws-connection url
-				     websocket-url
-				     (when process
-				       (lambda ()
-					 (setf (indium-current-connection-process) process)))
-				     t))))
-
-(defun indium-nodejs--command-with-flags ()
-  "Return the command to be run with the `--inspect' or `--inspect-brk' flag."
-  (let ((command (indium-nodejs--command))
-	(inspect-flag (if (indium-nodejs--inspect-brk)
-			  "--inspect-brk"
-			"--inspect")))
+If INSPECT-BRK is nil, use the `--inspect', use the
+`--inspect-brk' flag otherwise."
+  (let ((inspect-flag (if (eq inspect-brk t) "--inspect-brk" "--inspect")))
     (if (string-match "\\<node\\>" command)
 	(replace-match (concat "node " inspect-flag) nil nil command)
       (user-error "Invalid command specified"))))
 
-(defun indium-nodejs--process-filter (process output)
-  "Filter function for PROCESS.
-Append OUTPUT to the PROCESS buffer, and parse it to detect the
-socket URL to connect to."
-  ;; Append output to the process buffer
-  (with-current-buffer (process-buffer process)
-    (goto-char (point-max))
-    (insert output))
-  (when (string-match-p "Debugger listening on" output)
-    (ignore-errors
-      (indium-nodejs--connect-to-process process output))))
-
-(defun indium-nodejs--connect-to-process (process output)
-  "If PROCESS OUTPUT contain the WS url, connect to it."
-  (save-match-data
-    (string-match "://.*/\\(.*\\)$" output)
-    (when-let ((path (match-string 1 output)))
-      (indium-nodejs--connect "127.0.0.1" "9229" path process))))
+(defun indium-nodejs--process-filter-function (conf)
+  "Return a process filter function for CONF.
+The function detects the socket URL to connect to from the
+process output."
+  (let ((connected))
+    (lambda (process output)
+      ;; Append output to the process buffer
+      (with-current-buffer (process-buffer process)
+	(goto-char (point-max))
+	(insert output))
+      (when (and (not connected)
+		 (string-match-p "Debugger listening on" output))
+	;; Node will keep outputing the "Debugger listening on" message after
+	;; each deconnection, so only try to connect one.
+	(setq connected t)
+	(let-alist conf
+	  (indium-client-connect (file-name-directory .projectFile) .name))))))
 
 (provide 'indium-nodejs)
 ;;; indium-nodejs.el ends here

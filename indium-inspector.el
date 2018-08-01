@@ -24,36 +24,37 @@
 
 ;;; Code:
 
+
 (require 'seq)
 (require 'map)
+(require 'subr-x)
+(require 'indium-structs)
 (require 'indium-render)
 (require 'indium-faces)
+
+(declare-function indium-client-get-properties "indium-client.el")
 
 (defvar indium-inspector-history nil)
 (make-variable-buffer-local 'indium-inspector-history)
 
-(declare-function indium-backend-get-properties "indium-backend.el")
-(declare-function indium-backend "indium-backend.el")
+(defun indium-inspector-inspect (obj)
+  "Open an inspector on the remote object OBJ."
+  (if (indium-remote-object-reference-p obj)
+      (indium-client-get-properties
+       (indium-remote-object-id obj)
+       (lambda (properties)
+	 (indium-inspector--inspect-properties properties obj)))
+    (message "Cannot inspect %S" (indium-remote-object-description obj))))
 
-(defun indium-inspector-inspect (reference)
-  "Open an inspector on the remote object REFERENCE."
-  (let ((objectid (map-elt reference 'objectid)))
-    (if objectid
-        (indium-backend-get-properties (indium-current-connection-backend)
-                                     objectid
-                                     (lambda (properties)
-                                       (indium-inspector--inspect-properties properties reference)))
-      (message "Cannot inspect %S" (map-elt reference 'description)))))
-
-(defun indium-inspector--inspect-properties (properties reference)
-  "Insert all PROPERTIES for the remote object REFERENCE."
+(defun indium-inspector--inspect-properties (properties obj)
+  "Insert all PROPERTIES for the remote object OBJ."
   (let ((buf (indium-inspector-get-buffer-create))
         (inhibit-read-only t))
     (with-current-buffer buf
-      (indium-inspector-push-to-history reference)
+      (indium-inspector-push-to-history obj)
       (save-excursion
         (erase-buffer)
-        (indium-render-keyword (indium-description-string reference t))
+        (indium-render-keyword (indium-remote-object-to-string obj t))
         (insert "\n\n")
         (indium-inspector--insert-sorted-properties properties)))
     (pop-to-buffer buf)))
@@ -71,17 +72,12 @@
   "Split PROPERTIES into list where the first element is native properties and the second is the rest."
   (seq-reduce (lambda (result property)
                 (push property
-                      (if (indium-inspector--native-property-p property)
+                      (if (indium-property-native-p property)
                           (car result)
                         (cadr result)))
                 result)
               properties
               (list nil nil)))
-
-(defun indium-inspector--native-property-p (property)
-  "Return non-nil value if PROPERTY is a native code."
-  (string-match-p "{ \\[native code\\] }$"
-                  (map-nested-elt property '(value description))))
 
 (defun indium-inspector-pop ()
   "Go back in the history to the last object inspected."
@@ -132,9 +128,11 @@ DIRECTION can be either `next' or `previous'."
 
 (defun indium-inspector-push-to-history (reference)
   "Add REFERENCE to the inspected objects history."
-  (unless (string= (map-elt reference 'objectid)
-                   (map-elt (car indium-inspector-history) 'objectid))
-      (push reference indium-inspector-history)))
+  (let-alist reference
+    (when (or (seq-empty-p indium-inspector-history)
+	      (not (equal (indium-remote-object-id reference)
+			  (indium-remote-object-id (car indium-inspector-history)))))
+      (push reference indium-inspector-history))))
 
 (defun indium-inspector-get-buffer ()
   "Return the inspector buffer, or nil if no inspector buffer exists."

@@ -34,10 +34,7 @@
 (require 'indium-structs)
 (require 'indium-inspector)
 (require 'indium-repl)
-(require 'indium-interaction)
 (require 'indium-render)
-(require 'indium-workspace)
-(require 'indium-debugger-frames)
 (require 'indium-debugger-locals)
 (require 'indium-debugger-litable)
 
@@ -61,6 +58,12 @@ from the debugger."
 (defcustom indium-debugger-inspect-when-eval nil
   "When non-nil, use inspect as a default eval when debugging."
   :type 'boolean)
+
+(defvar indium-debugger-current-frame nil
+  "Currently selected frame in the debugger.")
+
+(defvar indium-debugger-frames nil
+  "Call frames of the current debugger session.")
 
 (defvar indium-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
 
@@ -110,10 +113,7 @@ from the debugger."
   :lighter " JS-debug"
   :keymap indium-debugger-mode-map
   (if indium-debugger-mode
-      (progn
-        (unless indium-interaction-mode
-          (indium-interaction-mode))
-        (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t))
+      (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t)
     (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)))
 
 (defun indium-debugger-paused (frames reason &optional description)
@@ -139,7 +139,8 @@ Unset the debugging context and turn off indium-debugger-mode."
                                   indium-debugger-mode))
                               (buffer-list)))
     (with-current-buffer buf
-      (set-marker overlay-arrow-position nil (current-buffer))
+      (when overlay-arrow-position
+	(set-marker overlay-arrow-position nil (current-buffer)))
       (indium-debugger-unset-current-buffer)
       (indium-debugger-litable-unset-buffer)))
     (let ((locals-buffer (indium-debugger-locals-get-buffer))
@@ -157,20 +158,30 @@ Unset the debugging context and turn off indium-debugger-mode."
   (interactive)
   (indium-debugger--jump-to-frame 'backward))
 
+(defun indium-debugger-stack-frames ()
+  "List the stack frames in a separate buffer and switch to it."
+  (interactive)
+  (let ((buf (indium-debugger-frames-get-buffer-create))
+        (inhibit-read-only t))
+    (with-current-buffer buf
+      (indium-debugger-frames-list indium-debugger-frames
+				   indium-debugger-current-frame))
+    (pop-to-buffer buf)))
+
 (defun indium-debugger--jump-to-frame (direction)
   "Jump to the next frame in DIRECTION.
 DIRECTION is `forward' or `backward' (in the frame list)."
-  (let* ((current-position (seq-position (indium-current-connection-frames)
-					 (indium-current-connection-current-frame)))
+  (let* ((current-position (seq-position indium-debugger-frames
+					 indium-debugger-current-frame))
          (step (pcase direction
                  (`forward -1)
                  (`backward 1)))
          (position (+ current-position step)))
-    (when (>= position (seq-length (indium-current-connection-frames)))
+    (when (>= position (seq-length indium-debugger-frames))
       (user-error "End of frames"))
     (when (< position 0)
       (user-error "Beginning of frames"))
-    (indium-debugger-select-frame (seq-elt (indium-current-connection-frames) position))))
+    (indium-debugger-select-frame (seq-elt indium-debugger-frames position))))
 
 (defun indium-debugger-select-frame (frame)
   "Make FRAME the current debugged stack frame.
@@ -181,26 +192,28 @@ to that buffer.
 Try to find the file for the stack frame locally first using
 Indium worskspaces.  If not local file can be found, get the
 remote source for that frame."
-  (indium-debugger-set-current-frame frame)
+  (setq indium-debugger-current-frame frame)
   (switch-to-buffer (indium-debugger-get-buffer-create))
-  (indium-debugger-litable-setup-buffer)
   (if buffer-file-name
       (indium-debugger-setup-buffer-with-file)
     (progn
-      (message "Downloading script source for debugging...")
-      (indium-backend-get-script-source
-       (indium-current-connection-backend)
-       frame
-       (lambda (source)
-         (indium-debugger-setup-buffer-with-source
-          (map-nested-elt source '(result scriptSource)))
-	 (message "Downloading script source for debugging...done!"))))))
+      (if (yes-or-no-p "No file found for debugging (sourcemap issue?), download script source (might be slow)?")
+	  (progn
+	    (message "Downloading script source for debugging...")
+	    (indium-client-get-frame-source
+	     frame
+	     (lambda (source)
+	       (with-current-buffer (indium-debugger-get-buffer-create)
+		 (indium-debugger-setup-buffer-with-source source))
+	       (message "Downloading script source for debugging...done!"))))
+	(indium-client-resume)))))
 
 (defun indium-debugger-setup-buffer-with-file ()
   "Setup the current buffer for debugging."
   (when (buffer-modified-p)
     (revert-buffer nil nil t))
-  (indium-debugger--goto-current-frame))
+  (indium-debugger--goto-current-frame)
+  (indium-debugger-litable-setup-buffer))
 
 (defun indium-debugger-setup-buffer-with-source (source)
   "Setup the current buffer with the frame SOURCE."
@@ -209,14 +222,14 @@ remote source for that frame."
     (let ((inhibit-read-only t))
       (erase-buffer)
       (insert source)))
-  (indium-debugger--goto-current-frame))
+  (indium-debugger--goto-current-frame)
+  (indium-debugger-litable-setup-buffer))
 
 (defun indium-debugger--goto-current-frame ()
   "Move the point to the current stack frame position in the current buffer."
-  (let* ((frame (indium-current-connection-current-frame))
-         (location (indium-script-get-frame-original-location frame)))
+  (let* ((location (indium-frame-location indium-debugger-current-frame)))
     (goto-char (point-min))
-    (forward-line (indium-location-line location))
+    (forward-line (1- (indium-location-line location)))
     (forward-char (indium-location-column location)))
   (indium-debugger-setup-overlay-arrow)
   (indium-debugger-highlight-node)
@@ -286,34 +299,40 @@ remote source for that frame."
 
 (defun indium-debugger-top-frame ()
   "Return the top frame of the current debugging context."
-  (car (indium-current-connection-frames)))
+  (car indium-debugger-frames))
 
 (defun indium-debugger-step-into ()
   "Request a step into."
   (interactive)
-  (indium-backend-step-into (indium-current-connection-backend)))
+  (indium-client-step-into))
 
 (defun indium-debugger-step-over ()
   "Request a step over."
   (interactive)
-  (indium-backend-step-over (indium-current-connection-backend)))
+  (indium-client-step-over))
 
 (defun indium-debugger-step-out ()
   "Request a step out."
   (interactive)
-  (indium-backend-step-out (indium-current-connection-backend)))
+  (indium-client-step-out))
 
 (defun indium-debugger-resume ()
   "Request the runtime to resume the execution."
   (interactive)
-  (indium-backend-resume (indium-current-connection-backend)))
+  (indium-client-resume))
 
 (defun indium-debugger-here ()
   "Request the runtime to resume the execution until the point.
 When the position of the point is reached, pause the execution."
   (interactive)
-  (indium-backend-continue-to-location (indium-current-connection-backend)
-				       (indium-script-generated-location-at-point)))
+  (indium-client-continue-to-location (indium-location-at-point)))
+
+(defun indium-debugger-switch-to-debugger-buffer ()
+  "Switch to the debugger buffer.
+If there is no debugging session, signal an error."
+  (unless indium-debugger-current-frame
+    (user-error "No debugger to switch to"))
+  (indium-debugger-select-frame indium-debugger-current-frame))
 
 (defun indium-debugger-evaluate (expression)
   "Prompt for EXPRESSION to be evaluated.
@@ -328,63 +347,54 @@ result of the evaluation if possible."
                                  (thing-at-point 'symbol))))
                   (read-string (format "Evaluate on frame: (%s): " default)
                                nil nil default))))
-  (indium-backend-evaluate (indium-current-connection-backend)
-			   expression
-			   (lambda (value _error)
+  (indium-client-evaluate expression
+			   (lambda (value)
 			     (let ((inspect (and (or indium-debugger-inspect-when-eval
 						     current-prefix-arg)
 						 (map-elt value 'objectid))))
 			       (if inspect
 				   (indium-inspector-inspect value)
-				 (message "%s" (indium-render-value-to-string value)))))))
+				 (message "%s" (indium-render-remote-object-to-string value)))))))
 
 ;; Debugging context
 
 (defun indium-debugger-set-frames (frames)
   "Set the debugger FRAMES."
-  (setf (indium-current-connection-frames) frames)
-  (indium-debugger-set-current-frame (car frames)))
-
-(defun indium-debugger-set-current-frame (frame)
-  "Set FRAME as the current frame."
-  (setf (indium-current-connection-current-frame) frame))
+  (setq indium-debugger-frames frames)
+  (setq indium-debugger-current-frame (car frames)))
 
 (defun indium-debugger-unset-frames ()
   "Remove debugging information from the current connection."
-  (setf (indium-current-connection-frames) nil)
-  (setf (indium-current-connection-current-frame) nil))
+  (setq indium-debugger-frames nil)
+  (setq indium-debugger-current-frame nil))
 
 (defun indium-debugger-get-current-scopes ()
   "Return the scope of the current stack frame."
-  (indium-frame-scope-chain (indium-current-connection-current-frame)))
+  (and indium-debugger-current-frame
+       (indium-frame-scope-chain indium-debugger-current-frame)))
 
-;; TODO: move to backends?
 (defun indium-debugger-get-scopes-properties (scopes callback)
   "Request a list of all properties in SCOPES.
 CALLBACK is evaluated with the result."
   (seq-do (lambda (scope)
             (indium-debugger-get-scope-properties scope callback))
-          ;; ignore the objects attached to global/window
-          (seq-remove (lambda (scope)
-                        (string= (map-elt scope 'type) "global"))
-                      scopes)))
+          scopes))
 
 (defun indium-debugger-get-scope-properties (scope callback)
   "Request the properties of SCOPE and evaluate CALLBACK.
 CALLBACK is evaluated with two arguments, the properties and SCOPE."
-  (indium-backend-get-properties
-   (indium-current-connection-backend)
-   (map-nested-elt scope '(object objectid))
-   (lambda (properties)
-     (funcall callback properties scope))))
+  (let-alist scope
+    (indium-client-get-properties (indium-scope-id scope)
+				  (lambda (properties)
+				    (funcall callback properties scope)))))
 
 (defun indium-debugger-get-buffer-create ()
   "Create a debugger buffer for the current connection and return it.
 
 If a buffer already exists, just return it."
-  (let* ((location (indium-script-get-frame-original-location (indium-current-connection-current-frame)))
+  (let* ((location (indium-frame-location indium-debugger-current-frame))
 	 (file (indium-location-file location))
-	 (buf (if (and file (file-exists-p file))
+	 (buf (if (and file (file-regular-p file))
                   (find-file file)
 		(get-buffer-create (indium-debugger--buffer-name-no-file)))))
     (indium-debugger-setup-buffer buf)
@@ -415,6 +425,101 @@ frame."
   (indium-debugger-mode -1)
   (read-only-mode -1)
   (indium-debugger-litable-unset-buffer))
+
+;; Frame listing
+
+(defun indium-debugger-frames-maybe-refresh ()
+  "When a buffer listing the stack frames is open, refresh it."
+  (interactive)
+  (let ((buf (indium-debugger-frames-get-buffer))
+        (inhibit-read-only t))
+    (when buf
+      (with-current-buffer buf
+        (indium-debugger-frames-list indium-debugger-frames
+				     indium-debugger-current-frame)))))
+
+(defun indium-debugger-frames-list (frames &optional current-frame)
+  "Render the list of stack frames FRAMES.
+CURRENT-FRAME is the current stack frame in the debugger."
+  (save-excursion
+    (erase-buffer)
+    (indium-render-header "Debugger stack")
+    (newline 2)
+    (seq-doseq (frame frames)
+      (indium-render-frame
+       frame
+       (eq current-frame frame))
+      (newline))))
+
+(defun indium-debugger-frames-select-frame (frame)
+  "Select FRAME and switch to the corresponding debugger buffer."
+  (interactive)
+  (indium-debugger-select-frame frame))
+
+(defun indium-debugger-frames-next-frame ()
+  "Go to the next frame in the stack."
+  (interactive)
+  (indium-debugger-frames-goto-next 'next))
+
+(defun indium-debugger-frames-previous-frame ()
+  "Go to the previos frame in the stack."
+  (interactive)
+    (indium-debugger-frames-goto-next 'previous))
+
+(defun indium-debugger-frames-goto-next (direction)
+  "Go to the next frame in DIRECTION."
+  (let ((next (eq direction 'next)))
+    (forward-line (if next 1 -1))
+    (back-to-indentation)
+    (while (and (not (if next
+                         (eobp)
+                       (bobp)))
+                (not (get-text-property (point) 'indium-action)))
+      (forward-char (if next 1 -1)))))
+
+(defun indium-debugger-frames-get-buffer ()
+  "Return the buffer listing frames for the current connection.
+If no buffer is found, return nil."
+  (get-buffer (indium-debugger-frames-buffer-name)))
+
+(defun indium-debugger-frames-buffer-name ()
+  "Return the name of the frames buffer for the current connection."
+  "*JS Frames*")
+
+(defun indium-debugger-frames-get-buffer-create ()
+  "Create a buffer for listing frames unless one exists, and return it."
+  (let ((buf (indium-debugger-frames-get-buffer)))
+    (unless buf
+      (setq buf (generate-new-buffer (indium-debugger-frames-buffer-name)))
+      (indium-debugger-frames-setup-buffer buf))
+    buf))
+
+(defun indium-debugger-frames-setup-buffer (buffer)
+  "Setup the frames BUFFER."
+  (with-current-buffer buffer
+    (indium-debugger-frames-mode)
+    (setq-local truncate-lines nil)))
+
+(defvar indium-debugger-frames-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] #'indium-follow-link)
+    (define-key map (kbd "C-m") #'indium-follow-link)
+    (define-key map (kbd "n") #'indium-debugger-frames-next-frame)
+    (define-key map (kbd "p") #'indium-debugger-frames-previous-frame)
+    (define-key map [tab] #'indium-debugger-frames-next-frame)
+    (define-key map [backtab] #'indium-debugger-frames-previous-frame)
+    map))
+
+(define-derived-mode indium-debugger-frames-mode special-mode "Frames"
+  "Major mode visualizind and navigating the JS stack.
+
+\\{indium-debugger-frames--mode-map}"
+  (setq buffer-read-only t)
+  (font-lock-ensure)
+  (read-only-mode))
+
+(add-hook 'indium-client-debugger-paused-hook #'indium-debugger-paused)
+(add-hook 'indium-client-debugger-resumed-hook #'indium-debugger-resumed)
 
 (provide 'indium-debugger)
 ;;; indium-debugger.el ends here

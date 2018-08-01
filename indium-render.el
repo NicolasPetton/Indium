@@ -24,46 +24,39 @@
 
 ;;; Code:
 
-(require 'indium-faces)
 (require 'seq)
 (require 'indium-seq-fix)
-(require 'map)
 
-(declare-function indium-backend-object-reference-p "indium-backend.el")
+(require 'indium-faces)
+(require 'indium-structs)
+
 (declare-function indium-debugger-frames-select-frame "indium-debugger.el")
 (declare-function indium-inspector-inspect "indium-inspector.el")
 
-(defun indium-render-values (values &optional separator)
-  "Render VALUES separated by SEPARATOR.
-If no SEPARATOR is provided, separate VALUES by a space."
-  (unless separator (setq separator " "))
-  (let ((length (seq-length values)))
-    (seq-map-indexed (lambda (value index)
-                       (indium-render-value value)
-                       (unless (<= (1- length) index)
-                         (insert separator)))
-                     values)))
+(defun indium-render-remote-object (obj)
+  "Render OBJ, based on its object type.
+If OBJ represents a reference to an object, render it with a link
+to an inspector on that object."
+  (cond
+   ((indium-remote-object-error-p obj)
+    (indium-render-description obj 'indium-repl-error-face))
+   ((indium-remote-object-reference-p obj)
+    (indium-render-object-link obj))
+   (t
+    (indium-render-description obj 'indium-repl-stdout-face))))
 
-(defun indium-render-value (value)
-  "Render VALUE, based on its object type.
-If VALUE represents a reference to a remote object, render it
-with a link to an inspector on that object."
-  (if (indium-backend-object-reference-p value)
-      (indium-render-object-link value)
-    (indium-render-description value)))
-
-(defun indium-render-value-to-string (value)
-  "Return a string representation of VALUE."
+(defun indium-render-remote-object-to-string (obj)
+  "Return a string representation of OBJ."
   (with-temp-buffer
-    (indium-render-value value)
+    (indium-render-remote-object obj)
     (buffer-string)))
 
-(defun indium-render-description (value)
-  "Insert VALUE fontified as a description."
-  (let ((description (indium-description-string value)))
+(defun indium-render-description (obj face)
+  "Insert OBJ fontified with FACE as a description."
+  (let ((description (indium-remote-object-to-string obj)))
     (insert
      (propertize description
-                 'font-lock-face 'indium-repl-stdout-face
+                 'font-lock-face face
                  'rear-nonsticky '(font-lock-face)))))
 
 (defun indium-render-keyword (string)
@@ -91,38 +84,9 @@ ACTION should be a function that takes no argument."
                'font-lock-face 'indium-header-face
                'rear-nonsticky '(font-lock-face))))
 
-(defun indium-render-frame (frame url current)
-  "Render the stack frame FRAME with the URL of its script.
-If CURRENT is non-nil, FRAME rendered as the current frame.  When
-clicked, jump in the debugger to the frame."
-  (insert (if current "* " "  "))
-  (insert (propertize (indium-render--frame-label frame)
-                      'font-lock-face (if current
-                                          'indium-highlight-face
-                                        'indium-link-face)
-                      'rear-nonsticky '(font-lock-face indium-action)
-                      'indium-action (lambda (&rest _)
-                                     (indium-debugger-frames-select-frame frame))))
-  (when url
-    (insert (propertize (format " <%s>" url)
-                        'font-lock-face 'indium-frame-url-face))))
-
-(defun indium-description-string (value &optional full)
-  "Return a short string describing VALUE.
-
-When FULL is non-nil, do not strip long descriptions and function
-definitions."
-  (let ((description (map-elt value 'description))
-        (type (map-elt value 'type)))
-    ;; Showing the source code of the function is too verbose
-    (if (and (not full) (eq type 'function))
-        "function"
-      description)))
-
-(defun indium-render-object-link (value)
-  "Render VALUE as a link, with an optional preview."
-  (let* ((description (indium-description-string value))
-         (preview (map-elt value 'preview))
+(defun indium-render-object-link (obj)
+  "Render OBJ as a link, with an optional preview."
+  (let* ((description (indium-remote-object-to-string obj))
          (beg (point))
          (end (progn
                 (insert (indium-render--truncate-string-to-newline description))
@@ -131,24 +95,24 @@ definitions."
     (set-text-properties beg end
                          `(font-lock-face ,face
                                           mouse-face highlight
-                                          indium-reference ,value))
-    (when preview
-      (insert (format " %s" preview)))))
+                                          indium-reference ,obj))
+    (when (indium-remote-object-has-preview-p obj)
+      (insert (format " %s" (indium-remote-object-preview obj))))))
 
 (defun indium-render-properties (properties)
   "Insert all items in PROPERTIES sorted by name."
   (seq-map #'indium-render-property
            (seq-sort (lambda (p1 p2)
-                       (string< (map-elt p1 'name)
-                                (map-elt p2 'name)))
+                       (string< (indium-property-name p1)
+                                (indium-property-name p2)))
                      properties)))
 
 (defun indium-render-property (property &optional separator)
-  "Insert the remote reference PROPERTY as a value.
+  "Insert the PROPERTY rendered as a remote object.
 When SEPARATOR is non-nil, insert it after the property.
 Otherwise, insert a newline."
-  (insert "  " (map-elt property 'name) ": ")
-  (indium-render-value (map-elt property 'value))
+  (insert "  " (indium-property-name property) ": ")
+  (indium-render-remote-object (indium-property-remote-object property))
   (insert (or separator "\n")))
 
 (defun indium-render-property-to-string (property)
@@ -156,6 +120,30 @@ Otherwise, insert a newline."
   (with-temp-buffer
     (indium-render-property property "")
     (buffer-string)))
+
+(defun indium-render-frame (frame current)
+  "Render the stack frame FRAME.
+If CURRENT is non-nil, FRAME rendered as the current frame.  When
+clicked, jump in the debugger to the frame."
+  (let ((file (indium-location-file (indium-frame-location frame))))
+    (insert (if current "* " "  "))
+    (insert (propertize (indium-render--frame-label frame)
+			'font-lock-face (if current
+                                            'indium-highlight-face
+                                          'indium-link-face)
+			'rear-nonsticky '(font-lock-face indium-action)
+			'indium-action (lambda (&rest _)
+					 (indium-debugger-frames-select-frame frame))))
+    (when (not (string-empty-p file))
+      (insert (propertize (format " <%s>" file)
+                          'font-lock-face 'indium-frame-url-face)))))
+
+(defun indium-render--frame-label (frame)
+  "Return the label for FRAME to be used in the debugger stack frame list."
+  (let ((label (indium-frame-function-name frame)))
+    (if (seq-empty-p label)
+        "Closure"
+      label)))
 
 (declare #'indium-inspector-inspect)
 
@@ -192,13 +180,6 @@ If STRING is truncated, append ellipsis."
     (unless (string= string result)
       (setq result (concat result "…")))
     result))
-
-(defun indium-render--frame-label (frame)
-  "Return the label for FRAME to be used in the debugger stack frame list."
-  (let ((label (indium-frame-function-name frame)))
-    (if (seq-empty-p label)
-        (or (indium-frame-type frame) "Closure")
-      label)))
 
 (provide 'indium-render)
 ;;; indium-render.el ends here

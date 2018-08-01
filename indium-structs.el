@@ -25,13 +25,10 @@
 ;; Backends should make instances of the structs defined in this file from data
 ;; they receive.
 ;;
-;; `indium-script' represents a JavaScript file parsed by the runtime.  Scripts
-;; are structs indexed by `id' in the current Indium connection.  A script contain
-;; an `url' slot, and an optional `sourcemap-url' slot.
-;;
 ;; `indium-location' represents a location (most often to a file).  A location
 ;; is a struct with a `line' and `column' slot.  If a location points to a local
-;; file, it also contains a `file' slot.  Columns and lines start at 0.
+;; file, it also contains a `file' slot.  Columns are 0-based and lines are
+;; 1-based.
 ;;
 ;; `indium-frame' represents a call frame in the context of debugging.
 ;;
@@ -43,197 +40,156 @@
 (require 'map)
 (require 'subr-x)
 
-(declare-function indium-script-get-file "indium-script.el")
-(declare-function indium-script-find-by-id "indium-script.el")
-(declare-function indium-script-generated-location "indium-script.el")
-
-(defmacro when-indium-connected (&rest body)
-  "Evaluate BODY if there is a current Indium connection."
-  (declare (indent 0) (debug t))
-  `(when indium-current-connection
-     ,@body))
-
-(defmacro unless-indium-connected (&rest body)
-  "Evalute BODY unless there is a current Indium connection."
-  (declare (indent 0))
-  `(unless indium-current-connection
-     ,@body))
-
-(defvar indium-current-connection nil
-  "Current connection to the browser tab.")
-
-(cl-defstruct (indium-connection (:constructor indium-connection-create)
-				 (:copier nil))
-  (backend nil :type symbol :read-only t)
-  (url nil :type string :read-only t)
-  ;; Optional process attached to the connection (used by NodeJS)
-  (process nil :type process)
-  (callbacks (make-hash-table) :type hash-table)
-  (scripts (make-hash-table) :type hash-table)
-  (frames nil :type list)
-  (current-frame nil :type indium-frame)
-  (project-root nil :type string)
-  ;; extra properties that can be added by the backend
-  (props (make-hash-table) :type hash-table))
-
-(defun indium-current-connection-backend ()
-  "Return the backend of the current connection if any."
-  (when-indium-connected
-    (indium-connection-backend indium-current-connection)))
-
-(defun indium-current-connection-url ()
-  "Return the url of the current connection if any."
-  (when-indium-connected
-   (indium-connection-url indium-current-connection)))
-
-(defun indium-current-connection-callbacks ()
-  "Return the callbacks of the current connection if any."
-  (when-indium-connected
-    (indium-connection-callbacks indium-current-connection)))
-
-(defun indium-current-connection-process ()
-  "Return the process attached to the current connection if any."
-  (when-indium-connected
-    (indium-connection-process indium-current-connection)))
-
-(defun indium-current-connection-project-root ()
-  "Return the root directory of the current connection's project."
-  (when-indium-connected
-    (indium-connection-project-root indium-current-connection)))
-
-(cl-defmethod (setf indium-current-connection-process) (process)
-  (when-indium-connected
-    (setf (indium-connection-process indium-current-connection) process)))
-
-(cl-defmethod (setf indium-current-connection-callbacks) (callbacks)
-  (when-indium-connected
-    (setf (indium-connection-callbacks indium-current-connection) callbacks)))
-
-(defun indium-current-connection-scripts ()
-  "Return the scripts of the current connection if any."
-  (when-indium-connected
-    (indium-connection-scripts indium-current-connection)))
-
-(defun indium-current-connection-props ()
-  "Return the props of the current connection if any."
-  (when-indium-connected
-    (indium-connection-props indium-current-connection)))
-
-(defun indium-current-connection-frames ()
-  "Return the frames of the current connection if any."
-  (when-indium-connected
-    (indium-connection-frames indium-current-connection)))
-
-(cl-defmethod (setf indium-current-connection-frames) (frames)
-  (when-indium-connected
-    (setf (indium-connection-frames indium-current-connection) frames)))
-
-(defun indium-current-connection-current-frame ()
-  "Return the current frame of the current connection if any."
-  (when-indium-connected
-    (indium-connection-current-frame indium-current-connection)))
-
-(cl-defmethod (setf indium-current-connection-current-frame) (frame)
-  (when-indium-connected
-    (setf (indium-connection-current-frame indium-current-connection) frame)))
-
-(cl-defstruct (indium-script (:constructor indium-script-create)
-			     (:copier nil))
-  (id nil :type string :read-only t)
-  (url nil :type string :read-only t)
-  (sourcemap-url nil :type string :read-only t)
-  (parsed-time (current-time) :read-only t)
-  ;; Keep a cache of the parsed sourcemap for speed.  See
-  ;; `indium-script-sourcemap'.
-  (sourcemap-cache nil))
+(declare-function indium-client--next-id "indium-client.el")
 
 (cl-defstruct
     (indium-location (:constructor indium-location-create)
-		     (:constructor indium-location-from-script-id
-				   (&key (script-id "")
-					 line
-					 column
-					 &aux (file (indium-script-get-file
-						     (indium-script-find-by-id script-id)))))
+		     (:constructor indium-location-at-point
+				   (&aux (file buffer-file-name)
+					 (line (line-number-at-pos))
+					 (column (current-column))))
+		     (:constructor indium-location-from-alist
+				   (alist &aux
+					  (file (map-elt alist 'file))
+					  (line (map-elt alist 'line))
+					  (column (map-elt alist 'column))))
 		     (:copier nil))
-  (line 0 :type number :read-only t)
-  (column 0 :type number :read-only t)
-  (file nil :type string :read-only t))
-
-(defun indium-location-at-point ()
-  "Return an `indium-location' for the position at point."
-  (indium-location-create :file buffer-file-name
-			  :line (1- (line-number-at-pos))
-			  :column (current-column)))
-
-(cl-defstruct (indium-frame (:constructor indium-frame-create)
-			    (:copier nil))
-  (id nil :type string :read-only t)
-  ;; TODO: make a scope a struct as well.
-  (scope-chain nil :type list :read-only t)
-  (location nil :type indium-location :read-only t)
-  (script nil :type indium-script :read-only t)
-  (type nil :type string :read-only t)
-  (function-name nil :type string))
+  (line 1 :type number)
+  (column 0 :type number)
+  (file nil :type string))
 
 (cl-defstruct (indium-breakpoint
 	       (:constructor indium-breakpoint-create
-			     (&key original-location
-				   condition
+			     (&key condition
 				   overlay
-				   id)))
-  (id nil :type string)
+				   id))
+	       (:copier nil))
+  (id (indium-client--next-id) :type string)
   (overlay nil)
   (resolved nil)
-  (original-location nil :type indium-location :read-only t)
   (condition "" :type string))
+
+(defun indium-breakpoint-location (brk)
+  "Return the location of BRK."
+  (when-let ((ov (indium-breakpoint-overlay brk))
+	     (pos (overlay-start ov))
+	     (buf (overlay-buffer ov)))
+    (with-current-buffer buf
+      (save-excursion
+	(goto-char (point-min))
+	(forward-char pos)
+	(indium-location-at-point)))))
 
 (defun indium-breakpoint-buffer (breakpoint)
   "Return the buffer in which BREAKPOINT is set, or nil."
   (when-let ((ov (indium-breakpoint-overlay breakpoint)))
     (overlay-buffer ov)))
 
-(defun indium-breakpoint-generated-location (breakpoint)
-  "Return the generated location for BREAKPOINT."
-  (indium-script-generated-location
-   (indium-breakpoint-original-location breakpoint)))
-
-(defun indium-breakpoint-unregistered-p (breakpoint)
-  "Return non-nil if BREAKPOINT is not registered in the backend."
-  (null (indium-breakpoint-id breakpoint)))
-
-(defun indium-breakpoint-registered-p (breakpoint)
-  "Return non-nil if BREAKPOINT is registered in the backend."
-  (not (indium-breakpoint-unregistered-p breakpoint)))
-
 (defun indium-breakpoint-unresolved-p (breakpoint)
   "Return non-nil if BREAKPOINT is not yet resolved in the runtime."
   (not (indium-breakpoint-resolved breakpoint)))
 
-(defun indium-breakpoint-can-be-resolved-p (breakpoint)
-  "Return non-nil if BREAKPOINT can be resolved.
+(cl-defstruct (indium-frame
+	       (:constructor indium-frame-create
+			     (&key script-id
+				   function-name
+				   location
+				   scope-chain))
+	       (:constructor indium-frame-from-alist
+			     (alist &aux
+				    (script-id (map-elt alist 'scriptId))
+				    (function-name (map-elt alist 'functionName))
+				    (location (indium-location-from-alist
+					       (map-elt alist 'location)))
+				    (scope-chain (seq-map #'indium-scope-from-alist
+							  (map-elt alist 'scopeChain)))))
+	       (:copier nil))
+  (function-name "" :type string)
+  (script-id "" :type string)
+  (location nil :type indium-location)
+  (scope-chain nil))
 
-A breakpoint can be resolved if re-registering it in the backend
-could lead to its resolution, eg:
+(cl-defstruct (indium-scope
+	       (:constructor indium-scope-create
+			     (&key type
+				   name
+				   id))
+	       (:constructor indium-scope-from-alist
+			     (alist &aux
+				    (type (map-elt alist 'type))
+				    (name (map-elt alist 'name))
+				    (id (map-elt alist 'id))))
+	       (:copier nil))
+  (id "" :type string)
+  (name "" :type string)
+  (type "" :type string))
 
-- The breakpoint is not yet registered at all
+(cl-defstruct (indium-remote-object
+	       (:constructor indium-remote-object-create
+			     (&key id
+				   type
+				   description
+				   preview))
+	       (:constructor indium-remote-object-from-alist
+			     (alist &aux
+				    (id (map-elt alist 'id))
+				    (type (map-elt alist 'type))
+				    (description (map-elt alist 'description))
+				    (preview (map-elt alist 'preview))))
+	       (:copier nil))
+  (id nil :type string)
+  (type "" :type string)
+  (description "" :type string)
+  (preview "" :type string))
 
-- The breakpoint is registered but its generated location is
-  different from its original location, meaning that a new script
-  was parsed, where the breakpoint should be set."
-  (and (indium-breakpoint-unresolved-p breakpoint)
-       (or (indium-breakpoint-unregistered-p breakpoint)
-	   (not (equal (indium-breakpoint-original-location breakpoint)
-		       (indium-breakpoint-generated-location breakpoint))))))
+(defun indium-remote-object-error-p (obj)
+  "Retun non-nil if OBJ represents an error."
+  (equal (indium-remote-object-type obj) "error"))
 
-(defun indium-breakpoint-register (breakpoint id)
-  "Register BREAKPOINT by giving it a backend ID."
-  (setf (indium-breakpoint-id breakpoint) id))
+(defun indium-remote-object-reference-p (obj)
+  "Return non-nil if OBJ is a reference to a remote object."
+  (let ((id (indium-remote-object-id obj)))
+    (and (not (null id))
+	 (not (string-empty-p id)))))
 
-(defun indium-breakpoint-unregister (breakpoint)
-  "Remove the registration & resolution information from BREAKPOINT."
-  (setf (indium-breakpoint-id breakpoint) nil)
-  (setf (indium-breakpoint-resolved breakpoint) nil))
+(defun indium-remote-object-function-p (obj)
+  "Return non-nil if OBJ represents a function."
+  (equal (indium-remote-object-type obj) "function"))
+
+(defun indium-remote-object-has-preview-p (obj)
+  "Return non-nil if OBJ has a preview string."
+  (let ((preview (indium-remote-object-preview obj)))
+    (and preview (not (string-empty-p preview)))))
+
+(defun indium-remote-object-to-string (obj &optional full)
+  "Return a short string describing OBJ.
+
+When FULL is non-nil, do not strip long descriptions and function
+definitions."
+  (if (and (not full) (indium-remote-object-function-p obj))
+      "function"
+    (indium-remote-object-description obj)))
+
+(cl-defstruct (indium-property
+	       (:constructor indium-property-create
+			     (&key name
+				   remote-object))
+	       (:constructor indium-property-from-alist
+			     (alist &aux
+				    (name (map-elt alist 'name))
+				    (remote-object (indium-remote-object-from-alist
+						    (map-elt alist 'value)))))
+	       (:copier nil))
+  (name "" :type string)
+  (remote-object nil :type indium-remote-object))
+
+(defun indium-property-native-p (property)
+  "Return non-nil value if PROPERTY is native code."
+  (string-match-p "{ \\[native code\\] }$"
+                  (or (indium-remote-object-description
+		       (indium-property-remote-object
+			property))
+		      "")))
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here

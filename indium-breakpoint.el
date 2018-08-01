@@ -27,11 +27,9 @@
 
 ;;; Code:
 
-(require 'indium-backend)
+(require 'indium-client)
 (require 'indium-faces)
 (require 'indium-structs)
-(eval-and-compile
-  (require 'indium-script))
 
 (defvar indium-breakpoint--local-breakpoints (make-hash-table :weakness t)
   "Table of all local breakpoints and their buffers.")
@@ -41,15 +39,10 @@
 
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
-  (if-let ((location (indium-location-at-point)))
-      (let* ((brk (indium-breakpoint-create :original-location location
-					    :condition (or condition ""))))
-	(map-put indium-breakpoint--local-breakpoints brk (current-buffer))
-	(indium-breakpoint--add-overlay brk)
-	(when-indium-connected
-	  (indium-backend-register-breakpoint (indium-current-connection-backend)
-					 brk)))
-    (user-error "Cannot place a breakpoint here")))
+  (let* ((brk (indium-breakpoint-create :condition (or condition ""))))
+    (map-put indium-breakpoint--local-breakpoints brk (current-buffer))
+    (indium-breakpoint--add-overlay brk)
+    (indium-client-add-breakpoint brk)))
 
 (defun indium-breakpoint-edit-condition ()
   "Edit condition of breakpoint at point."
@@ -61,12 +54,10 @@ CONDITION is true."
       (indium-breakpoint-add new-condition))))
 
 (defun indium-breakpoint-remove ()
-  "Remove the breakpoint from the current line."
-  (when-let ((brk (indium-breakpoint-at-point)))
-    (when-indium-connected
-      (when (indium-breakpoint-resolved brk)
-	(indium-backend-unregister-breakpoint (indium-current-connection-backend)
-					      (indium-breakpoint-id brk))))
+  "Remove all breakpoints from the current line."
+  (seq-doseq (brk (indium-breakpoint-breakpoints-at-point))
+    (when (indium-breakpoint-resolved brk)
+      (indium-client-remove-breakpoint brk))
     (map-delete indium-breakpoint--local-breakpoints brk)
     (indium-breakpoint--remove-overlay)))
 
@@ -78,16 +69,17 @@ CONDITION is true."
        (goto-char (overlay-start ov))
        (indium-breakpoint-remove)))))
 
-(defun indium-breakpoint-resolve (id script location)
-  "Update the breakpoint with ID for SCRIPT at LOCATION.
+(defun indium-breakpoint-resolve (id line)
+  "Update the breakpoint with ID for SCRIPT at LINE.
 
 This function should be called upon breakpoint resolution by the
-backend, or when a breakpoint location gets updated from the
-backend."
-  (let ((original-location (indium-script-original-location script location))
-	(brk (indium-breakpoint-breakpoint-with-id id)))
+server, or when a breakpoint location gets updated from the
+server."
+  (let* ((brk (indium-breakpoint-breakpoint-with-id id))
+	 (location (indium-breakpoint-location brk)))
     (setf (indium-breakpoint-resolved brk) t)
-    (indium-breakpoint--update-overlay brk original-location)))
+    (setf (indium-location-line location) line)
+    (indium-breakpoint--update-overlay brk location)))
 
 (defun indium-breakpoint-breakpoint-with-id (id)
   "Return the breakpoint with ID or nil."
@@ -95,11 +87,19 @@ backend."
 	      (equal id (indium-breakpoint-id brk)))
 	    (map-keys indium-breakpoint--local-breakpoints)))
 
-(defun indium-breakpoint-at-point ()
-  "Return the breakpoint on the current line.
+(defun indium-breakpoint-breakpoints-at-point ()
+  "Return all breakpoints on the current line.
 If there is no breakpoint set on the line, return nil."
-  (when-let ((ov (indium-breakpoint--overlay-on-current-line)))
-    (overlay-get ov 'indium-breakpoint)))
+  (seq-filter (lambda (brk)
+                (let ((location (indium-breakpoint-location brk)))
+                  (and (equal (indium-location-file location) buffer-file-name)
+                       (equal (indium-location-line location) (line-number-at-pos)))))
+              (map-keys indium-breakpoint--local-breakpoints)))
+
+(defun indium-breakpoint-at-point ()
+  "Return the first breakpoint on the current line.
+If there is no breakpoint set on the line, return nil."
+  (car (indium-breakpoint-breakpoints-at-point)))
 
 (defun indium-breakpoint-on-current-line-p ()
   "Return non-nil if there is a breakpoint on the current line."
@@ -129,7 +129,7 @@ An icon is added to the left fringe."
 
 (defun indium-breakpoint--remove-overlay ()
   "Remove the breakpoint overlay from the current line."
-  (let ((ov (indium-breakpoint--overlay-on-current-line)))
+  (when-let ((ov (indium-breakpoint--overlay-on-current-line)))
     (setf (indium-breakpoint-overlay (overlay-get ov 'indium-breakpoint)) nil)
     (remove-overlays (overlay-start ov)
 		     (overlay-end ov)
@@ -148,44 +148,28 @@ An icon is added to the left fringe."
     (with-current-buffer (find-file-noselect file)
       (save-excursion
 	(goto-char (point-min))
-	(forward-line line)
+	(forward-line (1- line))
 	(indium-breakpoint--add-overlay breakpoint)))))
 
-(defun indium-breakpoint--update-breakpoints-in-current-buffer ()
-  "Update the breakpoints for the current buffer in the backend."
-  (indium-breakpoint--breakpoints-in-buffer-do
-   (lambda (brk overlay)
-     (indium-backend-unregister-breakpoint
-      (indium-current-connection-backend)
-      (indium-breakpoint-id brk)
-      (lambda ()
-	(save-excursion
-	  (goto-char (overlay-start overlay))
-	  (indium-breakpoint-add (indium-breakpoint-condition brk))))))))
+(defun indium-breakpoint-buffer (breakpoint)
+  "Return the buffer in which BREAKPOINT is set, or nil."
+  (when-let ((ov (indium-breakpoint-overlay breakpoint)))
+    (overlay-buffer ov)))
 
-(defun indium-breakpoint--resolve-all-breakpoints ()
-  "Resolve breakpoints from all buffers."
-  (let ((buffers (seq-uniq (map-values indium-breakpoint--local-breakpoints))))
-   (seq-doseq (buf buffers)
-     (with-current-buffer buf
-       (indium-breakpoint--resolve-breakpoints-in-current-buffer)))))
+(defun indium-breakpoint--register-all-breakpoints ()
+  "Register all local breakpoints."
+  (map-apply (lambda (brk _)
+	       (indium-client-add-breakpoint brk))
+	     indium-breakpoint--local-breakpoints))
 
 (defun indium-breakpoint--unregister-all-breakpoints ()
   "Remove the registration information from all breakpoints."
   (map-apply (lambda (brk _)
-	       (indium-breakpoint-unregister brk)
+	       (setf (indium-breakpoint-resolved brk) nil)
 	       (indium-breakpoint--update-overlay
 		brk
-		(indium-breakpoint-original-location brk)))
+		(indium-breakpoint-location brk)))
 	     indium-breakpoint--local-breakpoints))
-
-(defun indium-breakpoint--resolve-breakpoints-in-current-buffer ()
-  "Resolve unresolved breakpoints from the current buffer."
-  (indium-breakpoint--breakpoints-in-buffer-do
-   (lambda (brk _)
-     (when (indium-breakpoint-can-be-resolved-p brk)
-       (indium-backend-register-breakpoint (indium-current-connection-backend)
-					   brk)))))
 
 (defun indium-breakpoint--fringe-icon (breakpoint)
   "Return the fringe icon used for BREAKPOINT."
@@ -210,18 +194,12 @@ If there is no overlay, make one."
         (overlay-put ov 'indium-breakpoint-ov t)
         ov)))
 
-(defun indium-breakpoint--update-after-script-source-set (&rest _)
-  "Update the breakpoints in the current buffer each time its source is set."
-  (indium-breakpoint--update-breakpoints-in-current-buffer))
-
-(defun indium-breakpoint--update-after-script-parsed (_)
-  "Attempt to resolve unresolved breakpoints."
-  (indium-breakpoint--resolve-all-breakpoints))
+;; Handle breakpoint resolution
+(add-hook 'indium-client-breakpoint-resolved-hook #'indium-breakpoint-resolve)
 
 ;; Update/Restore breakpoints
-(add-hook 'indium-update-script-source-hook #'indium-breakpoint--update-after-script-source-set)
-(add-hook 'indium-script-parsed-hook #'indium-breakpoint--update-after-script-parsed)
-(add-hook 'indium-connection-closed-hook #'indium-breakpoint--unregister-all-breakpoints)
+(add-hook 'indium-client-closed-hook #'indium-breakpoint--unregister-all-breakpoints)
+(add-hook 'indium-client-connected-hook #'indium-breakpoint--register-all-breakpoints)
 
 
 ;; Helpers

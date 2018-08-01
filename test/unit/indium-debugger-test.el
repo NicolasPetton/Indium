@@ -26,59 +26,45 @@
 
 (describe "Debugging frames are correctly set"
   (it "can set debugger frames and current frame"
-    (with-fake-indium-connection
-      (let ((frames '(first second))
-            (current-frame 'first))
-        (indium-debugger-set-frames frames)
-        (expect (indium-current-connection-frames) :to-be frames)
-        (expect (indium-current-connection-current-frame) :to-be current-frame))))
-
-  (it "can set the current frame"
-    ;; We're not interested in buffer setups
-    (spy-on 'indium-debugger-get-buffer-create)
-
-    (with-fake-indium-connection
-      (indium-debugger-set-current-frame 'current)
-      (expect (indium-current-connection-current-frame) :to-be 'current)))
+    (let ((frames '(first second))
+          (current-frame 'first))
+      (indium-debugger-set-frames frames)
+      (expect indium-debugger-frames :to-be frames)
+      (expect indium-debugger-current-frame :to-be current-frame)))
 
   (it "can unset the debugging frames"
-    (with-fake-indium-connection
-      (indium-debugger-set-frames '(first second))
-      (indium-debugger-unset-frames)
-      (expect (indium-current-connection-frames) :to-be nil)
-      (expect (indium-current-connection-current-frame) :to-be nil))))
+    (indium-debugger-set-frames '(first second))
+    (indium-debugger-unset-frames)
+    (expect indium-debugger-frames :to-be nil)
+    (expect indium-debugger-current-frame :to-be nil)))
 
 (describe "Jumping to the next/previous frame"
   (before-each
     (spy-on 'indium-debugger-select-frame))
 
   (it "can select the next frame"
-    (with-fake-indium-connection
-      (let ((frames '(first second)))
-        (indium-debugger-set-frames frames)
-        (indium-debugger-set-current-frame 'second)
-        (indium-debugger-next-frame)
-        (expect 'indium-debugger-select-frame :to-have-been-called-with 'first))))
+    (let ((frames '(first second)))
+      (indium-debugger-set-frames frames)
+      (setq indium-debugger-current-frame 'second)
+      (indium-debugger-next-frame)
+      (expect 'indium-debugger-select-frame :to-have-been-called-with 'first)))
 
   (it "can select the previous frame"
-    (with-fake-indium-connection
-      (let ((frames '(first second)))
-        (indium-debugger-set-frames frames)
-        (indium-debugger-previous-frame)
-        (expect 'indium-debugger-select-frame :to-have-been-called-with 'second))))
+    (let ((frames '(first second)))
+      (indium-debugger-set-frames frames)
+      (indium-debugger-previous-frame)
+      (expect 'indium-debugger-select-frame :to-have-been-called-with 'second)))
 
   (it "should throw when selecting the next frame if it does not exist"
-    (with-fake-indium-connection
-      (let ((frames '(first second)))
-        (indium-debugger-set-frames frames)
-        (expect (indium-debugger-next-frame) :to-throw 'user-error))))
+    (let ((frames '(first second)))
+      (indium-debugger-set-frames frames)
+      (expect (indium-debugger-next-frame) :to-throw 'user-error)))
 
   (it "should throw when selecting the previous frame if it does not exist"
-    (with-fake-indium-connection
-      (let ((frames '(first second)))
-        (indium-debugger-set-frames frames)
-        (indium-debugger-set-current-frame 'second)
-        (expect (indium-debugger-previous-frame) :to-throw 'user-error)))))
+    (let ((frames '(first second)))
+      (indium-debugger-set-frames frames)
+      (setq indium-debugger-current-frame 'second)
+      (expect (indium-debugger-previous-frame) :to-throw 'user-error))))
 
 (describe "Regression test for GitHub issue 53"
   (before-each
@@ -94,9 +80,9 @@
   ;; flickering. Since stepping over or into cause the execution to be resumed
   ;; and paused, the debugger buffer should not be killed.
   (it "should not killing the debugger buffer when execution is resumed"
-    (spy-on 'indium-backend-resume)
+    (spy-on 'indium-client-resume)
     (expect (get-buffer (indium-debugger--buffer-name-no-file)) :not :to-be nil)
-    (indium-debugger-resume)
+    (indium-client-resume)
     (expect (get-buffer (indium-debugger--buffer-name-no-file)) :not :to-be nil)))
 
 (describe "Debugger stepping"
@@ -104,47 +90,42 @@
   ;; resumed, which happens between each step over/into/out.
   (it "should not unset the debugger buffer when stepping"
     (spy-on 'indium-debugger-unset-current-buffer)
-    (spy-on 'indium-backend-step-into)
-    (spy-on 'indium-backend-step-out)
-    (spy-on 'indium-backend-step-over)
+    (spy-on 'indium-client-step-into)
+    (spy-on 'indium-client-step-out)
+    (spy-on 'indium-client-step-over)
 
     (indium-debugger-step-into)
     (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)
-    (indium-debugger-step-over)
+    (indium-client-step-over)
     (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called)
-    (indium-debugger-step-out)
+    (indium-client-step-out)
     (expect #'indium-debugger-unset-current-buffer :not :to-have-been-called))
 
-  (it "should call the backend when stepping into"
-    (with-fake-indium-connection
-      (spy-on 'indium-backend-step-into)
-      (indium-debugger-step-into)
-      (expect #'indium-backend-step-into :to-have-been-called-with 'fake)))
+  (it "should call the client when stepping into"
+    (spy-on 'indium-client-step-into)
+    (indium-debugger-step-into)
+    (expect #'indium-client-step-into :to-have-been-called))
 
-  (it "should call the backend when stepping over"
-    (with-fake-indium-connection
-      (spy-on 'indium-backend-step-over)
-      (indium-debugger-step-over)
-      (expect #'indium-backend-step-over :to-have-been-called-with 'fake)))
+  (it "should call the client when stepping over"
+    (spy-on 'indium-client-step-over)
+    (indium-debugger-step-over)
+    (expect #'indium-client-step-over :to-have-been-called))
 
-  (it "should call the backend when stepping out"
-    (with-fake-indium-connection
-      (spy-on 'indium-backend-step-out)
-      (indium-debugger-step-out)
-      (expect #'indium-backend-step-out :to-have-been-called-with 'fake)))
+  (it "should call the client when stepping out"
+    (spy-on 'indium-client-step-out)
+    (indium-debugger-step-out)
+    (expect #'indium-client-step-out :to-have-been-called))
 
-  (it "should call the backend when resuming execution"
-    (with-fake-indium-connection
-      (spy-on 'indium-backend-resume)
-      (indium-debugger-resume)
-      (expect #'indium-backend-resume :to-have-been-called-with 'fake)))
+  (it "should call the client when resuming execution"
+    (spy-on 'indium-client-resume)
+    (indium-debugger-resume)
+    (expect #'indium-client-resume :to-have-been-called))
 
-  (it "should call the backend when jumping to a location"
-    (with-fake-indium-connection
-      (spy-on 'indium-backend-continue-to-location)
-      (spy-on 'indium-script-generated-location-at-point :and-return-value 'location)
-      (indium-debugger-here)
-      (expect #'indium-backend-continue-to-location :to-have-been-called-with 'fake 'location))))
+  (it "should call the client when jumping to a location"
+    (spy-on 'indium-client-continue-to-location)
+    (indium-debugger-here)
+    (expect #'indium-client-continue-to-location
+	    :to-have-been-called-with (indium-location-at-point))))
 
 (provide 'indium-debugger-test)
 ;;; indium-debugger-test.el ends here

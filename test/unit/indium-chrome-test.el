@@ -26,95 +26,52 @@
 
 (require 'buttercup)
 (require 'indium-chrome)
+(require 'indium-client)
 
-(describe "Reading tab data"
-  (it "should be able to parse tab data"
-    (let ((data "HTTP/1.1 200 OK
+(describe "Chrome executable"
+  (it "Should try to find the executable"
+    (spy-on 'executable-find :and-return-value 'foo)
+    (expect (indium-chrome--find-executable) :to-be 'foo)
+    (expect #'executable-find :to-have-been-called-with indium-chrome-executable))
 
-{\"foo\": 1, \"bar\": 2}"))
-      (with-temp-buffer
-	(insert data)
-	(goto-char (point-min))
-	(expect (indium-chrome--read-tab-data)
-		:to-equal '((foo . 1)
-			    (bar . 2))))))
-
-  (it "should return nil when there is no data"
-    (with-temp-buffer
-      (goto-char (point-min))
-      (expect (indium-chrome--read-tab-data)
-	      :to-equal nil)))
-
-  (it "should return nil when not getting a 200 response"
-        (let ((data "HTTP/1.1 404 NOT-FOUND
-
-{\"foo\": 1, \"bar\": 2}"))
-      (with-temp-buffer
-	(insert data)
-	(goto-char (point-min))
-	(expect (indium-chrome--read-tab-data)
-		:to-equal nil)))))
-
-(describe "Connecting to a tab"
-  (it "should signal an error when the list of tabs is empty"
-    (expect (indium-chrome--connect-to-tab nil)
-	    :to-throw))
-
-  (it "should automatically connect to the first tab if there is only one"
-    (spy-on 'indium-chrome--connect-to-tab-with-url)
-    (let ((tabs '(((url . foo)))))
-      (indium-chrome--connect-to-tab tabs)
-      (expect #'indium-chrome--connect-to-tab-with-url
-	      :to-have-been-called-with 'foo tabs))))
+  (it "Should return the default executable based on the system"
+    (let ((system-type "gnu/linux"))
+      (expect (indium-chrome--default-executable)
+	      :to-equal "chromium"))
+    (let ((system-type "darwin"))
+      (expect (indium-chrome--default-executable)
+	      :to-equal "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"))
+    (let ((system-type "windows-nt"))
+      (expect (indium-chrome--default-executable)
+	      :to-equal "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"))))
 
 (describe "Running Chrome"
   (it "Should start the Chrome process"
-    (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
-    (spy-on 'make-process)
-    (spy-on 'indium-chrome--try-connect)
-    (spy-on 'indium-chrome--url :and-return-value "foo.html")
-    (spy-on 'indium-chrome--port :and-return-value 9999)
-    (indium-launch-chrome)
-    (expect #'make-process
-	    :to-have-been-called-with
-	    :name "indium-chrome-process"
-	    :command '("chrome" "--remote-debugging-port=9999" "foo.html")))
+    (let ((conf '((url . "http://localhost:9999")
+		  (name . "Web project")
+		  (type . "chrome")
+		  (projectFile . "/foo/bar/.indium.json")
+		  (port . "9223"))))
+      (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
+      (spy-on 'make-process)
+      (spy-on 'indium-client-connect)
+      (indium-launch-chrome conf)
+      (expect #'make-process
+	      :to-have-been-called-with
+	      :name "indium-chrome-process"
+	      :command '("chrome" "--remote-debugging-port=9223" "http://localhost:9999"))))
 
-  (it "Should try to open connections"
-    (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
-    (spy-on 'make-process)
-    (spy-on 'indium-chrome--try-connect)
-    (spy-on 'indium-chrome--url :and-return-value "foo.html")
-    (spy-on 'indium-chrome--port :and-return-value 9999)
-    (indium-launch-chrome)
-    (expect #'indium-chrome--try-connect :to-have-been-called-with 10)))
-
-(describe "Connecting to a Chrome process"
-  (it "Should wait between connection retries"
-    (spy-on 'sleep-for)
-    (spy-on 'indium-chrome--get-tabs-data)
-    (indium-chrome--try-connect 1)
-    (expect #'sleep-for :to-have-been-called-with 1))
-
-  (it "Should retry if the connection attempt fails"
-    (spy-on 'sleep-for)
-    (spy-on 'indium-chrome--try-connect :and-call-through)
-    (spy-on 'indium-chrome--get-tabs-data
-	    :and-call-fake
-	    (lambda (host port callback)
-	      (funcall callback nil)))
-    (indium-chrome--try-connect 1)
-    (expect #'indium-chrome--try-connect :to-have-been-called-times 2))
-
-  (it "Should connect to a tab when found"
-    (spy-on 'sleep-for)
-    (spy-on 'indium-chrome--connect-to-tab)
-    (spy-on 'indium-chrome--get-tabs-data
-	    :and-call-fake
-	    (lambda (host port callback)
-	      (funcall callback 'tabs)))
-    (indium-chrome--try-connect 1)
-    (expect #'indium-chrome--connect-to-tab :to-have-been-called-with 'tabs)))
+  (it "Should connect to the chrome process"
+    (let ((conf '((url . "http://localhost:9999")
+		  (name . "Web project")
+		  (type . "chrome")
+		  (projectFile . "/foo/bar/.indium.json")
+		  (port . "9999"))))
+      (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
+      (spy-on 'make-process)
+      (spy-on 'indium-client-connect)
+      (indium-launch-chrome conf)
+      (expect #'indium-client-connect :to-have-been-called))))
 
 (provide 'indium-chrome-test)
 ;;; indium-chrome-test.el ends here

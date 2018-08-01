@@ -24,10 +24,10 @@
 ;;; Code:
 
 (require 'indium-render)
+(require 'indium-inspector)
 
-(declare 'indium-backend-get-properties)
-(declare 'indium-debugger-get-scopes-properties)
-(declare 'indium-debugger-get-current-scopes)
+(declare-function indium-debugger-get-scopes-properties "indium-debugger.el")
+(declare-function indium-debugger-get-current-scopes "indium-debugger.el")
 
 (defun indium-debugger-locals (&optional no-pop)
   "Inspect the local variables in the current stack frame's scope.
@@ -55,8 +55,8 @@ Unless NO-POP is non-nil, pop the locals buffer."
 Unless NO-POP in non-nil, pop the locals buffer."
   (let* ((buf (indium-debugger-locals-get-buffer-create))
          (inhibit-read-only t)
-         (name (map-elt scope 'name))
-         (type (map-elt scope 'type))
+         (name (indium-scope-name scope))
+         (type (indium-scope-type scope))
          (description (if (or (null name)
                               (string= name "undefined"))
                           type

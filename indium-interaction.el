@@ -32,86 +32,82 @@
 (require 'xref)
 (require 'easymenu)
 
-(require 'indium-workspace)
-(require 'indium-backend)
+(require 'indium-client)
 (require 'indium-inspector)
 (require 'indium-breakpoint)
 (require 'indium-repl)
 (require 'indium-render)
+(require 'indium-nodejs)
+(require 'indium-chrome)
+(require 'indium-debugger)
 
-(declare-function indium-backend-activate-breakpoints "indium-backend.el")
-(declare-function indium-backend-deactivate-breakpoints "indium-backend.el")
-(declare-function indium-workspace-make-url "indium-workspace.el")
-
-(declare-function indium-connect-to-chrome "indium-chrome.el")
-(declare-function indium-connect-to-nodejs "indium-nodejs.el")
 (declare-function indium-launch-chrome "indium-chrome.el")
 (declare-function indium-launch-nodejs "indium-nodejs.el")
-(declare-function indium-debugger-select-frame "indium-debugger.el")
 
-(defvar indium-update-script-source-hook nil
-  "Hook run when script source is updated.")
 
-
 ;;;###autoload
 (defun indium-connect ()
   "Open a new connection to a runtime."
   (interactive)
   (indium-maybe-quit)
-  (unless-indium-connected
-    (indium-workspace-read-configuration)
-    (pcase (map-elt indium-workspace-configuration 'type)
-      ("node" (indium-connect-to-nodejs))
-      ("chrome" (indium-connect-to-chrome))
-      (_ (user-error "Invalid project type, check the .indium.json project file")))))
+  (unless (indium-client-process-live-p)
+    (let ((dir (expand-file-name default-directory)))
+      (indium-client-start
+       (lambda ()
+	 (indium-client-list-configurations
+	  dir
+	  (lambda (configurations)
+	    (when-let ((conf (indium-interaction--read-configuration configurations)))
+	      (indium-client-connect dir (map-elt conf 'name))))))))))
 
 ;;;###autoload
 (defun indium-launch ()
-  "Start a process (web browser or NodeJS) and attempt to connect to it."
+  "Start a new process and connect to it."
   (interactive)
   (indium-maybe-quit)
-  (unless-indium-connected
-    (indium-workspace-read-configuration)
-    (pcase (map-elt indium-workspace-configuration 'type)
-      ("node" (indium-launch-nodejs))
-      ("chrome" (indium-launch-chrome))
-      (_ (user-error "Invalid project type, check the .indium.json project file")))))
+  (unless (indium-client-process-live-p)
+    (let ((dir (expand-file-name default-directory)))
+      (indium-client-start
+       (lambda ()
+	 (indium-client-list-configurations
+	  dir
+	  (lambda (configurations)
+	    (when-let ((conf (indium-interaction--read-configuration configurations)))
+	      (pcase (map-elt conf 'type)
+		("node" (indium-launch-nodejs conf))
+		("chrome" (indium-launch-chrome conf))
+		(_ (error "Unsupported configuration")))))))))))
+
+(defun indium-interaction--read-configuration (configurations)
+  "Prompt the user for a configuration from CONFIGURATIONS."
+  (let ((configuration-names (seq-map (lambda (configuration)
+					(map-elt configuration 'name))
+				      configurations)))
+    (unless configuration-names
+      (user-error "No configuration name provided in the project file"))
+    (if (= (seq-length configuration-names) 1)
+	(seq-elt configurations 0)
+      (when-let ((name (completing-read "Choose a configuration: "
+					configuration-names nil t)))
+	(seq-find (lambda (conf)
+		    (equal (map-elt conf 'name) name))
+		  configurations)))))
 
 (defun indium-quit ()
-  "Close the current connection and kill its REPL buffer if any.
-If a process is attached to the connection, kill it as well.
-When called interactively, prompt for a confirmation first."
+  "Close the current connection and kill its REPL buffer if any."
   (interactive)
-  (unless-indium-connected
-    (user-error "No active connection to close"))
-  (when (or (not (called-interactively-p 'interactive))
-            (y-or-n-p (format "Do you really want to close the connection to %s ? "
-                              (indium-current-connection-url))))
-    (let ((process (indium-current-connection-process)))
-      (indium-backend-close-connection (indium-current-connection-backend))
-      (indium-backend-cleanup-buffers)
-      (when (and process
-		 (memq (process-status process)
-		       '(run stop open listen)))
-	(kill-process process))
-      (setq indium-current-connection nil)
-      (setq indium-workspace-configuration nil))))
+  (indium-client-stop)
+  (indium-interaction--cleanup-buffers))
 
 (defun indium-maybe-quit ()
   "Close the current connection.
 
 Unlike `indium-quit', do not signal an error when there is no
 active connection."
-  (when-indium-connected
-    (call-interactively #'indium-quit)))
-
-(defun indium-reconnect ()
-  "Try to re-establish a connection.
-The new connection is based on the current (usually closed) one."
   (interactive)
-  (unless-indium-connected
-    (user-error "No Indium connection to reconnect to"))
-  (indium-backend-reconnect (indium-current-connection-backend)))
+  (when (and (indium-client-process-live-p)
+	     (yes-or-no-p "Do you want to close the current Indium process?"))
+    (indium-quit)))
 
 
 (defun indium-eval (string &optional callback)
@@ -121,12 +117,11 @@ When CALLBACK is non-nil, evaluate CALLBACK with the result.
 When called interactively, prompt the user for the string to be
 evaluated."
   (interactive "sEvaluate JavaScript: ")
-  (indium-backend-evaluate (indium-current-connection-backend) string callback))
+  (indium-client-evaluate string callback))
 
 (defun indium-eval-buffer ()
   "Evaluate the accessible portion of current buffer."
   (interactive)
-  (indium-interaction--ensure-connection)
   (indium-eval (buffer-string)))
 
 (defun indium-eval-region (start end)
@@ -156,9 +151,7 @@ The point is moved to the top stack frame.
 
 If there is no debugging session, signal an error."
   (interactive)
-  (unless (indium-current-connection-frames)
-    (user-error "No debugger to switch to"))
-  (indium-debugger-select-frame (seq-elt (indium-current-connection-frames) 0)))
+  (indium-debugger-switch-to-debugger-buffer))
 
 (defvar indium-interaction-eval-node-hook nil
   "Hooks to run after evaluating node before the point.")
@@ -167,12 +160,11 @@ If there is no debugging session, signal an error."
 (defun indium-interaction--eval-node (node &optional print)
   "Evaluate the AST node NODE.
 If PRINT is non-nil, print the output into the current buffer."
-  (indium-interaction--ensure-connection)
   (js2-mode-wait-for-parse
    (lambda ()
      (indium-eval (js2-node-string node)
-                  (lambda (value _error)
-                    (let ((description (indium-render-value-to-string value)))
+                  (lambda (value)
+                    (let ((description (indium-render-remote-object-to-string value)))
                       (if print
                           (save-excursion
                             (insert description))
@@ -181,13 +173,11 @@ If PRINT is non-nil, print the output into the current buffer."
 (defun indium-reload ()
   "Reload the page."
   (interactive)
-  (indium-interaction--ensure-connection)
-  (indium-backend-evaluate (indium-current-connection-backend) "window.location.reload()"))
+  (indium-client-evaluate "window.location.reload()"))
 
 (defun indium-inspect-last-node ()
   "Evaluate and inspect the node before point."
   (interactive)
-  (indium-interaction--ensure-connection)
   (js2-mode-wait-for-parse
    (lambda ()
      (indium-inspect-expression
@@ -196,19 +186,19 @@ If PRINT is non-nil, print the output into the current buffer."
 (defun indium-inspect-expression (expression)
   "Prompt for EXPRESSION to be inspected."
   (interactive "sInspect expression: ")
-  (indium-interaction--ensure-connection)
   (indium-eval expression
-	       (lambda (result _error)
+	       (lambda (result)
 		 (indium-inspector-inspect result))))
 
 (defun indium-switch-to-repl-buffer ()
   "Switch to the repl buffer if any."
   (interactive)
-  (if-let ((buf (indium-repl-get-buffer)))
-      (progn
-        (setq indium-repl-switch-from-buffer (current-buffer))
-        (pop-to-buffer buf t))
-    (user-error "No REPL buffer open")))
+  (if (indium-client-process-live-p)
+      (let ((buf (indium-repl-get-buffer-create)))
+	(progn
+	  (setq indium-repl-switch-from-buffer (current-buffer))
+	  (pop-to-buffer buf t)))
+    (user-error "Not connected, cannot open REPL buffer")))
 
 (defun indium-toggle-breakpoint ()
   "Add or remove a breakpoint on current line."
@@ -270,13 +260,13 @@ If there is no breakpoint, signal an error."
 Breakpoints are not removed, but the runtime won't pause when
 hitting a breakpoint."
   (interactive)
-  (indium-backend-deactivate-breakpoints (indium-current-connection-backend))
+  (indium-client-deactivate-breakpoints)
   (message "Breakpoints deactivated"))
 
 (defun indium-activate-breakpoints ()
   "Activate all breakpoints in all buffers."
   (interactive)
-  (indium-backend-activate-breakpoints (indium-current-connection-backend))
+  (indium-client-activate-breakpoints)
   (message "Breakpoints activated"))
 
 (defun indium-list-breakpoints ()
@@ -342,11 +332,6 @@ hitting a breakpoint."
         (setq node parent))
       node)))
 
-(defun indium-interaction--ensure-connection ()
-  "Signal an error if there is no indium connection."
-  (unless-indium-connected
-    (user-error "No Indium connection")))
-
 (defvar indium-interaction-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-x C-e") #'indium-eval-last-node)
@@ -354,7 +339,6 @@ hitting a breakpoint."
     (define-key map (kbd "C-c M-i") #'indium-inspect-last-node)
     (define-key map (kbd "C-c M-:") #'indium-inspect-expression)
     (define-key map (kbd "C-c C-z") #'indium-switch-to-repl-buffer)
-    (define-key map (kbd "C-c C-k") #'indium-update-script-source)
     (define-key map [left-fringe mouse-1] #'indium-mouse-toggle-breakpoint)
     (define-key map [left-margin mouse-1] #'indium-mouse-toggle-breakpoint)
     (define-key map (kbd "C-c b t") #'indium-toggle-breakpoint)
@@ -401,31 +385,24 @@ hitting a breakpoint."
   "Function to be evaluated when `indium-interaction-mode' is turned off."
   (indium-breakpoint-remove-overlays-from-current-buffer))
 
-(defun indium-interaction-update ()
-  "Update breakpoints and script source of the current buffer."
-  (when (and indium-interaction-mode indium-current-connection)
-    (indium-update-script-source)))
-
 (defun indium-interaction-kill-buffer ()
   "Remove all breakpoints prior to killing the current buffer."
   (when indium-interaction-mode
     (indium-breakpoint-remove-breakpoints-from-current-buffer)))
 
-(defun indium-update-script-source ()
-  "Update the script source of the backend from the current buffer.
-update all breakpoints set in the current buffer as well."
-  (interactive)
-  (when-let ((url (indium-workspace-make-url buffer-file-name)))
-    (indium-backend-set-script-source
-     (indium-current-connection-backend)
-     url
-     (buffer-string)
-     (lambda ()
-       (run-hook-with-args 'indium-update-script-source-hook url)))))
+(defun indium-interaction--cleanup-buffers ()
+  "Cleanup all Indium buffers after a connection is closed."
+  (seq-map (lambda (buf)
+             (with-current-buffer buf
+               (when buffer-file-name
+                 (indium-debugger-unset-current-buffer))))
+           (buffer-list))
+  (when-let ((buf (indium-repl-get-buffer)))
+    (kill-buffer buf)))
 
 (defun indium-interaction--guard-breakpoint-at-point ()
   "Signal an error if there is no breakpoint on the current line."
-  (unless (indium-breakpoint-at-point)
+  (unless (indium-breakpoint-on-current-line-p)
     (user-error "No breakpoint on the current line")))
 
 (defun indium-interaction--guard-no-breakpoint-at-point ()
@@ -433,7 +410,6 @@ update all breakpoints set in the current buffer as well."
     (when (indium-breakpoint-at-point)
       (user-error "There is already a breakpoint on the current line")))
 
-(add-hook 'after-save-hook #'indium-interaction-update)
 (add-hook 'kill-buffer-hook #'indium-interaction-kill-buffer)
 
 (provide 'indium-interaction)

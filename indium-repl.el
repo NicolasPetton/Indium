@@ -26,7 +26,7 @@
 
 (require 'indium-render)
 (require 'indium-faces)
-(require 'indium-backend)
+(require 'indium-client)
 
 (require 'company)
 (require 'easymenu)
@@ -36,8 +36,8 @@
 (require 'subr-x)
 (require 'ansi-color)
 
-(declare-function indium-workspace-lookup-file-safe "indium-workspace.el")
 (declare-function indium-inspector-inspect "indium-inspector.el")
+(declare-function indium-maybe-quit "indium-interaction.el")
 
 (defgroup indium-repl nil
   "Interaction with the REPL."
@@ -67,6 +67,10 @@
        (prog1 (progn . ,body)
          (set-marker ,marker ,pos)))))
 
+(defun indium-repl-setup ()
+  "Create and switch to the REPL buffer."
+  (switch-to-buffer (indium-repl-get-buffer-create)))
+
 (defun indium-repl-get-buffer-create ()
   "Return a new REPL buffer."
   (let* ((buf (get-buffer-create (indium-repl-buffer-name))))
@@ -84,19 +88,20 @@
 (defun indium-repl-setup-buffer (buffer)
   "Setup the REPL BUFFER."
   (with-current-buffer buffer
-    (indium-repl-mode)
-    (indium-repl-setup-markers)
-    (indium-repl-mark-output-start)
-    (indium-repl-insert-prompt)
-    (indium-repl-mark-input-start)
-    (indium-repl-emit-console-message `((text . ,(indium-repl--welcome-message))))))
+    (unless (eq major-mode 'indium-repl-mode)
+      (indium-repl-mode)
+      (indium-repl-setup-markers)
+      (indium-repl-mark-output-start)
+      (indium-repl-insert-prompt)
+      (indium-repl-mark-input-start)
+      (indium-repl-emit-console-message
+       `((result . ,(indium-remote-object-create
+		     :description (indium-repl--welcome-message))))))))
 
 (defun indium-repl--welcome-message ()
   "Return the welcome message displayed in new REPL buffers."
-  (format
-   (substitute-command-keys
-    "/* Welcome to Indium!
-Connected to %s @ %s
+  (substitute-command-keys
+   "/* Welcome to Indium!
 
 Getting started:
 
@@ -110,10 +115,7 @@ To disconnect from the JavaScript process, press <\\[indium-quit]>.
 Doing this will also close all inspectors and debugger buffers
 connected to the process.
 
-*/")
-   (indium-current-connection-backend)
-   (indium-current-connection-url)))
-
+*/"))
 
 (defun indium-repl-setup-markers ()
   "Setup the initial markers for the current REPL buffer."
@@ -163,9 +165,8 @@ connected to the process.
 (defun indium-repl-inspect ()
   "Inspect the result of the evaluation of the input at point."
   (interactive)
-  (indium-backend-evaluate (indium-current-connection-backend)
-			   (indium-repl--input-content)
-			   (lambda (result _error)
+  (indium-client-evaluate (indium-repl--input-content)
+			   (lambda (result)
 			     (indium-inspector-inspect result))))
 
 (defun indium-repl--input-content ()
@@ -176,28 +177,24 @@ connected to the process.
   "Return t if in input area."
   (<= indium-repl-input-start-marker (point)))
 
-(declare-function #'indium-backend-evaluate "indium")
-
 (defun indium-repl-evaluate (string)
   "Evaluate STRING in the browser tab and emit the output."
   (push string indium-repl-history)
-  (indium-backend-evaluate (indium-current-connection-backend) string #'indium-repl-emit-value)
+  (indium-client-evaluate string #'indium-repl-emit-value)
   ;; move the output markers so that output is put after the current prompt
   (save-excursion
     (goto-char (point-max))
     (set-marker indium-repl-output-start-marker (point))
     (set-marker indium-repl-output-end-marker (point))))
 
-(defun indium-repl-emit-value (value error)
-  "Emit a string representation of VALUE.
-When ERROR is non-nil, display VALUE as an error."
+(defun indium-repl-emit-value (value)
+  "Emit a string representation of the remote object VALUE."
   (with-current-buffer (indium-repl-get-buffer)
     (save-excursion
       (goto-char (point-max))
       (insert-before-markers "\n")
       (set-marker indium-repl-output-start-marker (point))
-      (when error (indium-repl--emit-logging-error))
-      (indium-render-value value)
+      (indium-render-remote-object value)
       (insert "\n")
       (indium-repl-mark-input-start)
       (set-marker indium-repl-output-end-marker (point)))
@@ -209,41 +206,33 @@ When ERROR is non-nil, display VALUE as an error."
 When ERROR is non-nil, display MESSAGE as an error.
 
 MESSAGE is a map (alist/hash-table) with the following keys:
-  text		message text to be displayed
-  description   optional additional description
-  level		severity level (can be log, warning, error, debug)
   type		type of message
   url		url of the message origin
   line		line number in the resource that generated this message
-  values	message values to be logged
+  result 	object to be logged
 
-MESSAGE must contain `text' or `values.'.  Other fields are
+MESSAGE must contain `result'.  Other fields are
 optional."
   (with-current-buffer (indium-repl-get-buffer)
-    (when (string= (map-elt message 'level) 'error)
-      (setq error t))
+    (let-alist message
+      (when (string= .type 'error)
+	(setq error t)))
     (save-excursion
       (goto-char indium-repl-output-end-marker)
       (set-marker indium-repl-output-start-marker (point))
       (insert "\n")
       (when error
         (indium-repl--emit-logging-error))
-      (indium-repl--emit-message-values message)
+      (indium-repl--emit-message message)
       (set-marker indium-repl-output-end-marker (point))
       (unless (eolp)
         (insert "\n")))))
 
-(defun indium-repl--emit-message-values (message)
-  "Emit all values of console MESSAGE."
-  (let ((text (map-elt message 'text))
-        (values (map-elt message 'values))
-        (url (map-elt message 'url))
-        (line (map-elt message 'line)))
-    (when (seq-empty-p values)
-      (setq values `(((type . "string")
-                      (description . ,text)))))
-    (indium-render-values values "\n")
-    (indium-repl--emit-message-url-line url line)))
+(defun indium-repl--emit-message (message)
+  "Emit the value of console MESSAGE."
+  (let-alist message
+    (indium-render-remote-object .result)
+    (indium-repl--emit-message-url-line .url .line)))
 
 (defun indium-repl--emit-logging-error ()
   "Emit a red \"Error\" label."
@@ -257,17 +246,16 @@ optional."
 (defun indium-repl--emit-message-url-line (url line)
   "Emit the URL and LINE for a message."
   (unless (seq-empty-p url)
-    (let ((path (indium-workspace-lookup-file-safe url)))
-     (insert "\nFrom "
-             (propertize (if line
-                             (format "%s:%s" path line)
-                           path)
-                         'font-lock-face 'indium-link-face
-                         'indium-action (lambda ()
-                                        (if (file-regular-p path)
-                                            (find-file path)
-                                          (browse-url path)))
-                         'rear-nonsticky '(font-lock-face indium-action))))))
+    (insert "\nFrom "
+            (propertize (if line
+                            (format "%s:%s" url line)
+                          url)
+                        'font-lock-face 'indium-link-face
+                        'indium-action (lambda ()
+                                         (if (file-regular-p url)
+                                             (find-file url)
+                                           (browse-url url)))
+                        'rear-nonsticky '(font-lock-face indium-action)))))
 
 (defun indium-repl-next-input ()
   "Insert the content of the next input in the history."
@@ -317,31 +305,6 @@ DIRECTION is `forward' or `backard' (in the history list)."
   (when indium-repl-switch-from-buffer
     (pop-to-buffer indium-repl-switch-from-buffer t)))
 
-(defun indium-repl--handle-connection-closed ()
-  "Display a message when the connection is closed."
-  (when-let ((buf (indium-repl-get-buffer)))
-    (with-current-buffer buf
-                 (save-excursion
-                   (goto-char (point-max))
-                   (insert-before-markers "\n")
-                   (set-marker indium-repl-output-start-marker (point))
-                   (insert "Connection closed. ")
-                   (indium-repl--insert-connection-buttons)
-                   (insert "\n")
-                   (set-marker indium-repl-input-start-marker (point))
-                   (set-marker indium-repl-output-end-marker (point)))
-                 (indium-repl-insert-prompt))))
-
-(defun indium-repl--insert-connection-buttons ()
-  "Insert buttons when the connection is lost.
-
-The user can either close all related buffers or try to reopen
-the connection."
-  (indium-render-button "Reconnect" #'indium-reconnect)
-  (insert " or ")
-  (indium-render-button "close all buffers" #'indium-quit)
-  (insert "."))
-
 (defun company-indium-repl (command &optional arg &rest _args)
   "Indium REPL backend for company-mode.
 See `company-backends' for more info about COMMAND and ARG."
@@ -355,18 +318,27 @@ See `company-backends' for more info about COMMAND and ARG."
                       (lambda (callback)
                         (indium-repl-get-completions arg callback))))))
 
-(defun indium-repl-get-completions (arg callback)
-  "Get the completion list matching the prefix ARG.
+(defun indium-repl-get-completions (prefix callback)
+  "Get the completion list matching PREFIX.
 Evaluate CALLBACK with the completion candidates."
-  (let ((expression (buffer-substring-no-properties
-                     (let ((bol (line-beginning-position))
-                           (prev-delimiter (1+ (save-excursion
-                                                 (re-search-backward "[([:space:]]" nil t)))))
-                       (if prev-delimiter
-                           (max bol prev-delimiter)
-                         bol))
-                     (point))))
-    (indium-backend-get-completions (indium-current-connection-backend) expression arg callback)))
+  (let* ((input (buffer-substring-no-properties
+                 (let ((bol (point-at-bol))
+                       (prev-delimiter (1+ (save-excursion
+                                             (re-search-backward "[([:space:]]" nil t)))))
+                   (if prev-delimiter
+                       (max bol prev-delimiter)
+                     bol))
+                 (point)))
+	 (expression  (if (string-match-p "\\." input)
+			  (replace-regexp-in-string "\\.[^\\.]*$" "" input)
+			"this")))
+    (indium-client-get-completion
+     expression
+     (lambda (candidates)
+       (funcall callback
+		(seq-filter (lambda (candidate)
+                              (string-prefix-p prefix candidate))
+                            candidates))))))
 
 (defun indium-repl--complete-or-indent ()
   "Complete or indent at point."
@@ -385,8 +357,6 @@ Evaluate CALLBACK with the completion candidates."
 (defvar indium-repl-mode-hook nil
   "Hook executed when entering `indium-repl-mode'.")
 
-(declare 'indium-quit)
-
 (defvar indium-repl-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [return] #'indium-repl-return)
@@ -397,7 +367,7 @@ Evaluate CALLBACK with the completion candidates."
     (define-key map (kbd "C-c M-i") #'indium-repl-inspect)
     (define-key map (kbd "C-c C-o") #'indium-repl-clear-output)
     (define-key map (kbd "C-c C-z") #'indium-repl-pop-buffer)
-    (define-key map (kbd "C-c C-q") #'indium-quit)
+    (define-key map (kbd "C-c C-q") #'indium-maybe-quit)
     (define-key map (kbd "M-p") #'indium-repl-previous-input)
     (define-key map (kbd "M-n") #'indium-repl-next-input)
     (define-key map (kbd "C-<up>") #'indium-repl-previous-input)
@@ -410,7 +380,7 @@ Evaluate CALLBACK with the completion candidates."
         "--"
         ["Switch to source buffer" indium-repl-pop-buffer]
         "--"
-        ["Quit" indium-quit]))
+        ["Quit" indium-maybe-quit]))
     map))
 
 (define-derived-mode indium-repl-mode fundamental-mode "JS-REPL"
@@ -428,7 +398,7 @@ Evaluate CALLBACK with the completion candidates."
 	 (repl-buffer (current-buffer))
 	 (string (buffer-substring-no-properties start end)))
     (with-current-buffer
-	(get-buffer-create "*indium-fontification*")
+	(get-buffer-create " indium-fontification ")
       (let ((inhibit-modification-hooks nil))
 	(js-mode)
 	(erase-buffer)
@@ -445,7 +415,8 @@ Evaluate CALLBACK with the completion candidates."
 		 repl-buffer)))
 	    (setq pos next)))))))
 
-(add-hook 'indium-connection-closed-hook #'indium-repl--handle-connection-closed)
+(add-hook 'indium-client-connected-hook #'indium-repl-setup)
+(add-hook 'indium-client-log-hook #'indium-repl-emit-console-message)
 
 (provide 'indium-repl)
 ;;; indium-repl.el ends here

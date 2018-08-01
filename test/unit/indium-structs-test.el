@@ -25,48 +25,122 @@
 ;;; Code:
 
 (require 'buttercup)
-(require 'assess)
 (require 'indium-structs)
-(require 'cl-lib)
+(require 'assess)
+(require 'seq)
 
-(describe "Setting current connection slots"
-  (it "should be able to set the frames"
-    (with-indium-connection (indium-connection-create)
-      (setf (indium-current-connection-frames) 'foo)
-      (expect (indium-current-connection-frames)
-	      :to-be 'foo)))
+(describe "Locations"
+  (it "Should be able to make locations at point"
+    (assess-with-filesystem '(("index.js" "let foo = 1;\nlet bar = 2;"))
+      (with-current-buffer (find-file-noselect "index.js")
+	(goto-char (point-max))
+	(let ((loc (indium-location-at-point)))
+	  (expect (indium-location-file loc) :to-equal (expand-file-name "index.js"))
+	  (expect (indium-location-line loc) :to-equal 2)))))
 
-  (it "should be able to set the current frame"
-    (with-indium-connection (indium-connection-create)
-      (setf (indium-current-connection-current-frame) 'foo)
-      (expect (indium-current-connection-current-frame)
-	      :to-be 'foo))))
+  (it "Should be able to make locations from alists"
+    (let ((loc (indium-location-from-alist '((file . "index.js")
+					     (line . 22)
+					     (column  . 0)))))
+      (expect (indium-location-file loc) :to-equal "index.js")
+      (expect (indium-location-line loc) :to-equal 22)
+      (expect (indium-location-column loc) :to-equal 0))))
 
-(describe "Struct creation"
-  (it "should be able to make locations from script ids"
-    (spy-on 'indium-script-get-file :and-return-value "foo.js")
-    (spy-on 'indium-script-find-by-id :and-return-value "id")
-    (let ((loc (indium-location-from-script-id
-		:script-id "id"
-		:line 2
-		:column 3)))
-      (expect #'indium-script-find-by-id :to-have-been-called-with "id")
-      (expect (indium-location-file loc) :to-equal "foo.js")))
-
+(describe "Breakpoints"
   (it "Should be able to make breakpoints"
     (let ((brk (indium-breakpoint-create
 		:id 'id
-		:original-location (indium-location-create
-				    :line 5
-				    :column 2
-				    :file "foo.js"))))
+		:condition "foo === bar")))
       (expect (indium-breakpoint-id brk) :to-be 'id)
-      (expect (indium-location-file (indium-breakpoint-original-location brk))
-	      :to-equal "foo.js")
-      (expect (indium-location-line (indium-breakpoint-original-location brk))
-	      :to-equal 5)
-      (expect (indium-location-column (indium-breakpoint-original-location brk))
-	      :to-equal 2))))
+      (expect (indium-breakpoint-condition brk)
+	      :to-equal "foo === bar")
+      (expect (indium-breakpoint-location brk)
+	      :to-be nil)))
+
+  (it "Should be have the location of its overlay"
+    (with-temp-buffer
+      (insert "let foo = 1;\nlet bar = 2;")
+      (goto-char (point-min))
+      (let* ((ov (make-overlay (point) (point)))
+	     (brk (indium-breakpoint-create :overlay ov)))
+	(expect (indium-location-line (indium-breakpoint-location brk))
+		:to-equal 1)
+	(expect (indium-location-file (indium-breakpoint-location brk))
+		:to-equal (buffer-file-name (overlay-buffer ov))))))
+
+  (it "Should follow the location of the overlay when it changes"
+    (with-temp-buffer
+      (insert "let foo = 1;\nlet bar = 2;")
+      (goto-char (point-min))
+      (let* ((ov (make-overlay (point) (point)))
+  	     (brk (indium-breakpoint-create :overlay ov)))
+  	(move-overlay ov (point-at-eol) (point-at-eol))
+  	(save-excursion
+  	  (goto-char (point-max))
+  	  (expect (indium-location-line (indium-breakpoint-location brk))
+  		  :to-equal 2))))))
+
+(describe "Scopes"
+  (it "Should be able to make scopes from alists"
+    (let ((s (indium-scope-from-alist '((type . "closure")
+					(name . "this.foo")
+					(id . "25")))))
+      (expect (indium-scope-id s) :to-equal "25")
+      (expect (indium-scope-type s) :to-equal "closure")
+      (expect (indium-scope-name s) :to-equal "this.foo"))))
+
+(describe "Frames"
+  (it "Should be able to make frames from alists"
+    (let ((f (indium-frame-from-alist '((scriptId . "22")
+					(functionName . "foo")
+					(location . ((file . "index.js")
+						     (line . 22)
+						     (column  . 0)))
+					(scopeChain . [((type . "closure")
+							(name . "this.foo")
+							(id . "25"))
+						       ((type . "local")
+							(name . "bar")
+							(id . "26"))])))))
+      (expect (indium-frame-script-id f) :to-equal "22")
+      (expect (indium-frame-function-name f) :to-equal "foo")
+      (expect (length (indium-frame-scope-chain f)) :to-equal 2)
+      (expect (indium-scope-type (seq-elt (indium-frame-scope-chain f) 0))
+	      :to-equal "closure")
+      (expect (indium-scope-name (seq-elt (indium-frame-scope-chain f) 0))
+	      :to-equal "this.foo")
+      (expect (indium-scope-id (seq-elt (indium-frame-scope-chain f) 0))
+	      :to-equal "25")
+      (expect (indium-scope-type (seq-elt (indium-frame-scope-chain f) 1))
+	      :to-equal "local")
+      (expect (indium-scope-name (seq-elt (indium-frame-scope-chain f) 1))
+	      :to-equal "bar")
+      (expect (indium-scope-id (seq-elt (indium-frame-scope-chain f) 1))
+	      :to-equal "26")
+      (expect (indium-location-file (indium-frame-location f))
+	      :to-equal "index.js")
+      (expect (indium-location-line (indium-frame-location f))
+	      :to-equal 22)
+      (expect (indium-location-column (indium-frame-location f))
+	      :to-equal 0))))
+
+(describe "Native properties"
+  :var (native non-native)
+  (before-all
+    (setq native (indium-property-from-alist
+		  '((name . "foo")
+		    (value . ((description . "function f() { [native code] }"))))))
+    (setq non-native (indium-property-from-alist
+		      '((name . "foo")
+			(value . ((description . "42")))))))
+
+  (it "can detect native code property"
+    (expect (indium-property-native-p native)
+            :to-be-truthy))
+
+  (it "can detect non-native code property"
+    (expect (indium-property-native-p non-native)
+            :to-be nil)))
 
 (provide 'indium-structs-test)
 ;;; indium-structs-test.el ends here

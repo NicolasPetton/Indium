@@ -38,11 +38,7 @@ one first."
 
 (defun indium-scratch-get-buffer-create ()
   "Return a scratch buffer for the current connection.
-If no buffer exists, create one.
-
-If there is no current connection, throw an error."
-  (unless-indium-connected
-    (user-error "No current connection"))
+If no buffer exists, create one."
   (let* ((bufname (indium-scratch-buffer-name))
          (buf (get-buffer bufname)))
     (unless buf

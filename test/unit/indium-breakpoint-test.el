@@ -26,6 +26,7 @@
 (require 'seq)
 (require 'map)
 (require 'indium-breakpoint)
+(require 'indium-client)
 
 (describe "Breakpoint position when editing buffers (GH issue #82)"
   (it "should keep the breakpoint on the original line when adding a line before"
@@ -113,6 +114,7 @@
 
   (it "can put a breakpoint on the current line"
     (with-js2-file
+      (spy-on #'indium-client-add-breakpoint)
       (goto-char (point-min))
       (expect (indium-breakpoint-on-current-line-p) :to-be nil)
       (indium-breakpoint-add)
@@ -122,6 +124,7 @@
     (spy-on #'read-from-minibuffer :and-return-value "new condition")
     (spy-on #'indium-breakpoint-remove :and-call-through)
     (spy-on #'indium-breakpoint-add :and-call-through)
+    (spy-on #'indium-client-add-breakpoint)
     (with-js2-file
       (goto-char (point-min))
       (indium-breakpoint-add "old condition")
@@ -132,6 +135,7 @@
 
 (describe "Breakpoint duplication handling"
   (it "can add a breakpoint multiple times on the same line without duplicating it"
+    (spy-on #'indium-client-add-breakpoint)
     (with-js2-file
       (indium-breakpoint-add)
       (let ((number-of-overlays (seq-length (overlays-in (point-min) (point-max)))))
@@ -147,8 +151,8 @@
 
   (it "removing overlays should remove them from breakpoints"
     (with-js2-buffer "let a = 2;"
-      (let* ((brk (indium-breakpoint-create))
-	     (ov (indium-breakpoint--add-overlay brk)))
+      (let* ((brk (indium-breakpoint-create)))
+	(indium-breakpoint--add-overlay brk)
 	(indium-breakpoint--remove-overlay)
 	(expect (indium-breakpoint-overlay brk) :to-be nil))))
 
@@ -162,6 +166,7 @@
 
 (describe "Keeping track of local breakpoints in buffers"
   (it "should track breakpoints when added"
+    (spy-on #'indium-client-add-breakpoint)
     (with-js2-file
       (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
@@ -169,6 +174,7 @@
 	(expect (car (map-values indium-breakpoint--local-breakpoints)) :to-be (current-buffer)))))
 
   (it "should untrack breakpoints when removed"
+    (spy-on #'indium-client-add-breakpoint)
     (with-js2-file
       (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
@@ -176,6 +182,7 @@
 	(expect (seq-length (map-keys indium-breakpoint--local-breakpoints)) :to-be 0))))
 
   (it "should untrack breakpoints when killing a buffer"
+    (spy-on #'indium-client-add-breakpoint)
     (with-js2-file
       (let ((indium-breakpoint--local-breakpoints (make-hash-table :weakness t)))
 	(indium-breakpoint-add)
@@ -191,55 +198,17 @@
 		 'bar)
 	(expect (indium-breakpoint-breakpoint-with-id 'foo) :to-be brk)))))
 
-(describe "Breakpoint registration"
-  (it "should be able to unregister breakpoints"
-    (with-js2-file
-      (let ((indium-breakpoint--local-breakpoints (make-hash-table)))
-	(indium-breakpoint-add)
-	(let ((brk (indium-breakpoint-at-point)))
-	  ;; Fake the registration of the breakpoint
-	  (setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'foo)
-	  (expect (indium-breakpoint-registered-p brk) :to-be-truthy)
-	  (indium-breakpoint--unregister-all-breakpoints)
-	  (expect (indium-breakpoint-registered-p brk) :to-be nil))))))
-
 (describe "Breakpoint resolution"
-  (it "breakpoints should not be resolvable when already resolved"
-    (let ((brk (indium-breakpoint-create)))
-      (setf (indium-breakpoint-resolved brk) t)
-      (expect (indium-breakpoint-can-be-resolved-p brk)
-	      :to-be nil)))
-
-  (it "breakpoints should be resolvable when they are not registered"
-    (expect (indium-breakpoint-can-be-resolved-p (indium-breakpoint-create))
-	    :to-be-truthy))
-
-  (it "breakpoints should be resolvable when registered and different generated location"
-    (let ((brk (indium-breakpoint-create)))
-      (spy-on 'indium-breakpoint-generated-location :and-return-value 'foo)
-      (indium-breakpoint-register brk 'id)
-      (expect (indium-breakpoint-can-be-resolved-p brk)
-	      :to-be-truthy)))
-
-  (it "breakpoints not should be resolvable when registered and same generated location"
-    (let ((brk (indium-breakpoint-create :original-location 'foo)))
-      (indium-breakpoint-register brk 'id)
-      (spy-on 'indium-breakpoint-generated-location :and-return-value 'foo)
-      (expect (indium-breakpoint-can-be-resolved-p brk)
-	      :to-be nil)))
-
   (it "should be able to unresolve breakpoints"
+    (spy-on #'indium-client-add-breakpoint)
     (with-js2-file
       (let ((indium-breakpoint--local-breakpoints (make-hash-table)))
 	(indium-breakpoint-add)
 	(let ((brk (indium-breakpoint-at-point)))
 	  ;; Fake the registration of the breakpoint
-	  (setf (indium-breakpoint-id (indium-breakpoint-at-point)) 'foo)
-	  ;; Fake the resolution of the breakpoint
-	  (setf (indium-breakpoint-resolved brk) t)
-	  (expect (indium-breakpoint-unresolved-p brk) :to-be nil)
+	  (setf (indium-breakpoint-resolved (indium-breakpoint-at-point)) t)
 	  (indium-breakpoint--unregister-all-breakpoints)
-	  (expect (indium-breakpoint-unresolved-p brk) :to-be-truthy))))))
+	  (expect (indium-breakpoint-resolved brk) :to-be nil))))))
 
 (provide 'indium-breakpoint-test)
 ;;; indium-breakpoint-test.el ends here
