@@ -4,7 +4,7 @@ image: nicolaspetton/emacs-nodejs-docker:latest
   before_script:
     - evm use $EMACS_VERSION
     - emacs --version
-    - make ci-dependencies
+    - make dependencies
 
 .test_job_template: &test_job_definition
   <<: *prepare_job_template
