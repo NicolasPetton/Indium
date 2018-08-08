@@ -36,7 +36,7 @@ Adding and removing breakpoints
 -------------------------------
 
 You need to first make sure that Indium is set up correctly to use local files
-(see :ref:`local-files`).
+(see :ref:`general_configuration`).
 
 - ``C-c b b``: Add a breakpoint
 - ``C-c b c``: Add a conditional breakpoint
@@ -57,34 +57,3 @@ Since Indium 0.7, breakpoints are supported in source files with an associated s
 
 .. Note:: Breakpoints are persistent: if the connection is closed, when a new
           connection is made Indium will attempt to add back all breakpoints.
-
-Live code update (hot-swapping JavaScript sources)
---------------------------------------------------
-
-Indium supports live code updates without the need to reload the browser tab or
-restart the nodejs process.
-
-This feature works with by hot-swapping the script source, and works even with
-lexical closures.
-
-.. Note:: This feature currently in only available for Chrome & Chromium.
-
-To enable live updates, make sure Indium is set up to use local files (see
-:ref:`local-files`).
-
-- ``C-c C-k``: Updates the runtime JavaScript source with the contents of the
-  current buffer (this is also done automatically when a buffer is saved).
-
-You can setup a hook to be run after each script update. For example ::
-
-  (add-hook 'indium-update-script-source-hook
-	  (lambda (url)
-	    (indium-eval (format "window.dispatchEvent(new CustomEvent('patch', {detail: {url: '%s'}}))"
-				 url))))
-
-Then you can use it in your app for development purposes ::
-
-  window.addEventListener("patch", (event) => {
-    console.log("Patched @ " + new Date().toTimeString().substring(0, 8), event.detail.url);
-    // rerender, etc
-  });

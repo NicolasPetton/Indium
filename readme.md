@@ -21,7 +21,11 @@ JavaScript development, including:
 
 ## Documentation
 
-**Installation instruction and other documentation can be found on [readthedocs](https://indium.readthedocs.io).**
+Installation instruction and other documentation can be found on
+[readthedocs](https://indium.readthedocs.io).
+
+**WARNING**: Indium 2.0 now uses a client/server architecture, see [installation
+instuctions](https://indium.readthedocs.io/en/latest/installation.html).
 
 ## Screenshots
 

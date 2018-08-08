@@ -189,9 +189,9 @@ DIRECTION is `forward' or `backward' (in the frame list)."
 Setup a debugging buffer for the current stack FRAME and switch
 to that buffer.
 
-Try to find the file for the stack frame locally first using
-Indium worskspaces.  If not local file can be found, get the
-remote source for that frame."
+If no local file exists for the FRAME, ask the user if the remote
+source for that frame should be downloaded.  If not, resume the
+execution."
   (setq indium-debugger-current-frame frame)
   (switch-to-buffer (indium-debugger-get-buffer-create))
   (if buffer-file-name
