@@ -28,32 +28,9 @@
 (require 'map)
 (require 'assess)
 
-(when (require 'undercover nil t)
-  (setq undercover-force-coverage t)
-  (undercover "*.el" (:exclude "run-lint.el" "test/*.el")))
-
-(advice-add 'undercover-report :after #'print-coverage-report-safe)
-
 (defvar indium-nodejs--test-fs
   '((".indium.json" "{\"configurations\": [{\"type\": \"node\", \"command\": \"node\"}]}")
     ("index.js" "console.log('foo')")))
-
-(defun print-coverage-report-safe (&rest _)
-  (ignore-errors
-    (print-coverage-report)))
-
-(defun print-coverage-report ()
-  (let* ((coverage (apply #'seq-concatenate 'list
-                          (seq-map (lambda (src)
-                                     (let ((coverage (map-elt src 'coverage)))
-                                       (seq-filter #'identity coverage)))
-                                   (map-elt (json-read-file "/tmp/undercover_coveralls_report") 'source_files))))
-         (covered-lines (seq-filter (lambda (line)
-                                      (not (zerop line)))
-                                    coverage))
-         (percentage (round (* (/ (seq-length covered-lines) (seq-length coverage) 1.0) 100))))
-    (message "%d%% covered" percentage)))
-
 
 (defmacro with-js2-buffer (contents &rest body)
   "Evaluate BODY.
