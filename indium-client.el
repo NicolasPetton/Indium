@@ -293,14 +293,15 @@ Evaluate CALLBACK when the server starts listening to TCP connections."
   (let ((connected nil))
     (lambda (process output)
       (unless connected ;; do not try to open TCP connections multiple times
-       (with-current-buffer (process-buffer process)
-	 (goto-char (point-max))
-	 (insert output))
-       (if (string-match-p "server listening" output)
-	   (indium-client--open-network-stream callback)
-	 (progn
-	   (indium-client-stop)
-	   (error "Indium server process error: %s" output)))))))
+	(setq connected t)
+	(with-current-buffer (process-buffer process)
+	  (goto-char (point-max))
+	  (insert output))
+	(if (string-match-p "server listening" output)
+	    (indium-client--open-network-stream callback)
+	  (progn
+	    (indium-client-stop)
+	    (error "Indium server process error: %s" output)))))))
 
 (defun indium-client--open-network-stream (callback)
   "Open a network connection to the indium server TCP process.
