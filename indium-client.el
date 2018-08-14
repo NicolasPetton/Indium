@@ -292,11 +292,11 @@ connection established."
 Evaluate CALLBACK when the server starts listening to TCP connections."
   (let ((connected nil))
     (lambda (process output)
+      (with-current-buffer (process-buffer process)
+	(goto-char (point-max))
+	(insert output))
       (unless connected ;; do not try to open TCP connections multiple times
 	(setq connected t)
-	(with-current-buffer (process-buffer process)
-	  (goto-char (point-max))
-	  (insert output))
 	(if (string-match-p "server listening" output)
 	    (indium-client--open-network-stream callback)
 	  (progn
