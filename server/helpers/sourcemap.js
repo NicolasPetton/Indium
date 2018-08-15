@@ -1,6 +1,6 @@
 const { SourceMapConsumer } = require("source-map");
 const { readFileSync } = require("fs");
-const { join } = require("path");
+const path = require("path");
 const { URL, resolve } = require("url");
 const fetch = require("node-fetch");
 
@@ -14,12 +14,12 @@ const defaultSourceMapPathOverrides = {
 };
 
 const resolveSourceMap = async ({ url = "", sourceMapURL } = {}, conf) => {
-	let path = resolve(url, sourceMapURL);
-	let contents = await getSourceMapContents(path);
-	let json = JSON.parse(contents);
-	json.sources = json.sources.map(s =>
-		sanitizePath(applySourceMapPathOverrides(s, conf))
-	);
+    let sourcemapPath = resolve(url, sourceMapURL);
+    let contents = await getSourceMapContents(sourcemapPath);
+    let json = JSON.parse(contents);
+    json.sources = json.sources.map(s => {
+		return path.resolve(sanitizePath(applySourceMapPathOverrides(s, conf)));
+    });
 	return await new SourceMapConsumer(json);
 };
 
