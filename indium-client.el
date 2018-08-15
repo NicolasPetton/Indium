@@ -290,18 +290,16 @@ connection established."
   "Return a process filter function for an Indium server process.
 
 Evaluate CALLBACK when the server starts listening to TCP connections."
-  (let ((connected nil))
-    (lambda (process output)
-      (with-current-buffer (process-buffer process)
-	(goto-char (point-max))
-	(insert output))
-      (unless connected ;; do not try to open TCP connections multiple times
-	(setq connected t)
-	(if (string-match-p "server listening" output)
-	    (indium-client--open-network-stream callback)
-	  (progn
-	    (indium-client-stop)
-	    (error "Indium server process error: %s" output)))))))
+  (lambda (process output)
+    (with-current-buffer (process-buffer process)
+      (goto-char (point-max))
+      (insert output))
+    (unless (process-live-p indium-client--connection) ;; do not try to open TCP connections multiple times
+      (if (string-match-p "server listening" output)
+	  (indium-client--open-network-stream callback)
+	(progn
+	  (indium-client-stop)
+	  (error "Indium server process error: %s" output))))))
 
 (defun indium-client--open-network-stream (callback)
   "Open a network connection to the indium server TCP process.
@@ -407,7 +405,7 @@ PAYLOAD is an alist with the details of the notification."
     (pcase .type
       ("breakpointResolved"
        (progn
-	(run-hook-with-args 'indium-client-breakpoint-resolved-hook .id .line)))
+	 (run-hook-with-args 'indium-client-breakpoint-resolved-hook .id .line)))
       ("paused"
        (run-hook-with-args 'indium-client-debugger-paused-hook
 			   (seq-map #'indium-frame-from-alist .frames)
