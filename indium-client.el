@@ -70,8 +70,10 @@
   "Return the default process executable."
   "indium")
 
-(defvar indium-client-executable (indium-client-default-executable)
-  "Process executable.")
+(defcustom indium-client-executable (indium-client-default-executable)
+  "Process executable."
+  :group 'indium-client
+  :type 'file)
 
 (defvar indium-client--connection nil
   "The client connection to the server process.")
