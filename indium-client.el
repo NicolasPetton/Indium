@@ -66,11 +66,24 @@
 (defvar indium-client-debug nil
   "When non-nil, log server output to *indium-client-log*.")
 
+(defun indium-client-find-executable ()
+  "Return the indium executable file."
+  (if-let ((lisp-filename (or load-file-name (buffer-file-name))))
+      (let ((executable (thread-last
+                            (file-name-directory lisp-filename)
+                          (expand-file-name "server")
+                          (expand-file-name "bin")
+                          (expand-file-name "indium"))))
+        (if (file-executable-p executable)
+            executable
+          (indium-client-default-executable)))
+    (indium-client-default-executable)))
+
 (defun indium-client-default-executable ()
   "Return the default process executable."
   "indium")
 
-(defcustom indium-client-executable (indium-client-default-executable)
+(defcustom indium-client-executable (indium-client-find-executable)
   "Process executable."
   :group 'indium-client
   :type 'file)
@@ -98,7 +111,7 @@ Evaluate CALLBACK once the server is started."
     (when indium-client-debug
       (with-current-buffer (get-buffer-create "*indium-debug-log*")
 	(erase-buffer)))
-    (indium-client--start-server callback)))
+    (indium-client--start-server executable callback)))
 
 (defun indium-client-stop ()
   "Stop the indium process."
@@ -274,15 +287,15 @@ When CALLBACK is non-nil, evaluate it with the list of sources."
   "Return non-nil if the indium process is running."
   (process-live-p indium-client--connection))
 
-(defun indium-client--start-server (callback)
-  "Start the Indium server process.
+(defun indium-client--start-server (executable callback)
+  "Start the Indium server process in EXECUTABLE.
 
 Evaluate CALLBACK once the server is started and the TCP
 connection established."
   (setq indium-client--process
 	(start-process "indium server"
 		       (generate-new-buffer "*indium-process*")
-		       "indium"
+                       executable
 		       (format "%s" indium-client--process-port)))
   (set-process-query-on-exit-flag indium-client--process nil)
   (set-process-filter indium-client--process
