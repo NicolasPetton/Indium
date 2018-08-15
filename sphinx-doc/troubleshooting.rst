@@ -14,7 +14,7 @@ toggle-debug-on-error`` and report an issue with the backtrace.
 
 2. It is also a good idea to turn on Indium's log mode with ``M-: (setq
 indium-client-debug t)``, and attach to the issue report the contents of the
-``*indium-debug-log*`` to help resolve the issue.
+``*indium-debug-log*`` buffer to help resolve the issue.
 
 Attaching the contents of the ``*indium-process*`` buffer can help as well in
 case an error happens in the server process.
@@ -29,7 +29,7 @@ correctly.
           It uses the ``root`` (alias ``webRoot``) configuration option as the
           base path, as described in the :ref:`general_configuration` page.
 
-Indium provides a command ``indium-list-scirpt-sources`` to list all scripts
+Indium provides a command ``indium-list-script-sources`` to list all scripts
 parsed by the backend, displaying their sources mapped to files on disk.  Check
 that the file where you're trying to add a breakpoint is listed.
 
@@ -41,6 +41,6 @@ Correctly mapping sourcemaps to file locations can be tedious (see
 
 
 Indium provides the command ``indium-list-sourcemap-sources`` to help
-configuring sourcemaps correctly.  This commands displays a list of all
+configuring sourcemaps correctly.  This command displays a list of all
 sourcemap sources in the runtime as file paths on disk.  Check that your files
 are listed there.
