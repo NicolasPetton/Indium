@@ -198,4 +198,15 @@ describe("URL resolution", () => {
 
 		expect(resolveUrl(url, conf)).toEqual(url);
 	});
+
+	// Regression test for GH issue #161
+	it("does not transform the path when the file exists on Windows", () => {
+		let conf = {
+			projectFile: "C:\\Users\\john\\projects\\foo\\.indium.json"
+		};
+
+		let url = "C:\\Users\\john\\projects\\foo\\bar.js";
+
+		expect(resolveUrl(url, conf)).toEqual(url);
+	});
 });

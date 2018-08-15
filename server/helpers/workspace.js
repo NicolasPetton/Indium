@@ -33,6 +33,10 @@ const isFile = path =>
 const isProjectFile = path =>
 	  basename(path) === projectFilename;
 
+const isAbsolute = path => {
+	return path.startsWith("/") || /^[a-zA-Z]\:[\\\/]/.test(path);
+};
+
 const getFiles = dir =>
 	  readdirSync(dir).map(name => join(dir, name)).filter(isFile);
 
@@ -66,8 +70,10 @@ const resolveRoot = conf => {
 };
 
 const resolveUrl = (url, conf) => {
-	// In Node, script urls can be file paths
-	if (!parse(url).protocol) {
+	// In Node, script urls can be file paths.	The path doesn't
+	// always exist either, so also check for a protocol when parsed
+	// as a URL.
+	if (isAbsolute(url) || !parse(url).protocol) {
 		return url;
 	}
 	let root = resolveRoot(conf);
