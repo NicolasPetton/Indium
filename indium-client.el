@@ -68,7 +68,7 @@
 
 (defun indium-client-default-executable ()
   "Return the default process executable."
-  (executable-find "indium"))
+  "indium")
 
 (defvar indium-client-executable (indium-client-default-executable)
   "Process executable.")
