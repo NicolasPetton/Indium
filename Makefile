@@ -8,10 +8,6 @@ BATCH     = $(EMACSBIN) -Q --batch $(LOAD_PATH) \
 		--eval "(add-to-list 'package-archives '(\"melpa-stable\" . \"http://stable.melpa.org/packages/\"))" \
 		--funcall package-initialize
 
-SILENCE-SOME-DEPRECATION  = --load subr-x
-SILENCE-SOME-DEPRECATION += --eval "(put 'when-let 'byte-obsolete-info nil)"
-SILENCE-SOME-DEPRECATION += --eval "(put 'if-let 'byte-obsolete-info nil)"
-
 .PHONY: all clean dependencies check test test-elisp test-javascript lint lint-elisp lint-javascript
 
 all: check
@@ -38,7 +34,7 @@ check: test lint
 test: test-elisp test-javascript
 
 test-elisp:
-	TRAVIS=true $(BATCH) $(SILENCE-SOME-DEPRECATION) \
+	TRAVIS=true $(BATCH) \
 	-l buttercup \
 	-l test/test-helper.el \
 	-f buttercup-run-discover
@@ -50,7 +46,7 @@ lint: lint-elisp lint-javascript
 
 lint-elisp:
 	# Byte compile all and stop on any warning or error
-	$(BATCH) $(SILENCE-SOME-DEPRECATION) \
+	$(BATCH) \
 	--eval "(setq byte-compile-error-on-warn t)" \
 	-f batch-byte-compile ${SRCS}
 
