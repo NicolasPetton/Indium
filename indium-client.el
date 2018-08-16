@@ -351,14 +351,16 @@ Evaluate CALLBACK once the connection is established."
 
 Read the complete messages sequentially and handle them.  Each
 read message is deleted from BUFFER."
-  (with-current-buffer buffer
-    (when (indium-client--complete-message-p)
-      (save-excursion
-	(goto-char (point-min))
-	(when-let ((data (ignore-errors (json-read))))
-	  (delete-region (point-min) (point))
-	  (indium-client--handle-message data)
-	  (indium-client--handle-data buffer))))))
+  (let ((data))
+    (with-current-buffer buffer
+      (when (indium-client--complete-message-p)
+	(save-excursion
+	  (goto-char (point-min))
+	  (setq data (ignore-errors (json-read)))
+	  (delete-region (point-min) (point)))))
+    (when data
+      (indium-client--handle-message data)
+      (indium-client--handle-data buffer))))
 
 (defun indium-client--complete-message-p ()
   "Return non-nil if the current buffer has a complete message.
