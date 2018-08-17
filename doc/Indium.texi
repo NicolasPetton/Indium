@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.2.0, Aug 15, 2018
+Indium 1.2.0, Aug 17, 2018
 
 Nicolas Petton
 
@@ -152,6 +152,7 @@ The inspector
 Troublehooting
 
 * General advices before reporting issues:: 
+* The Indium server doesn’t start:: 
 * Breakpoints are not set (not using sourcemaps): Breakpoints are not set not using sourcemaps. 
 * Breakpoints and debugging do not work (using sourcemaps): Breakpoints and debugging do not work using sourcemaps. 
 
@@ -159,7 +160,7 @@ Troublehooting
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -200,7 +201,7 @@ Indium is availabe on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{h
 @end menu
 
 @node The Indium server,Using MELPA,,Installation
-@anchor{installation the-indium-server}@anchor{7}
+@anchor{installation server-installation}@anchor{7}@anchor{installation the-indium-server}@anchor{8}
 @subsection The Indium server
 
 
@@ -212,7 +213,7 @@ npm install -g indium
 @end example
 
 @node Using MELPA,Manual installation,The Indium server,Installation
-@anchor{installation using-melpa}@anchor{8}
+@anchor{installation using-melpa}@anchor{9}
 @subsection Using MELPA
 
 
@@ -240,7 +241,7 @@ M-x package-refresh-contents [RET]
 @end example
 
 @node Manual installation,,Using MELPA,Installation
-@anchor{installation manual-installation}@anchor{9}
+@anchor{installation manual-installation}@anchor{a}
 @subsection Manual installation
 
 
@@ -256,7 +257,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup getting-up-and-running}@anchor{a}@anchor{setup setup}@anchor{b}@anchor{setup doc}@anchor{c}
+@anchor{setup getting-up-and-running}@anchor{b}@anchor{setup doc}@anchor{c}@anchor{setup setup}@anchor{d}
 @section Getting up and running
 
 
@@ -272,14 +273,14 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node Project configuration,General configuration,,Getting up and running
-@anchor{setup project-configuration}@anchor{d}@anchor{setup configuration-file}@anchor{e}
+@anchor{setup project-configuration}@anchor{e}@anchor{setup configuration-file}@anchor{f}
 @subsection Project configuration
 
 
 Place a @code{.indium.json} file in the root folder of your JavaScript project.
 The project file can contain one or many configurations settings for NodeJS (see
-@ref{f,,NodeJS configuration options}) and Chrome/Chromium (see
-@ref{10,,Chrome/Chromium configuration options}).
+@ref{10,,NodeJS configuration options}) and Chrome/Chromium (see
+@ref{11,,Chrome/Chromium configuration options}).
 
 Here is a minimalist @code{.indium.json} file.:
 
@@ -295,7 +296,7 @@ Here is a minimalist @code{.indium.json} file.:
 @end example
 
 @node General configuration,Chrome/Chromium configuration options,Project configuration,Getting up and running
-@anchor{setup id1}@anchor{11}@anchor{setup general-configuration}@anchor{12}
+@anchor{setup general-configuration}@anchor{12}@anchor{setup id1}@anchor{13}
 @subsection General configuration
 
 
@@ -320,10 +321,10 @@ this @code{.indium.json} file is placed, but it can be overridden with the @code
 @end example
 
 Custom sourcemap path overrides can be set with @code{sourceMapPathOverrides}, see
-@ref{13,,Using sourcemaps} for mode information on sourcemaps and debugging.
+@ref{14,,Using sourcemaps} for mode information on sourcemaps and debugging.
 
 @node Chrome/Chromium configuration options,NodeJS configuration options,General configuration,Getting up and running
-@anchor{setup chrome-configuration}@anchor{10}@anchor{setup chrome-chromium-configuration-options}@anchor{14}
+@anchor{setup chrome-chromium-configuration-options}@anchor{15}@anchor{setup chrome-configuration}@anchor{11}
 @subsection Chrome/Chromium configuration options
 
 
@@ -356,7 +357,7 @@ Example configuration:
 @end example
 
 @node NodeJS configuration options,Starting Indium,Chrome/Chromium configuration options,Getting up and running
-@anchor{setup nodejs-configuration}@anchor{f}@anchor{setup nodejs-configuration-options}@anchor{15}
+@anchor{setup nodejs-configuration}@anchor{10}@anchor{setup nodejs-configuration-options}@anchor{16}
 @subsection NodeJS configuration options
 
 
@@ -394,7 +395,7 @@ Here is an example configuration for debugging Gulp tasks:
 @end example
 
 @node Starting Indium,NodeJS requirements,NodeJS configuration options,Getting up and running
-@anchor{setup starting-indium}@anchor{16}@anchor{setup id2}@anchor{17}
+@anchor{setup starting-indium}@anchor{17}@anchor{setup id2}@anchor{18}
 @subsection Starting Indium
 
 
@@ -413,7 +414,7 @@ specified from the configurations in the @code{.indium.json} project file.
 @end itemize
 
 @node NodeJS requirements,Chrome/Chromium requirements,Starting Indium,Getting up and running
-@anchor{setup nodejs-requirements}@anchor{6}@anchor{setup id3}@anchor{18}
+@anchor{setup nodejs-requirements}@anchor{6}@anchor{setup id3}@anchor{19}
 @subsection NodeJS requirements
 
 
@@ -439,7 +440,7 @@ If you install NodeJS using @code{nvm}, chances are that Emacs won’t have it i
 @code{exec path}. A simple solution is to use the excellent exec-path-from-shell@footnote{https://github.com/purcell/exec-path-from-shell} package.
 
 @node Chrome/Chromium requirements,,NodeJS requirements,Getting up and running
-@anchor{setup chrome-requirements}@anchor{5}@anchor{setup chrome-chromium-requirements}@anchor{19}
+@anchor{setup chrome-requirements}@anchor{5}@anchor{setup chrome-chromium-requirements}@anchor{1a}
 @subsection Chrome/Chromium requirements
 
 
@@ -457,7 +458,7 @@ simply open a new tab on the existing Chrome instance, and the
 @code{remote-debugging-port} will not be set.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{1a}@anchor{repl repl}@anchor{1b}@anchor{repl doc}@anchor{1c}
+@anchor{repl doc}@anchor{1b}@anchor{repl repl}@anchor{1c}@anchor{repl the-repl}@anchor{1d}
 @section The REPL
 
 
@@ -469,12 +470,12 @@ simply open a new tab on the existing Chrome instance, and the
 @end menu
 
 @node Starting a REPL,Using the REPL,,The REPL
-@anchor{repl starting-a-repl}@anchor{1d}
+@anchor{repl starting-a-repl}@anchor{1e}
 @subsection Starting a REPL
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{b,,Getting up and running}).
+connection is made (see @ref{d,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -493,13 +494,13 @@ JS syntax highlighting
 Pretty printing and preview of printed values
 
 @item 
-Access to the object inspector (see @ref{1e,,The inspector})
+Access to the object inspector (see @ref{1f,,The inspector})
 @end itemize
 
 @image{repl2,,,,png}
 
 @node Using the REPL,Code evaluation & context,Starting a REPL,The REPL
-@anchor{repl using-the-repl}@anchor{1f}
+@anchor{repl using-the-repl}@anchor{20}
 @subsection Using the REPL
 
 
@@ -510,7 +511,7 @@ Access to the object inspector (see @ref{1e,,The inspector})
 @end menu
 
 @node Keybindings,Reconnecting from the REPL buffer,,Using the REPL
-@anchor{repl keybindings}@anchor{20}
+@anchor{repl keybindings}@anchor{21}
 @subsubsection Keybindings
 
 
@@ -586,7 +587,7 @@ Instert the next input in the history.
 
 
 @node Reconnecting from the REPL buffer,,Keybindings,Using the REPL
-@anchor{repl reconnecting-from-the-repl-buffer}@anchor{21}
+@anchor{repl reconnecting-from-the-repl-buffer}@anchor{22}
 @subsubsection Reconnecting from the REPL buffer
 
 
@@ -596,7 +597,7 @@ connection, and another one to kill Emacs buffers using this connection (the
 REPL buffer, inspectors & debuggers).
 
 @node Code evaluation & context,,Using the REPL,The REPL
-@anchor{repl code-evaluation-context}@anchor{22}
+@anchor{repl code-evaluation-context}@anchor{23}
 @subsection Code evaluation & context
 
 
@@ -608,7 +609,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction}@anchor{23}@anchor{code-evaluation interaction-in-js-buffers}@anchor{24}@anchor{code-evaluation doc}@anchor{25}
+@anchor{code-evaluation interaction}@anchor{24}@anchor{code-evaluation doc}@anchor{25}@anchor{code-evaluation interaction-in-js-buffers}@anchor{26}
 @section Interaction in JS buffers
 
 
@@ -632,7 +633,7 @@ add or remove breakpoints from your buffers.
 @end menu
 
 @node Evaluating and inspecting,Switching to the REPL buffer,,Interaction in JS buffers
-@anchor{code-evaluation evaluating-and-inspecting}@anchor{26}
+@anchor{code-evaluation evaluating-and-inspecting}@anchor{27}
 @subsection Evaluating and inspecting
 
 
@@ -649,7 +650,7 @@ Here’s a list of available keybindings:
 
 @item 
 @code{C-c M-i}: Inspect the result of the evaluation of an expression (see
-@ref{1e,,The inspector}).
+@ref{1f,,The inspector}).
 
 @item 
 @code{C-c M-:}: Prompt for an expression to evaluate and inspect.
@@ -662,15 +663,15 @@ Here’s a list of available keybindings:
 @end itemize
 
 @node Switching to the REPL buffer,Adding and removing breakpoints,Evaluating and inspecting,Interaction in JS buffers
-@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{27}
+@anchor{code-evaluation switching-to-the-repl-buffer}@anchor{28}
 @subsection Switching to the REPL buffer
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{1b,,The REPL}).
+switch back to the REPL buffer (see @ref{1c,,The REPL}).
 
 @node Adding and removing breakpoints,,Switching to the REPL buffer,Interaction in JS buffers
-@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{28}
+@anchor{code-evaluation adding-and-removing-breakpoints}@anchor{29}
 @subsection Adding and removing breakpoints
 
 
@@ -711,9 +712,9 @@ You need to first make sure that Indium is set up correctly to use local files
 The left fringe or margin can also be clicked to add or remove breakpoints.
 
 Once a breakpoint is set, execution will stop when a breakpoint is hit, and the
-Indium debugger pops up (see @ref{29,,The stepping debugger}).
+Indium debugger pops up (see @ref{2a,,The stepping debugger}).
 
-Since Indium 0.7, breakpoints are supported in source files with an associated sourcemap, see @ref{13,,Using sourcemaps}.
+Since Indium 0.7, breakpoints are supported in source files with an associated sourcemap, see @ref{14,,Using sourcemaps}.
 
 @cartouche
 @quotation Note 
@@ -723,7 +724,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end cartouche
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger debugger}@anchor{29}@anchor{debugger the-stepping-debugger}@anchor{2a}@anchor{debugger doc}@anchor{2b}
+@anchor{debugger debugger}@anchor{2a}@anchor{debugger doc}@anchor{2b}@anchor{debugger the-stepping-debugger}@anchor{2c}
 @section The stepping debugger
 
 
@@ -734,14 +735,14 @@ connection is made Indium will attempt to add back all breakpoints.
 @end menu
 
 @node Using sourcemaps,Blackboxing scripts,,The stepping debugger
-@anchor{debugger sourcemaps}@anchor{13}@anchor{debugger using-sourcemaps}@anchor{2c}
+@anchor{debugger sourcemaps}@anchor{14}@anchor{debugger using-sourcemaps}@anchor{2d}
 @subsection Using sourcemaps
 
 
 Since version 0.7, Indium uses sourcemap files by default.
 
 For sourcemaps to work properly with Chrome/Chromium, make sure that a
-workspace is correctly set (see @ref{b,,Getting up and running}).
+workspace is correctly set (see @ref{d,,Getting up and running}).
 
 @cartouche
 @quotation Warning 
@@ -759,7 +760,7 @@ source-mapped.  This can happen for instance when using Webpack.
 @end menu
 
 @node Overriding sourcemap paths,,,Using sourcemaps
-@anchor{debugger overriding-sourcemap-paths}@anchor{2d}@anchor{debugger webpack}@anchor{2e}
+@anchor{debugger webpack}@anchor{2e}@anchor{debugger overriding-sourcemap-paths}@anchor{2f}
 @subsubsection Overriding sourcemap paths
 
 
@@ -789,7 +790,7 @@ sourcemap paths using @code{M-x indium-list-sourcemap-sources}.
 @end cartouche
 
 @node Blackboxing scripts,,Using sourcemaps,The stepping debugger
-@anchor{debugger blackboxing-scripts}@anchor{2f}
+@anchor{debugger blackboxing-scripts}@anchor{30}
 @subsection Blackboxing scripts
 
 
@@ -799,13 +800,13 @@ expression of script paths to blackbox when debugging.
 Blackboxed scripts are skipped when stepping in the debugger.
 
 @node The inspector,Troublehooting,The stepping debugger,Table of contents
-@anchor{inspector inspector}@anchor{1e}@anchor{inspector the-inspector}@anchor{30}@anchor{inspector doc}@anchor{31}
+@anchor{inspector the-inspector}@anchor{31}@anchor{inspector doc}@anchor{32}@anchor{inspector inspector}@anchor{1f}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{1b,,The REPL}), the debugger (see @ref{29,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{23,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{1c,,The REPL}), the debugger (see @ref{2a,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{24,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -819,7 +820,7 @@ object links from the REPL buffer.
 @end menu
 
 @node Using the inspector,,,The inspector
-@anchor{inspector using-the-inspector}@anchor{32}
+@anchor{inspector using-the-inspector}@anchor{33}
 @subsection Using the inspector
 
 
@@ -879,7 +880,7 @@ Jump to the previous object in the inspector
 
 
 @node Troublehooting,,The inspector,Table of contents
-@anchor{troubleshooting troublehooting}@anchor{33}@anchor{troubleshooting doc}@anchor{34}
+@anchor{troubleshooting troublehooting}@anchor{34}@anchor{troubleshooting doc}@anchor{35}
 @section Troublehooting
 
 
@@ -887,13 +888,14 @@ If you run into issues with Indium, this document might help you.
 
 @menu
 * General advices before reporting issues:: 
+* The Indium server doesn’t start:: 
 * Breakpoints are not set (not using sourcemaps): Breakpoints are not set not using sourcemaps. 
 * Breakpoints and debugging do not work (using sourcemaps): Breakpoints and debugging do not work using sourcemaps. 
 
 @end menu
 
-@node General advices before reporting issues,Breakpoints are not set not using sourcemaps,,Troublehooting
-@anchor{troubleshooting general-advices-before-reporting-issues}@anchor{35}
+@node General advices before reporting issues,The Indium server doesn’t start,,Troublehooting
+@anchor{troubleshooting general-advices-before-reporting-issues}@anchor{36}
 @subsection General advices before reporting issues
 
 
@@ -909,8 +911,31 @@ indium-client-debug t)}, and attach to the issue report the contents of the
 Attaching the contents of the @code{*indium-process*} buffer can help as well in
 case an error happens in the server process.
 
-@node Breakpoints are not set not using sourcemaps,Breakpoints and debugging do not work using sourcemaps,General advices before reporting issues,Troublehooting
-@anchor{troubleshooting breakpoints-are-not-set-not-using-sourcemaps}@anchor{36}
+@node The Indium server doesn’t start,Breakpoints are not set not using sourcemaps,General advices before reporting issues,Troublehooting
+@anchor{troubleshooting the-indium-server-doesn-t-start}@anchor{37}
+@subsection The Indium server doesn’t start
+
+
+First, make sure that @code{indium} is installed as documented in the
+@ref{7,,The Indium server} section.
+
+If you encounter the error:
+
+@example
+error in process filter: Indium server process error: env: node: No such file or directory
+@end example
+
+Chances are that @code{node} is not in Emacs’ @code{exec-path}.  In this case, you can
+fix it by appending the correct directory to @code{exec-path}, or use the
+@cite{exec-path-from-shell <https://melpa.org/#/exec-path-from-shell>_} package:
+
+@example
+(require 'exec-path-from-shell)
+(exec-path-from-shell-initialize)
+@end example
+
+@node Breakpoints are not set not using sourcemaps,Breakpoints and debugging do not work using sourcemaps,The Indium server doesn’t start,Troublehooting
+@anchor{troubleshooting breakpoints-are-not-set-not-using-sourcemaps}@anchor{38}
 @subsection Breakpoints are not set (not using sourcemaps)
 
 
@@ -930,12 +955,12 @@ parsed by the backend, displaying their sources mapped to files on disk.  Check
 that the file where you’re trying to add a breakpoint is listed.
 
 @node Breakpoints and debugging do not work using sourcemaps,,Breakpoints are not set not using sourcemaps,Troublehooting
-@anchor{troubleshooting breakpoints-and-debugging-do-not-work-using-sourcemaps}@anchor{37}
+@anchor{troubleshooting breakpoints-and-debugging-do-not-work-using-sourcemaps}@anchor{39}
 @subsection Breakpoints and debugging do not work (using sourcemaps)
 
 
 Correctly mapping sourcemaps to file locations can be tedious (see
-@ref{13,,Using sourcemaps}).
+@ref{14,,Using sourcemaps}).
 
 Indium provides the command @code{indium-list-sourcemap-sources} to help
 configuring sourcemaps correctly.  This command displays a list of all
@@ -943,7 +968,7 @@ sourcemap sources in the runtime as file paths on disk.  Check that your files
 are listed there.
 
 @node Indices and tables,,Table of contents,Top
-@anchor{index indices-and-tables}@anchor{38}
+@anchor{index indices-and-tables}@anchor{3a}
 @chapter Indices and tables
 
 

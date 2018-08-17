@@ -11,6 +11,8 @@ Indium supports ``Emacs 25.3+``, works with ``Chrome`` (debugging protocol
 Indium is availabe on `MELPA <https://melpa.org>`_, `MELPA Stable
 <https://stable.melpa/org>`_.
 
+.. _server_installation:
+
 The Indium server
 -----------------
 
