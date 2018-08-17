@@ -31,7 +31,7 @@ If you encounter the error::
 
 Chances are that ``node`` is not in Emacs' ``exec-path``.  In this case, you can
 fix it by appending the correct directory to ``exec-path``, or use the
-`exec-path-from-shell <https://melpa.org/#/exec-path-from-shell>_` package::
+`exec-path-from-shell <https://melpa.org/#/exec-path-from-shell>`_ package::
 
   (require 'exec-path-from-shell)
   (exec-path-from-shell-initialize)

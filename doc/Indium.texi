@@ -160,7 +160,7 @@ Troublehooting
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
+@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
 @chapter Table of contents
 
 
@@ -201,7 +201,7 @@ Indium is availabe on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{h
 @end menu
 
 @node The Indium server,Using MELPA,,Installation
-@anchor{installation server-installation}@anchor{7}@anchor{installation the-indium-server}@anchor{8}
+@anchor{installation the-indium-server}@anchor{7}@anchor{installation server-installation}@anchor{8}
 @subsection The Indium server
 
 
@@ -273,7 +273,7 @@ Add the following to your Emacs configuration:
 @end menu
 
 @node Project configuration,General configuration,,Getting up and running
-@anchor{setup project-configuration}@anchor{e}@anchor{setup configuration-file}@anchor{f}
+@anchor{setup configuration-file}@anchor{e}@anchor{setup project-configuration}@anchor{f}
 @subsection Project configuration
 
 
@@ -458,7 +458,7 @@ simply open a new tab on the existing Chrome instance, and the
 @code{remote-debugging-port} will not be set.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl doc}@anchor{1b}@anchor{repl repl}@anchor{1c}@anchor{repl the-repl}@anchor{1d}
+@anchor{repl repl}@anchor{1b}@anchor{repl doc}@anchor{1c}@anchor{repl the-repl}@anchor{1d}
 @section The REPL
 
 
@@ -609,7 +609,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction}@anchor{24}@anchor{code-evaluation doc}@anchor{25}@anchor{code-evaluation interaction-in-js-buffers}@anchor{26}
+@anchor{code-evaluation interaction-in-js-buffers}@anchor{24}@anchor{code-evaluation interaction}@anchor{25}@anchor{code-evaluation doc}@anchor{26}
 @section Interaction in JS buffers
 
 
@@ -668,7 +668,7 @@ Here’s a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{1c,,The REPL}).
+switch back to the REPL buffer (see @ref{1b,,The REPL}).
 
 @node Adding and removing breakpoints,,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{29}
@@ -724,7 +724,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end cartouche
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger debugger}@anchor{2a}@anchor{debugger doc}@anchor{2b}@anchor{debugger the-stepping-debugger}@anchor{2c}
+@anchor{debugger doc}@anchor{2b}@anchor{debugger debugger}@anchor{2a}@anchor{debugger the-stepping-debugger}@anchor{2c}
 @section The stepping debugger
 
 
@@ -800,13 +800,13 @@ expression of script paths to blackbox when debugging.
 Blackboxed scripts are skipped when stepping in the debugger.
 
 @node The inspector,Troublehooting,The stepping debugger,Table of contents
-@anchor{inspector the-inspector}@anchor{31}@anchor{inspector doc}@anchor{32}@anchor{inspector inspector}@anchor{1f}
+@anchor{inspector inspector}@anchor{1f}@anchor{inspector the-inspector}@anchor{31}@anchor{inspector doc}@anchor{32}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{1c,,The REPL}), the debugger (see @ref{2a,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{24,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{1b,,The REPL}), the debugger (see @ref{2a,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{25,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -917,17 +917,17 @@ case an error happens in the server process.
 
 
 First, make sure that @code{indium} is installed as documented in the
-@ref{7,,The Indium server} section.
+@ref{8,,The Indium server} section.
 
 If you encounter the error:
 
 @example
-error in process filter: Indium server process error: env: node: No such file or directory
+"error in process filter: Indium server process error: env: node: No such file or directory"
 @end example
 
 Chances are that @code{node} is not in Emacs’ @code{exec-path}.  In this case, you can
 fix it by appending the correct directory to @code{exec-path}, or use the
-@cite{exec-path-from-shell <https://melpa.org/#/exec-path-from-shell>_} package:
+exec-path-from-shell@footnote{https://melpa.org/#/exec-path-from-shell} package:
 
 @example
 (require 'exec-path-from-shell)
