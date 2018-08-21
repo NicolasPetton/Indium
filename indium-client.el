@@ -356,8 +356,10 @@ read message is deleted from BUFFER."
       (when (indium-client--complete-message-p)
 	(save-excursion
 	  (goto-char (point-min))
-	  (setq data (ignore-errors (json-read)))
-	  (delete-region (point-min) (point)))))
+	  (setq data (json-read))
+	  (delete-region (point-min) (point))
+	  ;; Remove the linefeed char
+	  (delete-char 1))))
     (when data
       (indium-client--handle-message data)
       (indium-client--handle-data buffer))))
