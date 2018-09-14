@@ -268,7 +268,6 @@ const registerBreakpoint = async breakpoint => {
 		// The breakpoint doesn't resolve to any location.  The script might not
 		// have been parsed yet, to we'll try again later.
 		if (!urlLocation) {
-			console.log(`Could not resolve breakpoint location ${breakpoint.file}:${breakpoint.line}`);
 			return;
 		}
 
