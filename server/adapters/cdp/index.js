@@ -268,10 +268,13 @@ const registerBreakpoint = async breakpoint => {
 		// The breakpoint doesn't resolve to any location.  The script might not
 		// have been parsed yet, to we'll try again later.
 		if (!urlLocation) {
+			console.log(`Could not resolve breakpoint location ${breakpoint.file}:${breakpoint.line}`);
 			return;
 		}
 
 		let { url, line } = urlLocation;
+
+		console.log(`Setting breakpoint to ${url}:${line}`);
 
 		let result = await state.client.Debugger.setBreakpointByUrl({
 			url,
@@ -283,6 +286,8 @@ const registerBreakpoint = async breakpoint => {
 		});
 
 		let { locations: [ location ], breakpointId } = result;
+
+		console.dir(result);
 
 		breakpoint.remoteId = breakpointId;
 
