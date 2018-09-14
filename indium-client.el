@@ -210,7 +210,7 @@ When non-nil, evaluate CALLBACK with the result."
     (indium-client-send `((type . "runtime")
 			  (payload . ((action . "addBreakpoint")
 				      (id . ,id)
-				      (file . ,file)
+				      (file . ,(indium-client--convert-path file))
 				      (line . ,line)))))))
 
 (defun indium-client-remove-breakpoint (breakpoint)
@@ -245,7 +245,8 @@ When non-nil, evaluate CALLBACK with the result."
   (indium-client-send
    `((type . "runtime")
      (payload . ((action . "continueToLocation")
-		 (location . ((file . ,(indium-location-file location))
+		 (location . ((file . ,(indium-client--convert-path
+					(indium-location-file location)))
 			      (line . ,(indium-location-line location))
 			      (column . ,(indium-location-column location)))))))))
 
@@ -433,6 +434,13 @@ PAYLOAD is an alist with the details of the notification."
       ("resumed"
        (run-hooks 'indium-client-debugger-resumed-hook))
       (_ (message "Indium notification %s" payload)))))
+
+(defun indium-client--convert-path (path)
+  "Convert PATH to a system path that the server component understands."
+  (when (eq system-type 'windows-nt)
+    (setq path (replace-regexp-in-string "/" "\\" path nil t))
+    (setq path (replace-regexp-in-string "^\\([a-z]\\):" #'capitalize path)))
+  path)
 
 (defvar indium-client--id 0)
 (defun indium-client--next-id ()
