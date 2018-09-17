@@ -85,7 +85,7 @@ NodeJS configuration options
    added automatically.
 	   
 :inspect-brk:
-   Whether Indium should break at the first statement (true by
+   Whether Indium should break at the first statement (false by
    default).
 
 :host:
