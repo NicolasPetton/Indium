@@ -74,10 +74,18 @@ const resolveUrl = (url, conf) => {
 	// always exist either, so also check for a protocol when parsed
 	// as a URL.
 	if (isAbsolute(url) || !parse(url).protocol) {
+		console.log(`Resolved to ${url}`);
 		return url;
 	}
+
 	let root = resolveRoot(conf);
-	let { pathname } = new URL(url);
+	let { protocol, pathname } = new URL(url);
+
+	// Always treat URLs using the file: protocol to have absolute pathnames.
+	if (protocol === "file:") {
+		return pathname;
+	}
+
 	return resolve(`${root}/${pathname}`);
 };
 

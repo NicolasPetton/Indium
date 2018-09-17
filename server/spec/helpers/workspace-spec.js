@@ -199,6 +199,17 @@ describe("URL resolution", () => {
 		expect(resolveUrl(url, conf)).toEqual(url);
 	});
 
+	it("resolves file protocol uris", () => {
+		let conf = {
+			projectFile: "/home/user/projects/foo/.indium.json"
+		};
+
+		let url = "file:///home/user/projects/foo/bar.js";
+
+		expect(resolveUrl(url, conf)).toEqual("/home/user/projects/foo/bar.js");
+	});
+
+
 	// Regression test for GH issue #161
 	it("does not transform the path when the file exists on Windows", () => {
 		let conf = {
