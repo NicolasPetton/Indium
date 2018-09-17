@@ -74,6 +74,9 @@ const resolveUrl = (url, conf) => {
 	// always exist either, so also check for a protocol when parsed
 	// as a URL.
 	if (isAbsolute(url) || !parse(url).protocol) {
+		if(process.platform === "win32") {
+			url = url.replace(/\//g, "\\");
+		}
 		return url;
 	}
 	let root = resolveRoot(conf);
