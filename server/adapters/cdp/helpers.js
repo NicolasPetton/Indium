@@ -51,12 +51,36 @@ const convertPreview = preview => {
 		return convertArrayPreview(preview);
 	}
 
+	if (preview.subtype === "map") {
+		return convertMapPreview(preview);
+	}
+
+	if (preview.subtype === "set") {
+		return convertSetPreview(preview);
+	}
+
 	return convertObjectPreview(preview);
 };
 
 const convertArrayPreview = preview => {
 	let properties = preview.properties
 		.map(convertPreviewProperty)
+		.join(", ");
+
+	return `[ ${properties}${preview.overflow ? ", …" : ""} ]`;
+};
+
+const convertSetPreview = preview => {
+	let properties = preview.entries
+		.map(entry => convertPreviewProperty(entry.value))
+		.join(", ");
+
+	return `[ ${properties}${preview.overflow ? ", …" : ""} ]`;
+};
+
+const convertMapPreview = preview => {
+	let properties = preview.entries
+		.map(entry => `${convertPreviewProperty(entry.key)} ⇒ ${convertPreviewProperty(entry.value)}`)
 		.join(", ");
 
 	return `[ ${properties}${preview.overflow ? ", …" : ""} ]`;
@@ -72,14 +96,10 @@ const convertObjectPreview = preview => {
 
 const convertPreviewProperty = property => {
 	if (property.type === "string") {
-		return `"${property.value}"`;
+		return `"${property.value || property.description}"`;
 	}
 
-	if (property.value !== "") {
-		return property.value;
-	}
-
-	return property.type;
+	return property.value || property.description || property.type;
 };
 
 const convertCompletionResult = result => {

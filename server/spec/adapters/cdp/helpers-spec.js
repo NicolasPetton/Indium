@@ -120,6 +120,51 @@ describe("Converting remote objects", () => {
 
 		expect(preview).toEqual("[ 3, \"hello\", … ]");
 	});
+
+	it("converts set previews", () => {
+		let result = {
+			objectId: "1",
+			description: "Set",
+			preview: {
+				type: "object",
+				subtype: "set",
+				entries: [
+					{value: {type: "number", description: "1", overflow: false, properties: []}},
+					{value: {type: "string", description: "hello", overflow: false, properties: []}},
+					{value: {type: "boolean", description: "true", overflow: false, properties: []}}
+				]
+			}
+		};
+
+		let preview = convertRemoteObject(result).preview;
+
+		expect(preview).toEqual("[ 1, \"hello\", true ]");
+	});
+
+	it("converts map previews", () => {
+		let result = {
+			objectId: "1",
+			description: "Map",
+			preview: {
+				type: "object",
+				subtype: "map",
+				entries: [
+					{
+						key: {type: "number", description: "1", overflow: false, properties: []},
+						value: {type: "string", description: "one", overflow: false, properties: []}
+					},
+					{
+						key: {type: "string", description: "hello", overflow: false, properties: []},
+						value: {type: "boolean", description: "false", overflow: false, properties: []}
+					}
+				]
+			}
+		};
+
+		let preview = convertRemoteObject(result).preview;
+
+		expect(preview).toEqual("[ 1 ⇒ \"one\", \"hello\" ⇒ false ]");
+	});
 });
 
 describe("Resolving file locations", () => {
