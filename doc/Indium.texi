@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.2.0, Aug 17, 2018
+Indium 1.2.0, Sep 17, 2018
 
 Nicolas Petton
 
@@ -367,7 +367,7 @@ added automatically.
 
 
 @*inspect-brk: 
-Whether Indium should break at the first statement (true by
+Whether Indium should break at the first statement (false by
 default).
 
 
