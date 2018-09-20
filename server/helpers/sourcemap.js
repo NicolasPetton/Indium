@@ -10,7 +10,7 @@ const defaultSourceMapPathOverrides = {
 	"webpack:///./~/": "${root}/node_modules/",
 	"webpack:///src/": "${root}/",
 	"webpack:///./":   "${root}/",
-	"webpack:///":     "/"
+	"webpack:///":     "${root}/"
 };
 
 const resolveSourceMap = async ({ url = "", sourceMapURL } = {}, conf) => {

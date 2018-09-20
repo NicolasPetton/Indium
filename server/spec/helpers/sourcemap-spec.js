@@ -52,7 +52,7 @@ describe("Applying source map path overrides", () => {
 		expect(applySourceMapPathOverrides("webpack:///./~/foo", conf))
 			.toEqual("/home/user/p/src/node_modules/foo");
 		expect(applySourceMapPathOverrides("webpack:///foo", conf))
-			.toEqual("/foo");
+			.toEqual("/home/user/p/src/foo");
 	});
 });
 
