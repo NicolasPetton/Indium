@@ -27,6 +27,7 @@
 (require 'indium-render)
 (require 'indium-faces)
 (require 'indium-client)
+(require 'indium-debugger)
 
 (require 'company)
 (require 'easymenu)
@@ -166,8 +167,9 @@ connected to the process.
   "Inspect the result of the evaluation of the input at point."
   (interactive)
   (indium-client-evaluate (indium-repl--input-content)
-			   (lambda (result)
-			     (indium-inspector-inspect result))))
+                          indium-debugger-current-frame
+                          (lambda (result)
+                            (indium-inspector-inspect result))))
 
 (defun indium-repl--input-content ()
   "Return the content of the current input."
@@ -180,7 +182,7 @@ connected to the process.
 (defun indium-repl-evaluate (string)
   "Evaluate STRING in the browser tab and emit the output."
   (push string indium-repl-history)
-  (indium-client-evaluate string #'indium-repl-emit-value)
+  (indium-client-evaluate string indium-debugger-current-frame #'indium-repl-emit-value)
   ;; move the output markers so that output is put after the current prompt
   (save-excursion
     (goto-char (point-max))

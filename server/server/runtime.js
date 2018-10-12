@@ -37,13 +37,13 @@ const runtime = (data = {}, { success, error, stop }) => {
 	}
 };
 
-const evaluate = async ({ expression } = {}, { success, error }) => {
+const evaluate = async ({ expression, frameId } = {}, { success, error }) => {
 	if (!expression) {
 		error("No expression to evaluate");
 	}
 
 	try {
-		let result = await adapter.evaluate(expression);
+		let result = await adapter.evaluate({expression, frameId});
 		success(result);
 	} catch(e) {
 		error(e.message);

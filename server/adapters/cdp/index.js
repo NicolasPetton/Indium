@@ -71,7 +71,7 @@ const disconnect = async () => {
 	}
 };
 
-const evaluate = async expression => {
+const evaluate = async ({expression, frameId}) => {
 	ensureConnected();
 	let method = state.currentCallFrameId
 		? state.client.Debugger.evaluateOnCallFrame
@@ -79,7 +79,7 @@ const evaluate = async expression => {
 	let response = await method({
 		generatePreview: true,
 		expression,
-		callFrameId: state.currentCallFrameId
+		callFrameId: frameId || state.currentCallFrameId
 	});
 
 	return convertRemoteObject(response.result);

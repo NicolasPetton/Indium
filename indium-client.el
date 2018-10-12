@@ -159,14 +159,15 @@ Once the client is connected, run the hook `indium-client-connected-hook'."
                       (lambda (&rest _)
 			(run-hooks 'indium-client-connected-hook))))
 
-(defun indium-client-evaluate (expression &optional callback)
-  "Evaluate EXPRESSION.
+(defun indium-client-evaluate (expression &optional frame callback)
+  "Evaluate EXPRESSION in the context of FRAME.
 
 When non-nil, evaluate CALLBACK with the result."
   (indium-client-send
    `((type . "runtime")
      (payload . ((action . "evaluate")
-		 (expression . ,expression))))
+		 (expression . ,expression)
+                 (frameId . ,(when frame (indium-frame-id frame))))))
    (lambda (obj)
      (when callback
        (funcall callback (indium-remote-object-from-alist obj))))))

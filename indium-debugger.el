@@ -334,9 +334,9 @@ If there is no debugging session, signal an error."
     (user-error "No debugger to switch to"))
   (indium-debugger-select-frame indium-debugger-current-frame))
 
-(defun indium-debugger-evaluate (expression)
-  "Prompt for EXPRESSION to be evaluated.
-Evaluation happens in the context of the current call frame.
+(defun indium-debugger-evaluate (expression &optional frame)
+  "Prompt for EXPRESSION to be evaluated in the context of FRAME.
+When called interactively, FRAME is the current frame.
 
 When called with a prefix argument, or when
 `indium-debugger-inspect-when-eval' is non-nil, inspect the
@@ -346,15 +346,17 @@ result of the evaluation if possible."
                                    (buffer-substring-no-properties (mark) (point))
                                  (thing-at-point 'symbol))))
                   (read-string (format "Evaluate on frame: (%s): " default)
-                               nil nil default))))
+                               nil nil default))
+                indium-debugger-current-frame))
   (indium-client-evaluate expression
-			   (lambda (value)
-			     (let ((inspect (and (or indium-debugger-inspect-when-eval
-						     current-prefix-arg)
-						 (map-elt value 'objectid))))
-			       (if inspect
-				   (indium-inspector-inspect value)
-				 (message "%s" (indium-render-remote-object-to-string value)))))))
+                          frame
+                          (lambda (value)
+                            (let ((inspect (and (or indium-debugger-inspect-when-eval
+                                                    current-prefix-arg)
+                                                (map-elt value 'objectid))))
+                              (if inspect
+                                  (indium-inspector-inspect value)
+                                (message "%s" (indium-render-remote-object-to-string value)))))))
 
 ;; Debugging context
 
