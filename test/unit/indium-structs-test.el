@@ -91,8 +91,9 @@
 
 (describe "Frames"
   (it "Should be able to make frames from alists"
-    (let ((f (indium-frame-from-alist '((scriptId . "22")
-					(functionName . "foo")
+    (let ((f (indium-frame-from-alist '((id . "some id")
+					(scriptId . "22")
+                                        (functionName . "foo")
 					(location . ((file . "index.js")
 						     (line . 22)
 						     (column  . 0)))
@@ -102,6 +103,7 @@
 						       ((type . "local")
 							(name . "bar")
 							(id . "26"))])))))
+      (expect (indium-frame-id f) :to-equal "some id")
       (expect (indium-frame-script-id f) :to-equal "22")
       (expect (indium-frame-function-name f) :to-equal "foo")
       (expect (length (indium-frame-scope-chain f)) :to-equal 2)

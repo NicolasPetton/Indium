@@ -127,7 +127,7 @@ const convertCallFrames = async (frames, conf, scripts) => {
 };
 
 const convertCallFrame = async (
-	{ functionName, location, scopeChain },
+	{ functionName, location, scopeChain, callFrameId },
 	conf,
 	scripts
 ) => {
@@ -139,6 +139,7 @@ const convertCallFrame = async (
 
 	return {
 		functionName,
+		id: callFrameId,
 		scriptId: location.scriptId,
 		location: fileLocation,
 		scopeChain: scopeChain
