@@ -314,8 +314,16 @@ A string of the contents of the requested script.
 
 #### paused notifications
 
-*Request payload:*
-*Successful response payload:*
+This notification is triggered when the debugger is paused at a
+specific call frame.
+
+*Notification payload:*
+
+| Key         | Type or value   | Description                                              |
+|:------------|:----------------|:---------------------------------------------------------|
+| frames      | `<callFrame>[]` | Array of call frames (`id`, `functionName`, `location`…) |
+| reason      | `<string>`      | Why the debugger stopped                                 |
+| description | `<string>`      | Additional information (e.g., stack trace)               |
 
 #### resumed notifications
 
