@@ -33,7 +33,7 @@
 
 (require 'indium-structs)
 (require 'indium-inspector)
-(require 'indium-repl)
+
 (require 'indium-render)
 (require 'indium-debugger-locals)
 (require 'indium-debugger-litable)
