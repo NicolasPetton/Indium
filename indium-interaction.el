@@ -115,9 +115,11 @@ active connection."
 When CALLBACK is non-nil, evaluate CALLBACK with the result.
 
 When called interactively, prompt the user for the string to be
-evaluated."
+evaluated.
+
+Evaluation happens in the context of the current debugger frame if any."
   (interactive "sEvaluate JavaScript: ")
-  (indium-client-evaluate string callback))
+  (indium-client-evaluate string indium-debugger-current-frame callback))
 
 (defun indium-eval-buffer ()
   "Evaluate the accessible portion of current buffer."

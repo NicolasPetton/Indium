@@ -136,16 +136,19 @@ inspection and debugging is done through runtime requests.
 
 #### evaluate
 
-Evaluation is context-sensitive.  During a debugging session when the runtime is
-paused, evaluation is done in the context of the current stack frame, with full
-access to all locals.
+Evaluate an expression and send the result back.  If `frameId` is in
+the payload, evaluation occurs within the context of the associated
+call frame. If `frameId` is not provided but there is an active
+debugging session, the expression is evaluated within the context of
+the top frame.
 
 *Request payload:*
 
-| Key        | Type or value | Description            |
-|:-----------|:--------------|:-----------------------|
-| action     | `"evaluate"`  | Action type            |
-| expression | `<string>`    | Expression to evaluate |
+| Key        | Type or value           | Description            |
+|:-----------|:------------------------|:-----------------------|
+| action     | `"evaluate"`            | Action type            |
+| expression | `<string>`              | Expression to evaluate |
+| frameId    | `<string>` *(optional)* | Call frame id          |
 
 *Successful response payload:*
 
