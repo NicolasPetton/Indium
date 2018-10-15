@@ -152,13 +152,13 @@ const convertCallFrame = async (
 	};
 };
 
-const resolveFileLocation = async (location, conf, scripts = []) => {
+const resolveFileLocation = async (location, conf, scripts = {}) => {
 	return await resolveFileLocationWithSourceMaps(location, conf, scripts)
 		|| resolveFileLocationWithScriptUrls(location, conf, scripts);
 };
 
 const resolveFileLocationWithSourceMaps = async ({ file, line }, conf, scripts) => {
-	for (let script of scripts) {
+	for (let script of Object.values(scripts)) {
 		let sourcemap = await getScriptSourceMap(script, conf);
 
 		if (sourcemap) {
@@ -180,7 +180,7 @@ const resolveFileLocationWithSourceMaps = async ({ file, line }, conf, scripts) 
 };
 
 const resolveFileLocationWithScriptUrls = ({ file, line }, conf, scripts) => {
-	for (let script of scripts) {
+	for (let script of Object.values(scripts)) {
 		if (script.url) {
 			let scriptFile = resolveUrl(script.url, conf);
 			if (file === scriptFile) {
@@ -196,8 +196,8 @@ const resolveFileLocationWithScriptUrls = ({ file, line }, conf, scripts) => {
 	return null;
 };
 
-const resolveScriptLocation = async (location, conf, scripts = []) => {
-	let script = scripts.find(s => s && s.id === location.scriptId);
+const resolveScriptLocation = async (location, conf, scripts = {}) => {
+	let script = Object.values(scripts).find(s => s.id === location.scriptId);
 	if (!script) {
 		return { ...location, url: "" };
 	}
@@ -212,13 +212,13 @@ const resolveScriptLocation = async (location, conf, scripts = []) => {
 	);
 };
 
-const resolveUrlLocation = async (location, conf, scripts = []) => {
+const resolveUrlLocation = async (location, conf, scripts = {}) => {
 	return await resolveUrlLocationWithSourceMaps(location, conf, scripts)
 		|| await resolveUrlLocationWithConfiguration(location, conf, scripts);
 };
 
 const resolveUrlLocationWithSourceMaps = async (location, conf, scripts) => {
-	let script = scripts.find(s => s.url === location.url);
+	let script = Object.values(scripts).find(s => s.url === location.url);
 
 	if (script && await getScriptSourceMap(script, conf)) {
 		let { source, line, column } = script.sourceMap.originalPositionFor(location);

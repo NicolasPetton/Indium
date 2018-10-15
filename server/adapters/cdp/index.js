@@ -17,7 +17,7 @@ const {
 let state = {
 	client: null,
 	configuration: null,
-	scripts: [],
+	scripts: {},
 	breakpoints: {},
 	currentCallFrameId: null,
 	isChrome: false
@@ -176,7 +176,7 @@ const continueToLocation = async fileLocation => {
 	);
 
 	if (location) {
-		let script = state.scripts.find(s => s.url === location.url);
+		let script = Object.values(state.scripts).find(s => s.url === location.url);
 		await state.client.Debugger.continueToLocation({
 			location: {
 				scriptId: script.id,
@@ -196,13 +196,13 @@ const scriptAdded = ({ scriptId, url, sourceMapURL }) => {
 		let script = { id: scriptId, url, sourceMapURL };
 
 		// Remove any previous version of the same script first
-		for (let id in state.scripts) {
+		for (let id of Object.keys(state.scripts)) {
 			if (state.scripts[id].url === url) {
 				delete state.scripts[id];
 			}
 		}
 
-		state.scripts.push(script);
+		state.scripts[scriptId] = script;
 
 		// We've got new script, so let's try to resolve unresolved breakpoints
 		if (script.url || script.sourceMapURL) {
@@ -228,7 +228,7 @@ const debuggerPaused = async ({ callFrames, reason, data = {} }) => {
 			frames: await convertCallFrames(
 				callFrames,
 				state.configuration,
-				Object.values(state.scripts)
+				state.scripts
 			),
 			reason: reason === "exception"
 				? "Exception occured"
@@ -262,7 +262,7 @@ const registerBreakpoint = async breakpoint => {
 		let urlLocation = await resolveFileLocation(
 			breakpoint,
 			state.configuration,
-			Object.values(state.scripts)
+			state.scripts
 		);
 
 		// The breakpoint doesn't resolve to any location.  The script might not
@@ -298,7 +298,7 @@ const registerBreakpoint = async breakpoint => {
 					column: location.columnNumber
 				},
 				state.configuration,
-				Object.values(state.scripts)
+				state.scripts
 			);
 			breakpointResolved(breakpoint, line);
 		}
@@ -370,8 +370,8 @@ const hasBreakpointAt = ({ id, file, line }) => {
 
 const getSourcemapSources = async () => {
 	let sources = [];
-	for (let script of state.scripts) {
-		let sourcemap = script && await getScriptSourceMap(
+	for (let script of Object.values(state.scripts)) {
+		let sourcemap = await getScriptSourceMap(
 			script,
 			state.configuration
 		);
@@ -386,7 +386,7 @@ const getSourcemapSources = async () => {
 
 const getScriptSources = async () => {
 	let sources = [];
-	return state.scripts
+	return Object.values(state.scripts)
 		.filter(s => s.url)
 		.map(s => resolveUrl(s.url, state.configuration));
 };
@@ -472,5 +472,6 @@ module.exports = {
 	continueToLocation,
 	getSource,
 	getSourcemapSources,
-	getScriptSources
+	getScriptSources,
+	_test: {state, scriptAdded}
 };
