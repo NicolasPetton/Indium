@@ -78,6 +78,7 @@
       (save-excursion
 	(goto-char (point-min))
 	(forward-char pos)
+	(back-to-indentation)
 	(indium-location-at-point)))))
 
 (defun indium-breakpoint-buffer (breakpoint)

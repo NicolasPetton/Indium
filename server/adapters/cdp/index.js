@@ -271,9 +271,9 @@ const registerBreakpoint = async breakpoint => {
 			return;
 		}
 
-		let { url, line } = urlLocation;
+		let { url, line, column } = urlLocation;
 
-		console.log(`Setting breakpoint to ${url}:${line}`);
+		console.log(`Setting breakpoint to ${url}:${line}:${column}`);
 
 		let result = await state.client.Debugger.setBreakpointByUrl({
 			url,
@@ -281,7 +281,7 @@ const registerBreakpoint = async breakpoint => {
 			// lines are 1-based in NPM's source-map package and Emacs, but 0-based
 			// in the CDP.
 			lineNumber: --line,
-			columnNumber: 0
+			columnNumber: column
 		});
 
 		let { locations: [ location ], breakpointId } = result;

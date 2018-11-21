@@ -157,13 +157,13 @@ const resolveFileLocation = async (location, conf, scripts = {}) => {
 		|| resolveFileLocationWithScriptUrls(location, conf, scripts);
 };
 
-const resolveFileLocationWithSourceMaps = async ({ file, line }, conf, scripts) => {
+const resolveFileLocationWithSourceMaps = async ({ file, line, column }, conf, scripts) => {
 	for (let script of Object.values(scripts)) {
 		let sourcemap = await getScriptSourceMap(script, conf);
 
 		if (sourcemap) {
 			let position = sourcemap.generatedPositionFor({
-				source: file, line, column: 0
+				source: file, line, column
 			});
 
 			if (position.line) {

@@ -207,12 +207,14 @@ When non-nil, evaluate CALLBACK with the result."
   (let* ((id (indium-breakpoint-id breakpoint))
 	 (location (indium-breakpoint-location breakpoint))
 	 (file (indium-location-file location))
-	 (line (indium-location-line location)))
+	 (line (indium-location-line location))
+	 (column (indium-location-column location)))
     (indium-client-send `((type . "runtime")
 			  (payload . ((action . "addBreakpoint")
 				      (id . ,id)
 				      (file . ,(indium-client--convert-path file))
-				      (line . ,line)))))))
+				      (line . ,line)
+				      (column . ,column)))))))
 
 (defun indium-client-remove-breakpoint (breakpoint)
   "Request the removal of BREAKPOINT."
