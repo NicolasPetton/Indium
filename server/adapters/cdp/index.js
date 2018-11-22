@@ -101,12 +101,17 @@ const getProperties = async (id) => {
 	return response.result;
 };
 
-const getCompletion = async (expression) => {
+const getCompletion = async ({expression, frameId}) => {
 	ensureConnected();
 
-	let response = await state.client.Runtime.evaluate({
+	let method = state.currentCallFrameId
+		? state.client.Debugger.evaluateOnCallFrame
+		: state.client.Runtime.evaluate;
+
+	let response = await method({
 		expression,
-		objectGroup: "completion"
+		objectGroup: "completion",
+		callFrameId: frameId || state.currentCallFrameId
 	});
 
 	let { objectId, type } = response.result;

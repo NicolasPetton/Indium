@@ -50,9 +50,9 @@ const evaluate = async ({ expression, frameId } = {}, { success, error }) => {
 	}
 };
 
-const getCompletion = async ({ expression } = {}, { success, error }) => {
+const getCompletion = async ({ expression, frameId } = {}, { success, error }) => {
 	try {
-		success(await adapter.getCompletion(expression));
+		success(await adapter.getCompletion({expression, frameId}));
 	} catch(e) {
 		error(e.message);
 	}
