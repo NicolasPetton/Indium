@@ -336,6 +336,7 @@ Evaluate CALLBACK with the completion candidates."
 			"this")))
     (indium-client-get-completion
      expression
+     indium-debugger-current-frame
      (lambda (candidates)
        (funcall callback
 		(seq-filter (lambda (candidate)

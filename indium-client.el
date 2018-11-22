@@ -172,12 +172,13 @@ When non-nil, evaluate CALLBACK with the result."
      (when callback
        (funcall callback (indium-remote-object-from-alist obj))))))
 
-(defun indium-client-get-completion (expression &optional callback)
-  "Request the list of completion for EXPRESSION.
+(defun indium-client-get-completion (expression &optional frame callback)
+  "Request the list of completion for EXPRESSION in the context of FRAME.
 When non-nil, evaluate CALLBACK with the result."
   (indium-client-send `((type . "runtime")
 			(payload . ((action . "getCompletion")
-                                    (expression . ,expression))))
+                                    (expression . ,expression)
+				    (frameId . ,(when frame (indium-frame-id frame))))))
                       callback))
 
 (defun indium-client-get-properties (id &optional callback)
