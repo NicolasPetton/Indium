@@ -124,12 +124,14 @@ Evaluation happens in the context of the current debugger frame if any."
 (defun indium-eval-buffer ()
   "Evaluate the accessible portion of current buffer."
   (interactive)
-  (indium-eval (buffer-string)))
+  (indium-eval (buffer-string)
+	       #'indium-interaction--handle-eval-result))
 
 (defun indium-eval-region (start end)
   "Evaluate the region between START and END."
   (interactive "r")
-  (indium-eval (buffer-substring-no-properties start end)))
+  (indium-eval (buffer-substring-no-properties start end)
+	       #'indium-interaction--handle-eval-result))
 
 (defun indium-eval-last-node (arg)
   "Evaluate the node before point; print in the echo area.
@@ -155,9 +157,9 @@ If there is no debugging session, signal an error."
   (interactive)
   (indium-debugger-switch-to-debugger-buffer))
 
-(defvar indium-interaction-eval-node-hook nil
+(defvar indium-interaction-eval-hook nil
   "Hooks to run after evaluating node before the point.")
-(add-hook 'indium-interaction-eval-node-hook #'indium-message)
+(add-hook 'indium-interaction-eval-hook #'indium-message)
 
 (defun indium-interaction--eval-node (node &optional print)
   "Evaluate the AST node NODE.
@@ -166,11 +168,19 @@ If PRINT is non-nil, print the output into the current buffer."
    (lambda ()
      (indium-eval (js2-node-string node)
                   (lambda (value)
-                    (let ((description (indium-render-remote-object-to-string value)))
-                      (if print
-                          (save-excursion
-                            (insert description))
-                        (run-hook-with-args 'indium-interaction-eval-node-hook description))))))))
+		    (indium-interaction--handle-eval-result
+		     value
+		     print))))))
+
+(defun indium-interaction--handle-eval-result (value &optional print)
+  "Handle VALUE is the result of an evaluation.
+The default behavior is to print it in the echo area.
+If PRINT in non-nil, insert it in the current buffer instead."
+  (let ((description (indium-render-remote-object-to-string value)))
+    (if print
+        (save-excursion
+          (insert description))
+      (run-hook-with-args 'indium-interaction-eval-hook description))))
 
 (defun indium-reload ()
   "Reload the page."
