@@ -65,10 +65,13 @@ from the debugger."
 (defvar indium-debugger-frames nil
   "Call frames of the current debugger session.")
 
-(defvar indium-debugger-buffer nil "Buffer used for debugging JavaScript sources.")
+;; When stepping, the execution is first resumed.  To avoid visual glitches with
+;; the header being removed and added again, only hide the header after a timeout.
+(defvar indium-debugger--header-timer nil
+  "Timer used to hide the debugger header.")
 
-(defvar indium-debugger-message nil "Message to be displayed in the echo area.")
-(make-local-variable 'indium-debugger-message)
+(defvar indium-debugger--buffer-with-header nil
+  "Buffer in which the header is displayed.")
 
 (defconst indium-debugger-fringe-arrow-string
   #("." 0 1 (display (left-fringe right-triangle)))
@@ -111,10 +114,7 @@ from the debugger."
 \\{indium-debugger-mode-map}"
   :group 'indium
   :lighter " JS-debug"
-  :keymap indium-debugger-mode-map
-  (if indium-debugger-mode
-      (add-hook 'pre-command-hook #'indium-debugger-refresh-echo-area nil t)
-    (remove-hook 'pre-command-hook #'indium-debugger-refresh-echo-area t)))
+  :keymap indium-debugger-mode-map)
 
 (defun indium-debugger-paused (frames reason &optional description)
   "Handle execution pause.
@@ -127,13 +127,14 @@ the exception."
   (indium-debugger-select-frame (car frames))
   (when description
     (indium-debugger-litable-add-exception-overlay description))
-  (indium-debugger-show-help-message reason))
+  (indium-debugger--show-debug-header reason))
 
 (defun indium-debugger-resumed (&rest _args)
   "Handle resumed execution.
 Unset the debugging context and turn off indium-debugger-mode."
   (message "Execution resumed")
   (indium-debugger-unset-frames)
+  (indium-debugger--hide-debug-header)
   (seq-doseq (buf (seq-filter (lambda (buf)
                                 (with-current-buffer buf
                                   indium-debugger-mode))
@@ -236,47 +237,64 @@ execution."
   (indium-debugger-locals-maybe-refresh)
   (indium-debugger-frames-maybe-refresh))
 
-(defun indium-debugger-show-help-message (&optional reason)
-  "Display a help message with REASON in the echo-area."
-  (setq indium-debugger-message
-        (concat (propertize (or reason "")
-                            'face 'font-lock-warning-face)
-                " "
-                (propertize "SPC"
-                            'face 'font-lock-keyword-face)
-                " over "
-                (propertize "i"
-                            'face 'font-lock-keyword-face)
-                "nto "
-                (propertize "o"
-                            'face 'font-lock-keyword-face)
-                "ut "
-                (propertize "c"
-                            'face 'font-lock-keyword-face)
-                "ontinue "
-                (propertize "h"
-                            'face 'font-lock-keyword-face)
-                "ere "
-                (propertize "l"
-                            'face 'font-lock-keyword-face)
-                "ocals "
-                (propertize "e"
-                            'face 'font-lock-keyword-face)
-                "val "
-                (propertize "s"
-                            'face 'font-lock-keyword-face)
-                "tack "
-                (propertize "n"
-                            'face 'font-lock-keyword-face)
-                "ext "
-                (propertize "p"
-                            'face 'font-lock-keyword-face)
-                "rev"))
-  (indium-debugger-refresh-echo-area))
+(defun indium-debugger--show-debug-header (reason)
+  "Display a help message with REASON in the header."
+  (when indium-debugger--header-timer
+    (cancel-timer indium-debugger--header-timer)
+    (setq indium-debugger--header-timer nil))
+  (let ((header (concat (propertize (or reason "")
+				    'face 'font-lock-warning-face)
+			" "
+			(propertize "SPC"
+				    'face 'font-lock-keyword-face)
+			" over "
+			(propertize "i"
+				    'face 'font-lock-keyword-face)
+			"nto "
+			(propertize "o"
+				    'face 'font-lock-keyword-face)
+			"ut "
+			(propertize "c"
+				    'face 'font-lock-keyword-face)
+			"ontinue "
+			(propertize "h"
+				    'face 'font-lock-keyword-face)
+			"ere "
+			(propertize "l"
+				    'face 'font-lock-keyword-face)
+			"ocals "
+			(propertize "e"
+				    'face 'font-lock-keyword-face)
+			"val "
+			(propertize "s"
+				    'face 'font-lock-keyword-face)
+			"tack "
+			(propertize "n"
+				    'face 'font-lock-keyword-face)
+			"ext "
+			(propertize "p"
+				    'face 'font-lock-keyword-face)
+			"rev")))
+    (when (and indium-debugger--buffer-with-header
+	       (not (eq indium-debugger--buffer-with-header (current-buffer))))
+      (with-current-buffer indium-debugger--buffer-with-header
+	(setq header-line-format nil)))
+    (setq indium-debugger--buffer-with-header (current-buffer))
+    (setq header-line-format header)
+    (force-mode-line-update)))
 
-(defun indium-debugger-refresh-echo-area ()
-  "Refresh the echo area as motion commands clear the echo area."
-  (message indium-debugger-message))
+(defun indium-debugger--hide-debug-header ()
+  "Hide the debugger header."
+  (setq indium-debugger--header-timer
+	(run-at-time
+	 "0.3"
+	 nil
+	 (lambda ()
+	   (when indium-debugger--buffer-with-header
+	     (with-current-buffer indium-debugger--buffer-with-header
+	       (setq header-line-format nil)
+	       (setq indium-debugger--buffer-with-header nil)
+	       (force-mode-line-update)))))))
 
 (defun indium-debugger-setup-overlay-arrow ()
   "Setup the overlay pointing to the current debugging line."
