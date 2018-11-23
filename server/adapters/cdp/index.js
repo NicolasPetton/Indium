@@ -90,6 +90,7 @@ const getProperties = async (id) => {
 
 	let response = await state.client.Runtime.getProperties({
 		objectId: id,
+		ownProperties: true,
 		generatePreview: true
 	});
 
@@ -97,8 +98,6 @@ const getProperties = async (id) => {
 		name,
 		value: convertRemoteObject(value || get)
 	}));
-
-	return response.result;
 };
 
 const getCompletion = async ({expression, frameId}) => {

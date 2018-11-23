@@ -70,14 +70,15 @@
 
 (defun indium-inspector--split-properties (properties)
   "Split PROPERTIES into list where the first element is native properties and the second is the rest."
-  (seq-reduce (lambda (result property)
-                (push property
-                      (if (indium-property-native-p property)
-                          (car result)
-                        (cadr result)))
-                result)
-              properties
-              (list nil nil)))
+  (let ((split (seq-reduce (lambda (result property)
+                       (push property
+			     (if (indium-property-native-p property)
+				 (car result)
+                               (cadr result)))
+                       result)
+		     properties
+		     (list nil nil))))
+    (seq-map (lambda (list) (nreverse list)) split)))
 
 (defun indium-inspector-pop ()
   "Go back in the history to the last object inspected."

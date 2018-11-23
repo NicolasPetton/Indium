@@ -100,12 +100,8 @@ ACTION should be a function that takes no argument."
       (insert (format " %s" (indium-remote-object-preview obj))))))
 
 (defun indium-render-properties (properties)
-  "Insert all items in PROPERTIES sorted by name."
-  (seq-map #'indium-render-property
-           (seq-sort (lambda (p1 p2)
-                       (string< (indium-property-name p1)
-                                (indium-property-name p2)))
-                     properties)))
+  "Insert all items in PROPERTIES."
+  (seq-map #'indium-render-property properties))
 
 (defun indium-render-property (property &optional separator)
   "Insert the PROPERTY rendered as a remote object.
