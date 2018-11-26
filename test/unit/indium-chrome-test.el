@@ -27,6 +27,7 @@
 (require 'buttercup)
 (require 'indium-chrome)
 (require 'indium-client)
+(require 'seq)
 
 (describe "Chrome executable"
   (it "Should try to find the executable"
@@ -51,7 +52,8 @@
 		  (name . "Web project")
 		  (type . "chrome")
 		  (projectFile . "/foo/bar/.indium.json")
-		  (port . "9223"))))
+		  (port . "9223")))
+	  (indium-chrome-use-temporary-profile nil))
       (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
       (spy-on 'make-process)
       (spy-on 'indium-client-connect)
@@ -59,7 +61,7 @@
       (expect #'make-process
 	      :to-have-been-called-with
 	      :name "indium-chrome-process"
-	      :command '("chrome" "--remote-debugging-port=9223" "http://localhost:9999"))))
+	      :command '("chrome" "--remote-debugging-port=9223" "" "http://localhost:9999"))))
 
   (it "Should connect to the chrome process"
     (let ((conf '((url . "http://localhost:9999")
@@ -71,7 +73,19 @@
       (spy-on 'make-process)
       (spy-on 'indium-client-connect)
       (indium-launch-chrome conf)
-      (expect #'indium-client-connect :to-have-been-called))))
+      (expect #'indium-client-connect :to-have-been-called)))
+
+  (it "Should make a temporary profile"
+    (spy-on 'indium-chrome--find-executable :and-return-value "chrome")
+    (let* ((indium-chrome-use-temporary-profile t)
+	   (port 9229)
+	   (url "http://localhost:3000")
+	   (command (indium-chrome--command port url)))
+      (expect (length command) :to-be 4)
+      (expect (seq-elt command 0) :to-equal (indium-chrome--find-executable))
+      (expect (seq-elt command 1) :to-equal "--remote-debugging-port=9229")
+      (expect (seq-elt command 2) :to-match "--user-data-dir=/tmp/.*")
+      (expect (seq-elt command 3) :to-equal url))))
 
 (provide 'indium-chrome-test)
 ;;; indium-chrome-test.el ends here

@@ -150,11 +150,15 @@ Chrome/Chromium requirements
 Chrome/Chromium >= ``60.0`` is required for Indium to properly work (debugging
 protocol ``v1.2``).
 
-Start Chrome/Chromium with the ``--remote-debugging-port`` flag like the following:
-::
+When the variable ``indium-chrome-use-temporary-profile`` is non-nil (the
+default), ``M-x indium-launch`` will start a new instance of Chrome/Chromium
+with the remote debugging port set up.
+
+Otherwise, you can start Chrome/Chromium with the ``--remote-debugging-port``
+flag like the following: ::
   
   chromium --remote-debugging-port=9222 https://localhost:3000
 
-Make sure that no instance of Chrome is already running, otherwise Chrome will
-simply open a new tab on the existing Chrome instance, and the
-``remote-debugging-port`` will not be set.
+If you start Chrome manually, make sure that no instance of Chrome is already
+running, otherwise Chrome will simply open a new tab on the existing Chrome
+instance, and the ``remote-debugging-port`` will not be set.

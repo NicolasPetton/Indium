@@ -55,17 +55,30 @@
   "Default Chrome remote debugger port."
   :type '(integer))
 
+(defcustom indium-chrome-use-temporary-profile
+  t
+  "When non-nil, each invocation of the browser uses a new temporary profile."
+  :type '(boolean))
+
 (defun indium-launch-chrome (conf)
   "Start chrome/chromium with remote debugging enabled based on CONF settings."
   (let-alist conf
     (unless .url
       (error "No url specified in configuration"))
     (make-process :name "indium-chrome-process"
-                  :command (list (indium-chrome--find-executable)
-				 (format "--remote-debugging-port=%s"
-					 (or .port indium-chrome-default-port))
-				 .url))
+                  :command (indium-chrome--command
+			    (or .port indium-chrome-default-port)
+			    .url))
     (indium-client-connect (file-name-directory .projectFile) .name)))
+
+(defun indium-chrome--command (port url)
+  "Return the Chrome command to be executed with PORT and URL."
+  (list (indium-chrome--find-executable)
+	(format "--remote-debugging-port=%s" port)
+	(if indium-chrome-use-temporary-profile
+	    (format "--user-data-dir=%s" (make-temp-file nil t))
+	  "")
+	url))
 
 (defun indium-chrome--find-executable ()
   "Find chrome executable using `indium-chrome-executable'."
