@@ -95,11 +95,14 @@ DIRECTION can be either `next' or `previous'."
   (let* ((delta (pcase direction
                   (`next 1)
                   (`previous -1)))
+         (limit-check (pcase direction
+                        (`next #'eobp)
+                        (`previous #'bobp)))
          (reference (save-excursion
                       (forward-line delta)
                       (when (eq direction 'previous)
                         (end-of-line))
-                      (while (and (not (eobp))
+                      (while (and (not (funcall limit-check))
                                   (not (get-text-property (point) 'indium-reference)))
                         (forward-char delta))
                       (when (get-text-property (point) 'indium-reference)
