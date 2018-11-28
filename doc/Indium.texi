@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.2.0, Nov 26, 2018
+Indium 1.2.0, Nov 28, 2018
 
 Nicolas Petton
 
@@ -160,7 +160,7 @@ Troublehooting
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
+@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
 @chapter Table of contents
 
 
@@ -191,8 +191,9 @@ Indium supports @code{Emacs 25.3+}, works with @code{Chrome} (debugging protocol
 @code{v1.2}, see @ref{5,,Chrome/Chromium requirements}) and @code{NodeJS}, see
 @ref{6,,NodeJS requirements}.
 
-Indium works with both @code{js-mode} an @code{js2-mode}, and supports the EcmaScript
-features of the runtime it connects to.
+Indium works with @code{js-mode}, @code{js2-mode}, @code{js2-jsx-mode} and
+@code{rjsx-mode}. It supports the ECMAScript features of the runtime it connects
+to.
 
 Indium is availabe on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{https://stable.melpa/org}.
 
@@ -204,7 +205,7 @@ Indium is availabe on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{h
 @end menu
 
 @node The Indium server,Using MELPA,,Installation
-@anchor{installation the-indium-server}@anchor{7}@anchor{installation server-installation}@anchor{8}
+@anchor{installation server-installation}@anchor{7}@anchor{installation the-indium-server}@anchor{8}
 @subsection The Indium server
 
 
@@ -327,7 +328,7 @@ Custom sourcemap path overrides can be set with @code{sourceMapPathOverrides}, s
 @ref{14,,Using sourcemaps} for mode information on sourcemaps and debugging.
 
 @node Chrome/Chromium configuration options,NodeJS configuration options,General configuration,Getting up and running
-@anchor{setup chrome-configuration}@anchor{11}@anchor{setup chrome-chromium-configuration-options}@anchor{15}
+@anchor{setup chrome-chromium-configuration-options}@anchor{15}@anchor{setup chrome-configuration}@anchor{11}
 @subsection Chrome/Chromium configuration options
 
 
@@ -360,7 +361,7 @@ Example configuration:
 @end example
 
 @node NodeJS configuration options,Starting Indium,Chrome/Chromium configuration options,Getting up and running
-@anchor{setup nodejs-configuration-options}@anchor{16}@anchor{setup nodejs-configuration}@anchor{10}
+@anchor{setup nodejs-configuration}@anchor{10}@anchor{setup nodejs-configuration-options}@anchor{16}
 @subsection NodeJS configuration options
 
 
@@ -398,7 +399,7 @@ Here is an example configuration for debugging Gulp tasks:
 @end example
 
 @node Starting Indium,NodeJS requirements,NodeJS configuration options,Getting up and running
-@anchor{setup id2}@anchor{17}@anchor{setup starting-indium}@anchor{18}
+@anchor{setup starting-indium}@anchor{17}@anchor{setup id2}@anchor{18}
 @subsection Starting Indium
 
 
@@ -466,7 +467,7 @@ running, otherwise Chrome will simply open a new tab on the existing Chrome
 instance, and the @code{remote-debugging-port} will not be set.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl repl}@anchor{1b}@anchor{repl the-repl}@anchor{1c}@anchor{repl doc}@anchor{1d}
+@anchor{repl the-repl}@anchor{1b}@anchor{repl repl}@anchor{1c}@anchor{repl doc}@anchor{1d}
 @section The REPL
 
 
@@ -617,7 +618,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction-in-js-buffers}@anchor{24}@anchor{code-evaluation doc}@anchor{25}@anchor{code-evaluation interaction}@anchor{26}
+@anchor{code-evaluation interaction}@anchor{24}@anchor{code-evaluation interaction-in-js-buffers}@anchor{25}@anchor{code-evaluation doc}@anchor{26}
 @section Interaction in JS buffers
 
 
@@ -676,7 +677,7 @@ Here’s a list of available keybindings:
 
 
 Press @code{C-c C-z} from any buffer with @code{indium-interaction-mode} turned on to
-switch back to the REPL buffer (see @ref{1b,,The REPL}).
+switch back to the REPL buffer (see @ref{1c,,The REPL}).
 
 @node Adding and removing breakpoints,,Switching to the REPL buffer,Interaction in JS buffers
 @anchor{code-evaluation adding-and-removing-breakpoints}@anchor{29}
@@ -732,7 +733,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end cartouche
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger debugger}@anchor{2a}@anchor{debugger doc}@anchor{2b}@anchor{debugger the-stepping-debugger}@anchor{2c}
+@anchor{debugger the-stepping-debugger}@anchor{2b}@anchor{debugger debugger}@anchor{2a}@anchor{debugger doc}@anchor{2c}
 @section The stepping debugger
 
 
@@ -743,7 +744,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end menu
 
 @node Using sourcemaps,Blackboxing scripts,,The stepping debugger
-@anchor{debugger sourcemaps}@anchor{14}@anchor{debugger using-sourcemaps}@anchor{2d}
+@anchor{debugger using-sourcemaps}@anchor{2d}@anchor{debugger sourcemaps}@anchor{14}
 @subsection Using sourcemaps
 
 
@@ -768,7 +769,7 @@ source-mapped.  This can happen for instance when using Webpack.
 @end menu
 
 @node Overriding sourcemap paths,,,Using sourcemaps
-@anchor{debugger webpack}@anchor{2e}@anchor{debugger overriding-sourcemap-paths}@anchor{2f}
+@anchor{debugger overriding-sourcemap-paths}@anchor{2e}@anchor{debugger webpack}@anchor{2f}
 @subsubsection Overriding sourcemap paths
 
 
@@ -813,8 +814,8 @@ Blackboxed scripts are skipped when stepping in the debugger.
 
 
 Indium features an object inspector that can be open on any object reference
-from a REPL buffer (see @ref{1b,,The REPL}), the debugger (see @ref{2a,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{26,,Interaction in JS buffers}).
+from a REPL buffer (see @ref{1c,,The REPL}), the debugger (see @ref{2a,,The stepping debugger}), or
+the result of any evaluation of JavaScript code (see @ref{24,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -925,7 +926,7 @@ case an error happens in the server process.
 
 
 First, make sure that @code{indium} is installed as documented in the
-@ref{8,,The Indium server} section.
+@ref{7,,The Indium server} section.
 
 If you encounter the error:
 

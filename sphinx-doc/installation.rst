@@ -8,8 +8,9 @@ Indium supports ``Emacs 25.3+``, works with ``Chrome`` (debugging protocol
 ``v1.2``, see :ref:`chrome_requirements`) and ``NodeJS``, see
 :ref:`nodejs_requirements`.
 
-Indium works with both ``js-mode`` an ``js2-mode``, and supports the EcmaScript
-features of the runtime it connects to.
+Indium works with ``js-mode``, ``js2-mode``, ``js2-jsx-mode`` and
+``rjsx-mode``. It supports the ECMAScript features of the runtime it connects
+to.
 
 Indium is availabe on `MELPA <https://melpa.org>`_, `MELPA Stable
 <https://stable.melpa/org>`_.
