@@ -21,7 +21,7 @@
 
 @copying
 @quotation
-Indium 1.2.0, Nov 28, 2018
+Indium 2.0.0, Nov 28, 2018
 
 Nicolas Petton
 
@@ -160,7 +160,7 @@ Troublehooting
 @end menu
 
 @node Table of contents,Indices and tables,Top,Top
-@anchor{index indium}@anchor{1}@anchor{index table-of-contents}@anchor{2}
+@anchor{index table-of-contents}@anchor{1}@anchor{index indium}@anchor{2}
 @chapter Table of contents
 
 
@@ -176,7 +176,7 @@ Troublehooting
 @end menu
 
 @node Installation,Getting up and running,,Table of contents
-@anchor{installation installation}@anchor{3}@anchor{installation doc}@anchor{4}
+@anchor{installation doc}@anchor{3}@anchor{installation installation}@anchor{4}
 @section Installation
 
 
@@ -261,7 +261,7 @@ Add the following to your Emacs configuration:
 @end example
 
 @node Getting up and running,The REPL,Installation,Table of contents
-@anchor{setup setup}@anchor{b}@anchor{setup getting-up-and-running}@anchor{c}@anchor{setup doc}@anchor{d}
+@anchor{setup doc}@anchor{b}@anchor{setup getting-up-and-running}@anchor{c}@anchor{setup setup}@anchor{d}
 @section Getting up and running
 
 
@@ -300,7 +300,7 @@ Here is a minimalist @code{.indium.json} file.:
 @end example
 
 @node General configuration,Chrome/Chromium configuration options,Project configuration,Getting up and running
-@anchor{setup general-configuration}@anchor{12}@anchor{setup id1}@anchor{13}
+@anchor{setup id1}@anchor{12}@anchor{setup general-configuration}@anchor{13}
 @subsection General configuration
 
 
@@ -328,7 +328,7 @@ Custom sourcemap path overrides can be set with @code{sourceMapPathOverrides}, s
 @ref{14,,Using sourcemaps} for mode information on sourcemaps and debugging.
 
 @node Chrome/Chromium configuration options,NodeJS configuration options,General configuration,Getting up and running
-@anchor{setup chrome-chromium-configuration-options}@anchor{15}@anchor{setup chrome-configuration}@anchor{11}
+@anchor{setup chrome-configuration}@anchor{11}@anchor{setup chrome-chromium-configuration-options}@anchor{15}
 @subsection Chrome/Chromium configuration options
 
 
@@ -399,7 +399,7 @@ Here is an example configuration for debugging Gulp tasks:
 @end example
 
 @node Starting Indium,NodeJS requirements,NodeJS configuration options,Getting up and running
-@anchor{setup starting-indium}@anchor{17}@anchor{setup id2}@anchor{18}
+@anchor{setup id2}@anchor{17}@anchor{setup starting-indium}@anchor{18}
 @subsection Starting Indium
 
 
@@ -418,7 +418,7 @@ specified from the configurations in the @code{.indium.json} project file.
 @end itemize
 
 @node NodeJS requirements,Chrome/Chromium requirements,Starting Indium,Getting up and running
-@anchor{setup id3}@anchor{19}@anchor{setup nodejs-requirements}@anchor{6}
+@anchor{setup nodejs-requirements}@anchor{6}@anchor{setup id3}@anchor{19}
 @subsection NodeJS requirements
 
 
@@ -444,7 +444,7 @@ If you install NodeJS using @code{nvm}, chances are that Emacs won’t have it i
 @code{exec path}. A simple solution is to use the excellent exec-path-from-shell@footnote{https://github.com/purcell/exec-path-from-shell} package.
 
 @node Chrome/Chromium requirements,,NodeJS requirements,Getting up and running
-@anchor{setup chrome-requirements}@anchor{5}@anchor{setup chrome-chromium-requirements}@anchor{1a}
+@anchor{setup chrome-chromium-requirements}@anchor{1a}@anchor{setup chrome-requirements}@anchor{5}
 @subsection Chrome/Chromium requirements
 
 
@@ -467,7 +467,7 @@ running, otherwise Chrome will simply open a new tab on the existing Chrome
 instance, and the @code{remote-debugging-port} will not be set.
 
 @node The REPL,Interaction in JS buffers,Getting up and running,Table of contents
-@anchor{repl the-repl}@anchor{1b}@anchor{repl repl}@anchor{1c}@anchor{repl doc}@anchor{1d}
+@anchor{repl doc}@anchor{1b}@anchor{repl repl}@anchor{1c}@anchor{repl the-repl}@anchor{1d}
 @section The REPL
 
 
@@ -484,7 +484,7 @@ instance, and the @code{remote-debugging-port} will not be set.
 
 
 A REPL (Read Eval Print Loop) buffer is automatically open when a new Indium
-connection is made (see @ref{b,,Getting up and running}).
+connection is made (see @ref{d,,Getting up and running}).
 
 @image{repl,,,,png}
 
@@ -618,7 +618,7 @@ the current stack frame, and will be able to access local variables from the
 stack, etc.
 
 @node Interaction in JS buffers,The stepping debugger,The REPL,Table of contents
-@anchor{code-evaluation interaction}@anchor{24}@anchor{code-evaluation interaction-in-js-buffers}@anchor{25}@anchor{code-evaluation doc}@anchor{26}
+@anchor{code-evaluation doc}@anchor{24}@anchor{code-evaluation interaction}@anchor{25}@anchor{code-evaluation interaction-in-js-buffers}@anchor{26}
 @section Interaction in JS buffers
 
 
@@ -685,7 +685,7 @@ switch back to the REPL buffer (see @ref{1c,,The REPL}).
 
 
 You need to first make sure that Indium is set up correctly to use local files
-(see @ref{12,,General configuration}).
+(see @ref{13,,General configuration}).
 
 
 @itemize -
@@ -733,7 +733,7 @@ connection is made Indium will attempt to add back all breakpoints.
 @end cartouche
 
 @node The stepping debugger,The inspector,Interaction in JS buffers,Table of contents
-@anchor{debugger the-stepping-debugger}@anchor{2b}@anchor{debugger debugger}@anchor{2a}@anchor{debugger doc}@anchor{2c}
+@anchor{debugger doc}@anchor{2b}@anchor{debugger the-stepping-debugger}@anchor{2c}@anchor{debugger debugger}@anchor{2a}
 @section The stepping debugger
 
 
@@ -751,7 +751,7 @@ connection is made Indium will attempt to add back all breakpoints.
 Since version 0.7, Indium uses sourcemap files by default.
 
 For sourcemaps to work properly with Chrome/Chromium, make sure that a
-workspace is correctly set (see @ref{b,,Getting up and running}).
+workspace is correctly set (see @ref{d,,Getting up and running}).
 
 @cartouche
 @quotation Warning 
@@ -769,7 +769,7 @@ source-mapped.  This can happen for instance when using Webpack.
 @end menu
 
 @node Overriding sourcemap paths,,,Using sourcemaps
-@anchor{debugger overriding-sourcemap-paths}@anchor{2e}@anchor{debugger webpack}@anchor{2f}
+@anchor{debugger webpack}@anchor{2e}@anchor{debugger overriding-sourcemap-paths}@anchor{2f}
 @subsubsection Overriding sourcemap paths
 
 
@@ -809,13 +809,13 @@ expression of script paths to blackbox when debugging.
 Blackboxed scripts are skipped when stepping in the debugger.
 
 @node The inspector,Troublehooting,The stepping debugger,Table of contents
-@anchor{inspector the-inspector}@anchor{31}@anchor{inspector inspector}@anchor{1f}@anchor{inspector doc}@anchor{32}
+@anchor{inspector doc}@anchor{31}@anchor{inspector the-inspector}@anchor{32}@anchor{inspector inspector}@anchor{1f}
 @section The inspector
 
 
 Indium features an object inspector that can be open on any object reference
 from a REPL buffer (see @ref{1c,,The REPL}), the debugger (see @ref{2a,,The stepping debugger}), or
-the result of any evaluation of JavaScript code (see @ref{24,,Interaction in JS buffers}).
+the result of any evaluation of JavaScript code (see @ref{25,,Interaction in JS buffers}).
 
 To inspect the result of the evaluation of an expression, press @code{C-c M-i}.  An
 inspector buffer will pop up.  You can also press @code{RET} or left click on
@@ -889,7 +889,7 @@ Jump to the previous object in the inspector
 
 
 @node Troublehooting,,The inspector,Table of contents
-@anchor{troubleshooting troublehooting}@anchor{34}@anchor{troubleshooting doc}@anchor{35}
+@anchor{troubleshooting doc}@anchor{34}@anchor{troubleshooting troublehooting}@anchor{35}
 @section Troublehooting
 
 
@@ -955,7 +955,7 @@ correctly.
 @quotation Note 
 Indium needs to know how to map script source urls to files on disk.
 It uses the @code{root} (alias @code{webRoot}) configuration option as the
-base path, as described in the @ref{12,,General configuration} page.
+base path, as described in the @ref{13,,General configuration} page.
 @end quotation
 @end cartouche
 

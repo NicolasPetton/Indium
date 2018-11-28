@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; URL: https://github.com/NicolasPetton/indium
 ;; Keywords: tools, javascript
-;; Version: 1.2.0
+;; Version: 2.0.0
 ;; Package-Requires: ((emacs "25") (seq "2.16") (js2-mode "20140114") (js2-refactor "0.9.0") (company "0.9.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
