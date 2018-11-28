@@ -433,7 +433,7 @@ frame."
                 (eq major-mode indium-debugger-major-mode))
       (funcall indium-debugger-major-mode))
     (indium-debugger-mode 1)
-    (when (eq major-mode 'js2-mode)
+    (when (derived-mode-p 'js2-mode)
       (js2-reparse))
     (read-only-mode)))
 
