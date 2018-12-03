@@ -48,8 +48,11 @@ this ``.indium.json`` file is placed, but it can be overridden with the ``root``
     ]
   }
 
-Custom sourcemap path overrides can be set with ``sourceMapPathOverrides``, see
-:ref:`sourcemaps` for mode information on sourcemaps and debugging.
+Custom script path overrides can be set with ``scriptPathOverrides``.  See
+:ref:`scriptpaths` for more information on script paths and debugging.
+
+Custom sourcemap path overrides can be set with ``sourceMapPathOverrides``.  See
+:ref:`sourcemaps` for more information on sourcemaps and debugging.
 
 .. _chrome_configuration:
 

@@ -220,4 +220,17 @@ describe("URL resolution", () => {
 
 		expect(resolveUrl(url, conf)).toEqual(url);
 	});
+
+        it("supports script path overrides", () => {
+		let conf = {
+			projectFile: "/home/user/projects/foo/.indium.json",
+                        "scriptPathOverrides": {
+                                "(/js/.*\\.js)/[0-9]+": "private$1"
+                        }
+		};
+
+                let url = "http://localhost:3000/js/app.js/1234567890";
+
+                expect(resolveUrl(url, conf)).toEqual("/home/user/projects/foo/private/js/app.js");
+        });
 });
