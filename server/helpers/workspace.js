@@ -69,6 +69,19 @@ const resolveRoot = conf => {
 	return resolve(dir);
 };
 
+const locateScript = (pathname, conf) => {
+        let overrides = conf.scriptPathOverrides || {};
+
+        for (let pattern of Object.keys(overrides)) {
+                let regex = new RegExp(pattern);
+
+                if (pathname.match(regex)) {
+                        return pathname.replace(regex, overrides[pattern]);
+                }
+        }
+        return pathname;
+}
+
 const resolveUrl = (url, conf) => {
 	// In Node, script urls can be file paths.	The path doesn't
 	// always exist either, so also check for a protocol when parsed
@@ -86,7 +99,7 @@ const resolveUrl = (url, conf) => {
 		return pathname;
 	}
 
-	return resolve(`${root}/${pathname}`);
+	return resolve(`${root}/${locateScript(pathname, conf)}`);
 };
 
 const expandRoot = (path, root = "") => {

@@ -44,6 +44,29 @@ Overriding the ``sourceMapPathOverrides`` option will erase the default mapping.
 .. TIP:: If sourcemaps do not seem to work, you can see how Indium resolves
           sourcemap paths using ``M-x indium-list-sourcemap-sources``.
 
+.. _scriptpaths:
+
+Overriding script paths
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application's script URLs don't correspond directly to where
+their source code is located, you can use ``scriptPathOverrides`` to
+tell Indium where to find the sources.  It maps regular expressions to
+Javascript substitution strings.
+
+For example, if your project root is ``/home/user/projects/foo/``, and
+the source code for http://localhost:3000/js/app.js/1234567890 is at
+``/home/user/projects/foo/private/js/app.js``, you might set
+``scriptPathOverrides`` to::
+
+   {
+     "(/js/.*\\.js)/[0-9]+": "private$1"
+   }
+
+This removes the trailing slash and digits, and it adds "private" to
+the beginning of the path below the project root.
+
+
 Blackboxing scripts
 -------------------
 
