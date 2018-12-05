@@ -56,8 +56,7 @@ CONDITION is true."
 (defun indium-breakpoint-remove ()
   "Remove all breakpoints from the current line."
   (seq-doseq (brk (indium-breakpoint-breakpoints-at-point))
-    (when (indium-breakpoint-resolved brk)
-      (indium-client-remove-breakpoint brk))
+    (indium-client-remove-breakpoint brk)
     (map-delete indium-breakpoint--local-breakpoints brk)
     (indium-breakpoint--remove-overlay)))
 
