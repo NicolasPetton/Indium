@@ -42,7 +42,8 @@ CONDITION is true."
   (let* ((brk (indium-breakpoint-create :condition (or condition ""))))
     (map-put indium-breakpoint--local-breakpoints brk (current-buffer))
     (indium-breakpoint--add-overlay brk)
-    (indium-client-add-breakpoint brk)))
+    (when (indium-client-process-live-p)
+      (indium-client-add-breakpoint brk))))
 
 (defun indium-breakpoint-edit-condition ()
   "Edit condition of breakpoint at point."
@@ -56,7 +57,8 @@ CONDITION is true."
 (defun indium-breakpoint-remove ()
   "Remove all breakpoints from the current line."
   (seq-doseq (brk (indium-breakpoint-breakpoints-at-point))
-    (indium-client-remove-breakpoint brk)
+    (when (indium-client-process-live-p)
+      (indium-client-remove-breakpoint brk))
     (map-delete indium-breakpoint--local-breakpoints brk)
     (indium-breakpoint--remove-overlay)))
 
