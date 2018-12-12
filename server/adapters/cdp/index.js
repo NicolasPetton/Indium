@@ -78,8 +78,9 @@ const evaluate = async ({expression, frameId}) => {
 		: state.client.Runtime.evaluate;
 	let response = await method({
 		generatePreview: true,
-		expression,
-		callFrameId: frameId || state.currentCallFrameId
+		includeCommandLineAPI: true,
+		callFrameId: frameId || state.currentCallFrameId,
+		expression
 	});
 
 	return convertRemoteObject(response.result);
@@ -110,6 +111,7 @@ const getCompletion = async ({expression, frameId}) => {
 	let response = await method({
 		expression,
 		objectGroup: "completion",
+		includeCommandLineAPI: true,
 		callFrameId: frameId || state.currentCallFrameId
 	});
 
