@@ -78,7 +78,7 @@
   	(save-excursion
   	  (goto-char (point-max))
   	  (expect (indium-location-line (indium-breakpoint-location brk))
-  		  :to-equal 2))))))
+  		  :to-equal 1))))))
 
 (describe "Scopes"
   (it "Should be able to make scopes from alists"

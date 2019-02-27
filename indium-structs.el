@@ -77,7 +77,7 @@
     (with-current-buffer buf
       (save-excursion
 	(goto-char (point-min))
-	(forward-char pos)
+	(forward-char (1- pos))
 	(back-to-indentation)
 	(indium-location-at-point)))))
 
