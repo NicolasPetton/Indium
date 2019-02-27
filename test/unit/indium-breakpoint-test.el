@@ -210,5 +210,14 @@
 	  (indium-breakpoint--unregister-all-breakpoints)
 	  (expect (indium-breakpoint-resolved brk) :to-be nil))))))
 
+(describe "Removing a breakpoint"
+  (it "should work when breakpoint is on point-max"
+    (with-js2-file
+      (goto-char (point-max))
+      (indium-breakpoint-add)
+      (expect (length (indium-breakpoint-breakpoints-at-point)) :to-be 1)
+      (indium-breakpoint-remove)
+      (expect (length (indium-breakpoint-breakpoints-at-point)) :to-be 0))))
+
 (provide 'indium-breakpoint-test)
 ;;; indium-breakpoint-test.el ends here
