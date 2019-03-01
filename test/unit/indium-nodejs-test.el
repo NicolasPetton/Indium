@@ -40,7 +40,7 @@
       (indium-launch-nodejs '((command . "node index.js")
 			      (inspect-brk . t))))
     (expect #'indium-nodejs--command-with-flags
-            :to-have-been-called-with "node index.js" t))
+            :to-have-been-called-with "node index.js" t nil))
 
   (it "should append extra flags"
     (expect (indium-nodejs--command-with-flags "node foo" nil)
@@ -49,7 +49,13 @@
 	    :to-equal "node --inspect-brk foo")
     ;; Regression for GitHub issue #150
     (expect (indium-nodejs--command-with-flags "ENV_VAR=\"VAL\" node foo" t)
-	    :to-equal "ENV_VAR=\"VAL\" node --inspect-brk foo")))
+	    :to-equal "ENV_VAR=\"VAL\" node --inspect-brk foo"))
+
+  (it "should append extra the debugging port flag"
+    (expect (indium-nodejs--command-with-flags "node foo" nil 2000)
+	    :to-equal "node --inspect --inspect-port=2000 foo")
+    (expect (indium-nodejs--command-with-flags "node foo" t 2000)
+	    :to-equal "node --inspect-brk --inspect-port=2000 foo")))
 
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here

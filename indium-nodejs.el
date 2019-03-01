@@ -57,18 +57,23 @@ execution at the first statement."
 						 shell-command-switch
 						 (indium-nodejs--command-with-flags
 						  .command
-						  .inspect-brk)))))
+						  .inspect-brk
+                                                  .port)))))
       (switch-to-buffer (process-buffer process)))))
 
 
-(defun indium-nodejs--command-with-flags (command inspect-brk)
+(defun indium-nodejs--command-with-flags (command inspect-brk &optional port)
   "Return COMMAND with flags to start the V8 inspector.
 
 If INSPECT-BRK is nil, use the `--inspect', use the
-`--inspect-brk' flag otherwise."
-  (let ((inspect-flag (if (eq inspect-brk t) "--inspect-brk" "--inspect")))
+`--inspect-brk' flag otherwise.
+
+If PORT is non-nil, start the debugging process on that port,
+otherwise use Node's default port (9229)."
+  (let ((inspect-flag (if (eq inspect-brk t) " --inspect-brk" " --inspect"))
+        (inspect-port-flag (if port (format " --inspect-port=%s" port) "")))
     (if (string-match "\\<node\\>" command)
-	(replace-match (concat "node " inspect-flag) nil nil command)
+	(replace-match (format "node%s%s" inspect-flag inspect-port-flag) nil nil command)
       (user-error "Invalid command specified"))))
 
 (defun indium-nodejs--process-filter-function (conf)
