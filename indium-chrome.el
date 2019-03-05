@@ -57,7 +57,8 @@
 
 (defcustom indium-chrome-use-temporary-profile
   t
-  "When non-nil, each invocation of the browser uses a new temporary profile."
+  "When non-nil, each invocation of the browser uses a temporary profile.
+The temporary profile can be set with `indium-chrome-data-dir'."
   :type '(boolean))
 
 (defvar indium-chrome-data-dir (make-temp-file nil t)
