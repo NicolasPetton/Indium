@@ -61,7 +61,12 @@
 The temporary profile can be set with `indium-chrome-data-dir'."
   :type '(boolean))
 
-(defvar indium-chrome-data-dir (make-temp-file nil t)
+(defvar indium-chrome--default-data-dir (expand-file-name "indium-chrome-profile"
+                                                          user-emacs-directory)
+  "Default directory used as Chrome data directory.")
+
+(defvar indium-chrome-data-dir
+  (make-directory indium-chrome--default-data-dir t)
   "Chrome profile directory used by Indium.")
 
 (defun indium-launch-chrome (conf)
