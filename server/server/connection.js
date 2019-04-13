@@ -56,7 +56,7 @@ const connectToNode = async (options = {}, { success, error }) => {
 			port: options.port || 9229 // The default port is 9229 in NodeJS.
 		}, { success, error });
 	} catch(e) {
-		error(e.message);
+		return error(e.message);
 	}
 	success("Connected to Node!");
 };
