@@ -1,10 +1,10 @@
-Troublehooting
-==============
+Troubleshooting
+===============
 
 If you run into issues with Indium, this document might help you.
 
-General advices before reporting issues
----------------------------------------
+General advice before reporting issues
+--------------------------------------
 
 Issues should be reported on the `GitHub issue tracker
 <https://github.com/nicolaspetton/indium/issues>`_.
