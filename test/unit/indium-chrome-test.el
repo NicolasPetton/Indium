@@ -84,7 +84,7 @@
       (expect (length command) :to-be 4)
       (expect (seq-elt command 0) :to-equal (indium-chrome--find-executable))
       (expect (seq-elt command 1) :to-equal "--remote-debugging-port=9229")
-      (expect (seq-elt command 2) :to-match "--user-data-dir=/tmp/.*")
+      (expect (seq-elt command 2) :to-match (format "--user-data-dir=%s" indium-chrome-data-dir))
       (expect (seq-elt command 3) :to-equal url))))
 
 (provide 'indium-chrome-test)
