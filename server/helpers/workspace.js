@@ -80,7 +80,7 @@ const locateScript = (pathname, conf) => {
                 }
         }
         return pathname;
-}
+};
 
 const resolveUrl = (url, conf) => {
 	// In Node, script urls can be file paths.	The path doesn't
