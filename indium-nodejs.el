@@ -50,15 +50,17 @@ execution at the first statement."
       (user-error "No NodeJS command specified in the .indium.json file"))
     (let* ((default-directory .resolvedRoot)
 	   (filter (indium-nodejs--process-filter-function conf))
+           (command-with-flags (indium-nodejs--command-with-flags
+                                .command
+                                .inspect-brk
+                                .port))
 	   (process (make-process :name "indium-nodejs-process"
 				  :buffer "*node process*"
 				  :filter filter
 				  :command (list shell-file-name
 						 shell-command-switch
-						 (indium-nodejs--command-with-flags
-						  .command
-						  .inspect-brk
-                                                  .port)))))
+						 command-with-flags))))
+      (message "Running node command \"%s\"" command-with-flags)
       (switch-to-buffer (process-buffer process)))))
 
 
