@@ -87,7 +87,7 @@ const resolveUrl = (url, conf) => {
 	// always exist either, so also check for a protocol when parsed
 	// as a URL.
 	if (isAbsolute(url) || !parse(url).protocol) {
-		console.log(`Resolved to ${url}`);
+		// console.log(`Resolved to ${url}`);
 		return url;
 	}
 
