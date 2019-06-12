@@ -55,7 +55,11 @@
     (expect (indium-nodejs--command-with-flags "node foo" nil 2000)
 	    :to-equal "node --inspect --inspect-port=2000 foo")
     (expect (indium-nodejs--command-with-flags "node foo" t 2000)
-	    :to-equal "node --inspect-brk --inspect-port=2000 foo")))
+	    :to-equal "node --inspect-brk --inspect-port=2000 foo"))
+
+  (it "should be able to launch with `babel-node'"
+    (expect (indium-nodejs--command-with-flags "babel-node foo" nil 2000)
+	    :to-equal "babel-node --inspect --inspect-port=2000 foo")))
 
 (provide 'indium-nodejs-test)
 ;;; indium-nodejs-test.el ends here

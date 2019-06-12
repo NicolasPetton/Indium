@@ -74,9 +74,14 @@ If PORT is non-nil, start the debugging process on that port,
 otherwise use Node's default port (9229)."
   (let ((inspect-flag (if (eq inspect-brk t) " --inspect-brk" " --inspect"))
         (inspect-port-flag (if port (format " --inspect-port=%s" port) "")))
-    (if (string-match "\\<node\\>" command)
-	(replace-match (format "node%s%s" inspect-flag inspect-port-flag) nil nil command)
-      (user-error "Invalid command specified"))))
+    (save-match-data
+      (if (string-match "\\<\\(babel-\\)?node\\>" command)
+          (replace-match (format "%s%s%s"
+                                 (match-string 0 command)
+                                 inspect-flag
+                                 inspect-port-flag)
+                         nil nil command)
+        (user-error "Invalid command specified")))))
 
 (defun indium-nodejs--process-filter-function (conf)
   "Return a process filter function for CONF.
