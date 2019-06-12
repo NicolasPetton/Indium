@@ -26,13 +26,13 @@
 	},
 	"homepage": "https://github.com/NicolasPetton/Indium#readme",
 	"dependencies": {
-		"chrome-remote-interface": "^0.26.0",
+		"chrome-remote-interface": "^0.27.2",
 		"node-fetch": "^2.2.0",
 		"semver": "^5.5.0",
 		"source-map": "^0.7.3"
 	},
 	"devDependencies": {
-		"eslint": "^5.2.0",
+		"eslint": "^5.16.0",
 		"jasmine": "^3.1.0",
 		"mock-fs": "^4.5.0",
 		"proxyquire": "^2.0.1"
