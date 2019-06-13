@@ -1,6 +1,6 @@
 # Indium server
 
-This documentation describes the version 3.3 of the server component of
+This documentation describes the version 3.4 of the server component of
 [Indium](https://indium.readthedocs.org).
 
 The Indium server exposes a simple interface to communicate with a JS runtime
