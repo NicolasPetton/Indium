@@ -50,14 +50,14 @@ Overriding script paths
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 If your application's script URLs don't correspond directly to where
-their source code is located, you can use ``scriptPathOverrides`` to
+their source code is located, you can use ``scriptPathRegexpOverrides`` to
 tell Indium where to find the sources.  It maps regular expressions to
 Javascript substitution strings.
 
 For example, if your project root is ``/home/user/projects/foo/``, and
 the source code for http://localhost:3000/js/app.js/1234567890 is at
 ``/home/user/projects/foo/private/js/app.js``, you might set
-``scriptPathOverrides`` to::
+``scriptPathRegexpOverrides`` to::
 
    {
      "(/js/.*\\.js)/[0-9]+": "private$1"

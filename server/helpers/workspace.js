@@ -70,16 +70,16 @@ const resolveRoot = conf => {
 };
 
 const locateScript = (pathname, conf) => {
-        let overrides = conf.scriptPathOverrides || {};
+    let overrides = conf.scriptPathRegexpOverrides || {};
 
-        for (let pattern of Object.keys(overrides)) {
-                let regex = new RegExp(pattern);
+    for (let pattern of Object.keys(overrides)) {
+        let regex = new RegExp(pattern);
 
-                if (pathname.match(regex)) {
-                        return pathname.replace(regex, overrides[pattern]);
-                }
+        if (pathname.match(regex)) {
+            return pathname.replace(regex, overrides[pattern]);
         }
-        return pathname;
+    }
+    return pathname;
 };
 
 const resolveUrl = (url, conf) => {

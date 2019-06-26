@@ -325,7 +325,7 @@ this @code{.indium.json} file is placed, but it can be overridden with the @code
 @}
 @end example
 
-Custom script path overrides can be set with @code{scriptPathOverrides}.  See
+Custom script path overrides can be set with @code{scriptPathRegexpOverrides}.  See
 @ref{14,,Overriding script paths} for more information on script paths and debugging.
 
 Custom sourcemap path overrides can be set with @code{sourceMapPathOverrides}.  See
@@ -809,14 +809,14 @@ sourcemap paths using @code{M-x indium-list-sourcemap-sources}.
 
 
 If your application’s script URLs don’t correspond directly to where
-their source code is located, you can use @code{scriptPathOverrides} to
+their source code is located, you can use @code{scriptPathRegexpOverrides} to
 tell Indium where to find the sources.  It maps regular expressions to
 Javascript substitution strings.
 
 For example, if your project root is @code{/home/user/projects/foo/}, and
 the source code for @indicateurl{http://localhost:3000/js/app.js/1234567890} is at
 @code{/home/user/projects/foo/private/js/app.js}, you might set
-@code{scriptPathOverrides} to:
+@code{scriptPathRegexpOverrides} to:
 
 @example
 @{

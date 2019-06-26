@@ -221,10 +221,10 @@ describe("URL resolution", () => {
 		expect(resolveUrl(url, conf)).toEqual(url);
 	});
 
-        it("supports script path overrides", () => {
+        it("supports script path regexp overrides", () => {
 		let conf = {
 			projectFile: "/home/user/projects/foo/.indium.json",
-                        "scriptPathOverrides": {
+                        "scriptPathRegexpOverrides": {
                                 "(/js/.*\\.js)/[0-9]+": "private$1"
                         }
 		};
