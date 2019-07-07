@@ -30,6 +30,7 @@
 (require 'json)
 (require 'map)
 (require 'subr-x)
+(require 'json-process-client)
 
 (require 'indium-structs)
 
@@ -88,17 +89,11 @@
   :group 'indium-client
   :type 'file)
 
-(defvar indium-client--connection nil
-  "The client connection to the server process.")
-
-(defvar indium-client--process nil
-  "The Indium server process.")
+(defvar indium-client--application nil
+  "The client connection as returned by `json-process-client-start'.")
 
 (defvar indium-client--process-port 13840
   "The port on which the server should listen.")
-
-(defvar indium-client--callbacks nil
-  "Alist of functions to be evaluated as callbacks on process response.")
 
 (defun indium-client-start (callback)
   "Start an Indium process and store it as the client process.
@@ -108,33 +103,28 @@ Evaluate CALLBACK once the server is started."
   (let ((executable (executable-find indium-client-executable)))
     (unless executable
       (user-error "Cannot find the indium executable.  Please run \"npm install -g indium\""))
-    (when indium-client-debug
-      (with-current-buffer (get-buffer-create "*indium-debug-log*")
-	(erase-buffer)))
-    (indium-client--start-server executable callback)))
+    (setq indium-client--application
+          (json-process-client-start-with-id
+           :name "indium"
+           :executable executable
+           :port indium-client--process-port
+           :started-regexp "server listening"
+           :tcp-started-callback callback
+
+           :exec-callback #'indium-client--handle-message
+           :debug "*indium-debug-log*"
+           :args (list (number-to-string indium-client--process-port))))))
 
 (defun indium-client-stop ()
   "Stop the indium process."
-  (when (process-live-p indium-client--connection)
-    (kill-buffer (process-buffer indium-client--process))
-    (kill-buffer (process-buffer indium-client--connection)))
-  (setq indium-client--connection nil)
-  (setq indium-client--process nil)
-  (setq indium-client--callbacks nil)
+  (json-process-client-stop indium-client--application)
+  (setq indium-client--application nil)
   (run-hooks 'indium-client-closed-hook))
 
 (defun indium-client-send (message &optional callback)
   "Send MESSAGE to the Indium process.
 When CALLBACK is non-nil, evaluate it with the process response."
-  (indium-client--ensure-process)
-  (let* ((id (indium-client--next-id))
-	 (json (json-encode (cons `(id . ,id) message))))
-    (map-put indium-client--callbacks id callback)
-    (when indium-client-debug
-      (with-current-buffer (get-buffer-create "*indium-debug-log*")
-	(goto-char (point-max))
-	(insert (format "Sent: %s\n\n" (cons `(id . ,id) message)))))
-    (process-send-string indium-client--connection (format "%s\n" json))))
+  (json-process-client-send indium-client--application message callback))
 
 
 (defun indium-client-list-configurations (directory &optional callback)
@@ -283,109 +273,18 @@ When CALLBACK is non-nil, evaluate it with the list of sources."
    callback))
 
 
-(defun indium-client--ensure-process ()
-  "Signal an error if the Indium is not started."
-  (unless (indium-client-process-live-p)
-    (user-error "Indium server not started")))
-
 (defun indium-client-process-live-p ()
   "Return non-nil if the indium process is running."
-  (process-live-p indium-client--connection))
+  (json-process-client-process-live-p indium-client--application))
 
-(defun indium-client--start-server (executable callback)
-  "Start the Indium server process in EXECUTABLE.
-
-Evaluate CALLBACK once the server is started and the TCP
-connection established."
-  (setq indium-client--process
-	(start-process "indium server"
-		       (generate-new-buffer "*indium-process*")
-                       executable
-		       (format "%s" indium-client--process-port)))
-  (set-process-query-on-exit-flag indium-client--process nil)
-  (set-process-filter indium-client--process
-		      (indium-client--process-filter-function callback)))
-
-(defun indium-client--process-filter-function (callback)
-  "Return a process filter function for an Indium server process.
-
-Evaluate CALLBACK when the server starts listening to TCP connections."
-  (lambda (process output)
-    (with-current-buffer (process-buffer process)
-      (goto-char (point-max))
-      (insert output))
-    (unless (process-live-p indium-client--connection) ;; do not try to open TCP connections multiple times
-      (if (string-match-p "server listening" output)
-	  (indium-client--open-network-stream callback)
-	(progn
-	  (indium-client-stop)
-	  (error "Indium server process error: %s" output))))))
-
-(defun indium-client--open-network-stream (callback)
-  "Open a network connection to the indium server TCP process.
-Evaluate CALLBACK once the connection is established."
-  (let ((process (open-network-stream "indium"
-				      (generate-new-buffer " indium-client-conn ")
-				      "localhost"
-				      indium-client--process-port)))
-    (set-process-filter process #'indium-client--connection-filter)
-    (set-process-coding-system process 'utf-8)
-    (set-process-query-on-exit-flag process nil)
-    ;; TODO: Set a process sentinel
-    ;; (set-process-sentinel process #'indium-client--connection-sentinel)
-    (setq indium-client--connection process)
-    (funcall callback)))
-
-(defun indium-client--connection-sentinel (callback)
-  "Evaluate CALLBACK when the network process is open."
-  (lambda (proc _event)
-    (when (eq (process-status proc) 'open)
-      (funcall callback))))
-
-(defun indium-client--connection-filter (process output)
-  "Filter function for handling the indium PROCESS OUTPUT."
-  (let ((buf (process-buffer process)))
-    (with-current-buffer buf
-      (save-excursion
-	(goto-char (point-max))
-	(insert output)))
-    (indium-client--handle-data buf)))
-
-(defun indium-client--handle-data (buffer)
-  "Handle process data in BUFFER.
-
-Read the complete messages sequentially and handle them.  Each
-read message is deleted from BUFFER."
-  (let ((data))
-    (with-current-buffer buffer
-      (when (indium-client--complete-message-p)
-	(save-excursion
-	  (goto-char (point-min))
-	  (setq data (json-read))
-	  (delete-region (point-min) (point))
-	  ;; Remove the linefeed char
-	  (delete-char 1))))
-    (when data
-      (indium-client--handle-message data)
-      (indium-client--handle-data buffer))))
-
-(defun indium-client--complete-message-p ()
-  "Return non-nil if the current buffer has a complete message.
-Messages end with a line feed."
-  (save-excursion
-    (goto-char (point-max))
-    (search-backward "\n" nil t)))
-
-(defun indium-client--handle-message (data)
-  "Handle a server message with DATA."
-  (when indium-client-debug
-    (with-current-buffer (get-buffer-create "*indium-debug-log*")
-      (goto-char (point-max))
-      (insert (format "Received: %s\n\n" data))))
+(defun indium-client--handle-message (data callback)
+  "Handle a server message with DATA.
+If DATA is a successful response to a previously-sent message,
+evaluate CALLBACK with the payload."
   (let-alist data
     (pcase .type
       ("error" (indium-client--handle-error .payload))
-      ("success" (indium-client--handle-response .id .payload))
+      ("success" (indium-client--handle-response .payload callback))
       ("notification" (indium-client--handle-notification .payload))
       ("log" (indium-client--handle-log .payload)))))
 
@@ -395,18 +294,14 @@ PAYLOAD is an alist containing the details of the error."
   (let-alist payload
     (message "Indium server error: %s" .error)))
 
-(defun indium-client--handle-response (id payload)
+(defun indium-client--handle-response (payload callback)
   "Handle a response to a client request.
-ID is the id of the request for which the server has answered.
 PAYLOAD contains the data of the response.
 
-If a callback function has been registered for ID, evaluate it
-with the PAYLOAD."
-  (let ((callback (map-elt indium-client--callbacks id)))
-    (when callback
-      (unwind-protect
-	  (funcall callback payload)
-	(map-delete indium-client--callbacks id)))))
+If CALLBACK is non-nil, evaluate it with the PAYLOAD."
+  (when callback
+    (unwind-protect
+        (funcall callback payload))))
 
 (defun indium-client--handle-log (payload)
   "Handle a log event from the server.
@@ -445,11 +340,6 @@ PAYLOAD is an alist with the details of the notification."
     (setq path (replace-regexp-in-string "/" "\\" path nil t))
     (setq path (replace-regexp-in-string "^\\([a-z]\\):" #'capitalize path)))
   path)
-
-(defvar indium-client--id 0)
-(defun indium-client--next-id ()
-  "Return the next unique identifier to be used."
-  (cl-incf indium-client--id))
 
 (provide 'indium-client)
 ;;; indium-client.el ends here
