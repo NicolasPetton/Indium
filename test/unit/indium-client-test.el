@@ -25,45 +25,10 @@
 (require 'indium-client)
 
 (describe "Regression test for GitHub issue #163"
-  (it "should signal a user error when the indium executable cannot be found"
-    (let ((indium-client-executable ""))
-      (expect (indium-client-start (lambda ())) :to-throw
-	      'user-error '("Cannot find the indium executable.  Please run \"npm install -g indium\"")))))
-
-(describe "Reading server messages"
-  (it "should not change the buffer reading an incomplete message"
-    (with-temp-buffer
-      (insert "{foo")
-      (indium-client--handle-data (current-buffer))
-      (expect (buffer-string) :to-equal "{foo")))
-
-  (it "should call `indium-client--handle-message' when reading a complete message"
-    (spy-on #'indium-client--handle-message)
-    (with-temp-buffer
-      (insert "{\"foo\": 1}\n")
-      (indium-client--handle-data (current-buffer))
-      (expect #'indium-client--handle-message :to-have-been-called-with '((foo . 1)))))
-
-  (it "should remove the linefeed char when reading a complete message"
-    (spy-on #'indium-client--handle-message)
-    (with-temp-buffer
-      (insert "{\"foo\": 1}\n")
-      (indium-client--handle-data (current-buffer))
-      (expect (buffer-string) :to-equal "")))
-
-  (it "should remove all linefeed chars when reading multiple complete messages"
-    (spy-on #'indium-client--handle-message)
-    (with-temp-buffer
-      (insert "{\"foo\": 1}\n{\"bar\": 2}\n")
-      (indium-client--handle-data (current-buffer))
-      (expect (buffer-string) :to-equal "")))
-
-  (it "should remove all linefeed chars but keep incomplete messages"
-    (spy-on #'indium-client--handle-message)
-    (with-temp-buffer
-      (insert "{\"foo\": 1}\n{\"bar\": 2}\n{\"baz")
-      (indium-client--handle-data (current-buffer))
-      (expect (buffer-string) :to-equal "{\"baz"))))
+          (it "should signal a user error when the indium executable cannot be found"
+              (let ((indium-client-executable ""))
+                (expect (indium-client-start (lambda ())) :to-throw
+                        'user-error '("Cannot find the indium executable.  Please run \"npm install -g indium\"")))))
 
 (provide 'indium-client-test)
 ;;; indium-client-test.el ends here
