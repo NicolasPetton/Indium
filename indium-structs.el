@@ -54,9 +54,9 @@
 					  (line (map-elt alist 'line))
 					  (column (map-elt alist 'column))))
 		     (:copier nil))
-  (line 1 :type number)
-  (column 0 :type number)
-  (file nil :type string))
+  (line 1)
+  (column 0)
+  (file nil))
 
 (cl-defstruct (indium-breakpoint
 	       (:constructor indium-breakpoint-create
@@ -64,10 +64,10 @@
 				   overlay
 				   id))
 	       (:copier nil))
-  (id (indium-client--next-id) :type string)
+  (id (indium-client--next-id))
   (overlay nil)
   (resolved nil)
-  (condition "" :type string))
+  (condition ""))
 
 (defun indium-breakpoint-location (brk)
   "Return the location of BRK."
@@ -106,10 +106,10 @@
 				    (scope-chain (seq-map #'indium-scope-from-alist
 							  (map-elt alist 'scopeChain)))))
 	       (:copier nil))
-  (id "" :type string)
-  (function-name "" :type string)
-  (script-id "" :type string)
-  (location nil :type indium-location)
+  (id "")
+  (function-name "")
+  (script-id "")
+  (location nil)
   (scope-chain nil))
 
 (cl-defstruct (indium-scope
@@ -123,9 +123,9 @@
 				    (name (map-elt alist 'name))
 				    (id (map-elt alist 'id))))
 	       (:copier nil))
-  (id "" :type string)
-  (name "" :type string)
-  (type "" :type string))
+  (id "")
+  (name "")
+  (type ""))
 
 (cl-defstruct (indium-remote-object
 	       (:constructor indium-remote-object-create
@@ -140,10 +140,10 @@
 				    (description (map-elt alist 'description))
 				    (preview (map-elt alist 'preview))))
 	       (:copier nil))
-  (id nil :type string)
-  (type "" :type string)
-  (description "" :type string)
-  (preview "" :type string))
+  (id nil)
+  (type "")
+  (description "")
+  (preview ""))
 
 (defun indium-remote-object-error-p (obj)
   "Retun non-nil if OBJ represents an error."
@@ -183,8 +183,8 @@ definitions."
 				    (remote-object (indium-remote-object-from-alist
 						    (map-elt alist 'value)))))
 	       (:copier nil))
-  (name "" :type string)
-  (remote-object nil :type indium-remote-object))
+  (name "")
+  (remote-object nil))
 
 (defun indium-property-native-p (property)
   "Return non-nil value if PROPERTY is native code."
