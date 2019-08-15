@@ -40,8 +40,6 @@
 (require 'map)
 (require 'subr-x)
 
-(declare-function indium-client--next-id "indium-client.el")
-
 (cl-defstruct
     (indium-location (:constructor indium-location-create)
 		     (:constructor indium-location-at-point
@@ -64,7 +62,7 @@
 				   overlay
 				   id))
 	       (:copier nil))
-  (id (indium-client--next-id))
+  (id (indium-structs--next-breakpoint-id))
   (overlay nil)
   (resolved nil)
   (condition ""))
@@ -193,6 +191,14 @@ definitions."
 		       (indium-property-remote-object
 			property))
 		      "")))
+
+(defvar indium-structs--breakpoint-id 0
+  "A number that gets incremented by `indium-structs--next-breakpoint-id'.")
+
+(defun indium-structs--next-breakpoint-id ()
+  "Return a number, different at each call."
+  (cl-incf indium-structs--breakpoint-id)
+  indium-structs--breakpoint-id)
 
 (provide 'indium-structs)
 ;;; indium-structs.el ends here
