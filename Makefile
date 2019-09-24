@@ -17,13 +17,13 @@ dependencies: dependencies-elisp dependencies-javascript
 dependencies-elisp:
 	# Install dependencies in ~/.emacs.d/elpa
 	$(BATCH) \
-	--funcall package-refresh-contents \
+	--eval "(progn (setq package-check-signature nil) (package-refresh-contents))" \
+	--eval "(package-install 'assess)" \
 	--eval "(package-install 'company)" \
 	--eval "(package-install 'undercover)" \
 	--eval "(package-install 'buttercup)" \
 	--eval "(package-install 'js2-mode)" \
 	--eval "(package-install 'js2-refactor)" \
-	--eval "(package-install 'assess)" \
 	--eval "(package-install 'json-process-client)" \
 	--eval "(package-install 'exec-path-from-shell)"
 

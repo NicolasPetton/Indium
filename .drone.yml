@@ -10,7 +10,11 @@ steps:
   image: ubuntu:latest
   commands:
   - apt-get update
-  - apt-get install -y coreutils make gnutls-bin emacs-nox nodejs npm
+  - apt-get install -y software-properties-common
+  - add-apt-repository ppa:kelleyk/emacs -y
+  - apt-get update
+  - apt-get install -y coreutils make gnutls-bin nodejs npm emacs25
+  - emacs --version
   - make dependencies
   - make test
   - make lint
