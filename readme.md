@@ -1,7 +1,7 @@
 # Indium
 [![MELPA](https://melpa.org/packages/indium-badge.svg)](https://melpa.org/#/indium)
 [![Emacs](https://img.shields.io/badge/Emacs-25-8e44bd.svg)](https://www.gnu.org/software/emacs/)
-[![Build Status](https://drone.emacs.world/api/badges/nico/Indium/status.svg)](https://drone.emacs.world/nico/Indium)
+[![Build Status](https://drone.petton.fr/api/badges/nico/Indium/status.svg)](https://drone.petton.fr/nico/Indium)
 [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](https://indium.readthedocs.io/en/latest/?badge=latest)
 [![Liberapay](https://img.shields.io/liberapay/receives/NicolasPetton.svg?logo=liberapay)](https://img.shields.io/liberapay/receives/NicolasPetton.svg?logo=liberapay)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/indium-emacs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
