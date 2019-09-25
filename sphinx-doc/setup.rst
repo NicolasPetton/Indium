@@ -71,7 +71,7 @@ Example configuration::
         {
 	  "name": "Web project",
 	  "type": "chrome",
-	  "host": 192.168.22.1,
+	  "host": "192.168.22.1",
 	  "url": "http://192.168.22.1/myproject/index.html",
 	  "port": 9222
 	}
