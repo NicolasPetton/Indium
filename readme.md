@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/indium/badge/?version=latest)](https://indium.readthedocs.io/en/latest/?badge=latest)
 [![Liberapay](https://img.shields.io/liberapay/receives/NicolasPetton.svg?logo=liberapay)](https://img.shields.io/liberapay/receives/NicolasPetton.svg?logo=liberapay)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/indium-emacs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-<img align="right" src="https://gitea.emacs.world/nico/Indium/raw/branch/drone/img/indium.png" alt="logo">
+<img align="right" src="https://gitea.petton.fr/nico/Indium/raw/branch/master/img/indium.png" alt="logo">
 
 A JavaScript development environment for Emacs.
 
