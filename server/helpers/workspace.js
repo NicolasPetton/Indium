@@ -34,6 +34,7 @@ const isProjectFile = path =>
 	  basename(path) === projectFilename;
 
 const isAbsolute = path => {
+	// Also test for Windows paths
 	return path.startsWith("/") || /^[a-zA-Z]\:[\\\/]/.test(path);
 };
 
@@ -69,37 +70,22 @@ const resolveRoot = conf => {
 	return resolve(dir);
 };
 
-const locateScript = (pathname, conf) => {
-    let overrides = conf.scriptPathRegexpOverrides || {};
-
-    for (let pattern of Object.keys(overrides)) {
-        let regex = new RegExp(pattern);
-
-        if (pathname.match(regex)) {
-            return pathname.replace(regex, overrides[pattern]);
-        }
-    }
-    return pathname;
-};
-
 const resolveUrl = (url, conf) => {
 	// In Node, script urls can be file paths.	The path doesn't
 	// always exist either, so also check for a protocol when parsed
 	// as a URL.
 	if (isAbsolute(url) || !parse(url).protocol) {
-		// console.log(`Resolved to ${url}`);
 		return url;
 	}
 
-	let root = resolveRoot(conf);
-	let { protocol, pathname } = new URL(url);
-
 	// Always treat URLs using the file: protocol to have absolute pathnames.
+	let { protocol, pathname } = new URL(url);
 	if (protocol === "file:") {
 		return pathname;
 	}
 
-	return resolve(`${root}/${locateScript(pathname, conf)}`);
+	let root = resolveRoot(conf);
+	return resolve(`${root}/${pathname}`);
 };
 
 const expandRoot = (path, root = "") => {
