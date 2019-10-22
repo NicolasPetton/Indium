@@ -44,6 +44,27 @@ Overriding the ``sourceMapPathOverrides`` option will erase the default mapping.
 .. TIP:: If sourcemaps do not seem to work, you can see how Indium resolves
           sourcemap paths using ``M-x indium-list-sourcemap-sources``.
 
+.. _remoteroot:
+
+Setting a different remote root (NodeJS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When running a NodeJS application on a remote machine or inside a Docker
+container, your application's root folder path might not correspond to where
+their source code is located on your local disk.
+
+In this case, you can tell Indium to replace the ``root`` path with a different
+location using the ``remoteRoot`` configuration option.
+
+   {
+     ...
+     "remoteRoot": "/var/task"
+   }
+
+Note that ``remoteRoot`` can be used together with the ``root`` configuration
+option.
+
+	  
 Blackboxing scripts
 -------------------
 

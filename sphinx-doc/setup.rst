@@ -107,6 +107,11 @@ Here is an example configuration for debugging Gulp tasks::
     ]
   }
 
+When the NodeJS application runs on another computer (or inside a container like
+Docker), a custom remote project root path can be set with ``remoteRoot``.  See
+:ref:`remoteroot` for more information on script paths and debugging.
+
+
 .. _starting_indium:
      
 Starting Indium
