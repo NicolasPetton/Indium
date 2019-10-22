@@ -1,6 +1,6 @@
 {
 	"name": "indium",
-	"version": "4.0.0",
+	"version": "5.0.0",
 	"description": "Indium server",
 	"main": "index.js",
 	"scripts": {
