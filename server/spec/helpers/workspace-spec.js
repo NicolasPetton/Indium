@@ -209,7 +209,6 @@ describe("URL resolution", () => {
 		expect(resolveUrl(url, conf)).toEqual("/home/user/projects/foo/bar.js");
 	});
 
-
 	// Regression test for GH issue #161
 	it("does not transform the path when the file exists on Windows", () => {
 		let conf = {
@@ -221,16 +220,61 @@ describe("URL resolution", () => {
 		expect(resolveUrl(url, conf)).toEqual(url);
 	});
 
-        it("supports script path regexp overrides", () => {
-		let conf = {
-			projectFile: "/home/user/projects/foo/.indium.json",
-                        "scriptPathRegexpOverrides": {
-                                "(/js/.*\\.js)/[0-9]+": "private$1"
-                        }
-		};
+	describe("remote root replacement", () => {
+		it("Does not replace remote root when no remote root defined", () => {
+			let conf = {
+				projectFile: "/home/user/projects/foo/.indium.json"
+			};
 
-                let url = "http://localhost:3000/js/app.js/1234567890";
+			let path = "/home/user/projects/foo/bar.js";
 
-                expect(resolveUrl(url, conf)).toEqual("/home/user/projects/foo/private/js/app.js");
-        });
+			expect(resolveUrl(path, conf)).toEqual(path);
+		});
+
+		it("Replaces remote root when defined", () => {
+			let conf = {
+				projectFile: "/home/user/projects/foo/.indium.json",
+				remoteRoot: "/var/task/"
+			};
+
+			let path = "/var/task/bar.js";
+
+			expect(resolveUrl(path, conf)).toEqual("/home/user/projects/foo/bar.js");
+		});
+
+		it("Replaces local root with remote root when defined", () => {
+			let conf = {
+				projectFile: "/home/user/projects/foo/.indium.json",
+				root: "bar",
+				remoteRoot: "/var/task/"
+			};
+
+			let path = "/var/task/baz.js";
+
+			expect(resolveUrl(path, conf)).toEqual("/home/user/projects/foo/bar/baz.js");
+		});
+
+		it("Replaces remote root with no trailing slash", () => {
+			let conf = {
+				projectFile: "/home/user/projects/foo/.indium.json",
+				remoteRoot: "/var/task"
+			};
+
+			let path = "/var/task/bar/baz.js";
+
+			expect(resolveUrl(path, conf)).toEqual("/home/user/projects/foo/bar/baz.js");
+		});
+
+		it("Replaces remote root with file:// protocol", () => {
+			let conf = {
+				projectFile: "/home/user/projects/foo/.indium.json",
+				remoteRoot: "/var/task/"
+			};
+
+			let path = "/var/task/bar.js";
+
+			expect(resolveUrl(path, conf)).toEqual("/home/user/projects/foo/bar.js");
+		});
+	});
+
 });

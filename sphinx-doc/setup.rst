@@ -48,9 +48,6 @@ this ``.indium.json`` file is placed, but it can be overridden with the ``root``
     ]
   }
 
-Custom script path overrides can be set with ``scriptPathRegexpOverrides``.  See
-:ref:`scriptpaths` for more information on script paths and debugging.
-
 Custom sourcemap path overrides can be set with ``sourceMapPathOverrides``.  See
 :ref:`sourcemaps` for more information on sourcemaps and debugging.
 
@@ -109,6 +106,11 @@ Here is an example configuration for debugging Gulp tasks::
       }
     ]
   }
+
+When the NodeJS application runs on another computer (or inside a container like
+Docker), a custom remote project root path can be set with ``remoteRoot``.  See
+:ref:`remoteroot` for more information on script paths and debugging.
+
 
 .. _starting_indium:
      

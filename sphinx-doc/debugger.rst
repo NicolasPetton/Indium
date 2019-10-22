@@ -44,29 +44,27 @@ Overriding the ``sourceMapPathOverrides`` option will erase the default mapping.
 .. TIP:: If sourcemaps do not seem to work, you can see how Indium resolves
           sourcemap paths using ``M-x indium-list-sourcemap-sources``.
 
-.. _scriptpaths:
+.. _remoteroot:
 
-Overriding script paths
-~~~~~~~~~~~~~~~~~~~~~~~
+Setting a different remote root (NodeJS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your application's script URLs don't correspond directly to where
-their source code is located, you can use ``scriptPathRegexpOverrides`` to
-tell Indium where to find the sources.  It maps regular expressions to
-Javascript substitution strings.
+When running a NodeJS application on a remote machine or inside a Docker
+container, your application's root folder path might not correspond to where
+their source code is located on your local disk.
 
-For example, if your project root is ``/home/user/projects/foo/``, and
-the source code for http://localhost:3000/js/app.js/1234567890 is at
-``/home/user/projects/foo/private/js/app.js``, you might set
-``scriptPathRegexpOverrides`` to::
+In this case, you can tell Indium to replace the ``root`` path with a different
+location using the ``remoteRoot`` configuration option.
 
    {
-     "(/js/.*\\.js)/[0-9]+": "private$1"
+     ...
+     "remoteRoot": "/var/task"
    }
 
-This removes the trailing slash and digits, and it adds "private" to
-the beginning of the path below the project root.
+Note that ``remoteRoot`` can be used together with the ``root`` configuration
+option.
 
-
+	  
 Blackboxing scripts
 -------------------
 
