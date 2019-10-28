@@ -51,7 +51,7 @@
   (interactive)
   (indium-maybe-quit)
   (unless (indium-client-process-live-p)
-    (let ((dir (expand-file-name default-directory)))
+    (let ((dir (indium-interaction--current-directory)))
       (indium-client-start
        (lambda ()
 	 (indium-client-list-configurations
@@ -66,7 +66,7 @@
   (interactive)
   (indium-maybe-quit)
   (unless (indium-client-process-live-p)
-    (let ((dir (expand-file-name default-directory)))
+    (let ((dir (indium-interaction--current-directory)))
       (indium-client-start
        (lambda ()
 	 (indium-client-list-configurations
@@ -421,6 +421,12 @@ hitting a breakpoint."
   "Signal an error if there is a breakpoint on the current line."
     (when (indium-breakpoint-at-point)
       (user-error "There is already a breakpoint on the current line")))
+
+(defun indium-interaction--current-directory ()
+  "Return the true name of the current directory.
+
+For the project root to be correctly set, symlinks are resolved."
+  (file-truename default-directory))
 
 (add-hook 'kill-buffer-hook #'indium-interaction-kill-buffer)
 
