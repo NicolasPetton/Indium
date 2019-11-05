@@ -1,5 +1,5 @@
 const { existsSync, readFileSync, readdirSync, statSync } = require("fs");
-const { join, resolve, basename, dirname } = require("path");
+const { join, resolve, basename, dirname } = require("path").posix;
 const { URL, parse } = require("url");
 
 const projectFilename = ".indium.json";
