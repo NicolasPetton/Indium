@@ -28,6 +28,7 @@
 	"dependencies": {
 		"chrome-remote-interface": "^0.27.2",
 		"node-fetch": "^2.2.0",
+		"p-queue": "^6.2.0",
 		"semver": "^5.5.0",
 		"source-map": "^0.7.3"
 	},

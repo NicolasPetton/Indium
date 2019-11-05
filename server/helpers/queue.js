@@ -1,7 +1,8 @@
+const {default: PQueue} = require("p-queue");
+
 /**
  * Return a queued version of the function `f`.
  */
-// TODO: Return a promise
 const queued = f => (q => () => q(f))(queue());
 
 /**
@@ -17,26 +18,9 @@ const queued = f => (q => () => q(f))(queue());
  * Registered workers are automatically evaluated in sequence.
  */
 const queue = () => {
-	let workers = [];
-	let running = false;
+	const pqueue = new PQueue({concurrency: 1});
 
-	const run = async () => {
-		if (running) return;
-		running = true;
-
-		try {
-			while (workers.length) {
-				await workers.shift()();
-			}
-		}
-		finally { running = false; }
-	};
-
-	// TODO: Return a promise, to make it async and enable promise error handling
-	return f => {
-		workers.push(f);
-		setTimeout(run, 0);
-	};
+	return f => pqueue.add(() => f());
 };
 
 module.exports = { queued, queue };
