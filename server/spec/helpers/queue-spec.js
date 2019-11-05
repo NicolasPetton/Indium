@@ -10,12 +10,12 @@ describe("Running queues", () => {
 		let result = [];
 		let workers = expected.map(n => () => result.push(n));
 
-		workers.forEach(q);
+		let promises = workers.map(q);
 
-		setTimeout(() => {
+                Promise.all(promises).then(() => {
 			expect(result).toEqual(expected);
 			done();
-		}, 100);
+		});
 	});
 
 	it("should run async workers in sequence", (done) => {
@@ -25,15 +25,16 @@ describe("Running queues", () => {
 
 		let result = [];
 
-		expected.forEach((n) => q(async () => {
-			await timeout(20);
+		let promises = expected.map((n) => q(async () => {
+                        // make the first ones slower than the later ones
+			await timeout((3-n)*20);
 			result.push(n);
 		}));
 
-		setTimeout(() => {
+		Promise.all(promises).then(() => {
 			expect(result).toEqual(expected);
 			done();
-		}, 200);
+		});
 	});
 
 	it("should run again when adding new workers", (done) => {
@@ -46,24 +47,23 @@ describe("Running queues", () => {
 			result.push(n);
 		});
 
-		workers.forEach(q);
+		let promises = workers.map(q);
 
-		setTimeout(() => {
+                Promise.all(promises).then(() => {
 			expect(result).toEqual([ 1, 2, 3 ]);
-			done();
-		}, 100);
+		});
 
 		let newWorkers = [ 4, 5, 6 ].map(n => async () => {
 			await timeout(20);
 			result.push(n);
 		});
 
-		setTimeout(() => newWorkers.forEach(q), 300);
+		promises = newWorkers.map(q);
 
-		setTimeout(() => {
+                Promise.all(promises).then(() => {
 			expect(result).toEqual([ 1, 2, 3, 4, 5, 6 ]);
 			done();
-		}, 400);
+		});
 	});
 
 	it("queues should not evaluate other queues workers", (done) => {
@@ -76,19 +76,19 @@ describe("Running queues", () => {
 		let result1 = [];
 		let result2 = [];
 
-		expected1.forEach(n => q1(() => result1.push(n)));
-		expected2.forEach(n => q2(() => result2.push(n)));
+		let promises1 = expected1.map(n => q1(() => result1.push(n)));
+		let promises2 = expected2.map(n => q2(() => result2.push(n)));
 
-		setTimeout(() => {
+		Promise.all([...promises1, ...promises2]).then(() => {
 			expect(result1).toEqual(expected1);
 			expect(result2).toEqual(expected2);
 			done();
-		}, 100);
+		});
 	});
 });
 
 describe("queued functions", () => {
-	it("can queue functions", (done) => {
+	it("can queue functions", async (done) => {
 		let count = 0;
 
 		let increase = () => {
@@ -97,13 +97,11 @@ describe("queued functions", () => {
 
 		let queuedIncrease = queued(increase);
 
-		queuedIncrease();
-		queuedIncrease();
-		queuedIncrease();
+		await queuedIncrease();
+		await queuedIncrease();
+		await queuedIncrease();
 
-		setTimeout(() => {
-			expect(count).toBe(3);
-			done();
-		}, 10);
+		expect(count).toBe(3);
+		done();
 	});
 })
