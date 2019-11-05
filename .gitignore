@@ -6,3 +6,4 @@ TAGS
 docs/_build/
 sphinx-doc/_build/
 Jade.info
+node_modules/
