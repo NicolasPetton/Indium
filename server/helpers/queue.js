@@ -20,7 +20,7 @@ const queued = f => (q => () => q(f))(queue());
 const queue = () => {
 	const pqueue = new PQueue({concurrency: 1});
 
-	return f => pqueue.add(() => f());
+	return f => pqueue.add(f);
 };
 
 module.exports = { queued, queue };
