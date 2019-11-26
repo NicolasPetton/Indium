@@ -144,7 +144,7 @@
   (preview ""))
 
 (defun indium-remote-object-error-p (obj)
-  "Retun non-nil if OBJ represents an error."
+  "Return non-nil if OBJ represents an error."
   (equal (indium-remote-object-type obj) "error"))
 
 (defun indium-remote-object-reference-p (obj)

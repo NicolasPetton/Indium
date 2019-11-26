@@ -237,7 +237,7 @@ const debuggerPaused = async ({ callFrames, reason, data = {} }) => {
 				state.scripts
 			),
 			reason: reason === "exception"
-				? "Exception occured"
+				? "Exception occurred"
 				: "Breakpoint hit",
 			description: data.description
 		});

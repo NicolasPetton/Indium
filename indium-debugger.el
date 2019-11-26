@@ -482,7 +482,7 @@ CURRENT-FRAME is the current stack frame in the debugger."
   (indium-debugger-frames-goto-next 'next))
 
 (defun indium-debugger-frames-previous-frame ()
-  "Go to the previos frame in the stack."
+  "Go to the previous frame in the stack."
   (interactive)
     (indium-debugger-frames-goto-next 'previous))
 

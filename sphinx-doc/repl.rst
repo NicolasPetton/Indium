@@ -33,11 +33,11 @@ Here is the list of available keybindings in a REPL buffer:
 +-------------+----------------------------------------------------------------------------------------+
 | Keybinding  | Description                                                                            |
 +=============+========================================================================================+
-| ``RET``     | Evalute the current input.  When the point is on a printed object, inspect the object. |
+| ``RET``     | Evaluate the current input.  When the point is on a printed object, inspect the object. |
 +-------------+----------------------------------------------------------------------------------------+
 | ``C-RET``   | Insert a newline.                                                                      |
 +-------------+----------------------------------------------------------------------------------------+
-| ``C-c M-i`` | Evalute the current input and open an inspector on the result.                         |
+| ``C-c M-i`` | Evaluate the current input and open an inspector on the result.                         |
 +-------------+----------------------------------------------------------------------------------------+
 | ``C-c C-o`` | Clear the output.                                                                      |
 +-------------+----------------------------------------------------------------------------------------+
@@ -45,7 +45,7 @@ Here is the list of available keybindings in a REPL buffer:
 +-------------+----------------------------------------------------------------------------------------+
 | ``M-n``     | Insert the previous input in the history.                                              |
 +-------------+----------------------------------------------------------------------------------------+
-| ``M-p``     | Instert the next input in the history.                                                 |
+| ``M-p``     | Insert the next input in the history.                                                 |
 +-------------+----------------------------------------------------------------------------------------+
 
 Reconnecting from the REPL buffer

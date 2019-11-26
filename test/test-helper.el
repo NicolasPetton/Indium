@@ -117,7 +117,7 @@ If RETRY is the number of retries, is non-nil."
 
 (defun repl-eval (expression)
   "Send EXPRESSION to be evaluated.
-Onece EXPRESSION has been sent for evaluation, sleep for 500ms to
+Once EXPRESSION has been sent for evaluation, sleep for 500ms to
 give time for the runtime to send a response."
   (insert expression)
   (press-and-sleep-for "RET" 2))

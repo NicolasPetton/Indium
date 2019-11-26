@@ -152,12 +152,12 @@
       (indium-add-breakpoint)
       (expect (indium-add-breakpoint) :to-throw 'user-error)))
 
-  (it "should not try to remove non-existant breakpoints"
+  (it "should not try to remove non-existent breakpoints"
     (with-js2-file
       (insert "let a = 2;")
       (expect (indium-remove-breakpoint) :to-throw 'user-error)))
 
-  (it "should not try to edit non-existant breakpoints"
+  (it "should not try to edit non-existent breakpoints"
     (with-js2-file
       (insert "let a = 2;")
       (expect (indium-edit-breakpoint-condition) :to-throw 'user-error)))
