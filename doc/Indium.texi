@@ -196,7 +196,7 @@ Indium works with @code{js-mode}, @code{js2-mode}, @code{js2-jsx-mode} and
 @code{rjsx-mode}. It supports the ECMAScript features of the runtime it connects
 to.
 
-Indium is availabe on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{https://stable.melpa/org}.
+Indium is available on MELPA@footnote{https://melpa.org}, MELPA Stable@footnote{https://stable.melpa/org}.
 
 @menu
 * The Indium server:: 
@@ -547,7 +547,7 @@ Description
 
 @tab
 
-Evalute the current input.  When the point is on a printed object, inspect the object.
+Evaluate the current input.  When the point is on a printed object, inspect the object.
 
 @item
 
@@ -563,7 +563,7 @@ Insert a newline.
 
 @tab
 
-Evalute the current input and open an inspector on the result.
+Evaluate the current input and open an inspector on the result.
 
 @item
 
@@ -595,7 +595,7 @@ Insert the previous input in the history.
 
 @tab
 
-Instert the next input in the history.
+Insert the next input in the history.
 
 @end multitable
 

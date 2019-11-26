@@ -12,7 +12,7 @@ Indium works with ``js-mode``, ``js2-mode``, ``js2-jsx-mode`` and
 ``rjsx-mode``. It supports the ECMAScript features of the runtime it connects
 to.
 
-Indium is availabe on `MELPA <https://melpa.org>`_, `MELPA Stable
+Indium is available on `MELPA <https://melpa.org>`_, `MELPA Stable
 <https://stable.melpa/org>`_.
 
 .. _server_installation:

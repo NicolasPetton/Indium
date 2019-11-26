@@ -95,7 +95,7 @@ process output."
 	(insert output))
       (when (and (not connected)
 		 (string-match-p "Debugger listening on" output))
-	;; Node will keep outputing the "Debugger listening on" message after
+	;; Node will keep outputting the "Debugger listening on" message after
 	;; each deconnection, so only try to connect one.
 	(setq connected t)
 	(let-alist conf
