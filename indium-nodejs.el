@@ -46,12 +46,13 @@ it.
 If the configuration setting `inspect-brk' is non-nil, break the
 execution at the first statement."
   (let-alist conf
-    (unless .command
-      (user-error "No NodeJS command specified in the .indium.json file"))
+    (unless .program
+      (user-error "No NodeJS program specified in the .indium.json file"))
     (let* ((default-directory .resolvedRoot)
 	   (filter (indium-nodejs--process-filter-function conf))
            (command-with-flags (indium-nodejs--command-with-flags
-                                .command
+                                .program
+                                .args
                                 .inspect-brk
                                 .port))
 	   (process (make-process :name "indium-nodejs-process"
@@ -64,8 +65,10 @@ execution at the first statement."
       (switch-to-buffer (process-buffer process)))))
 
 
-(defun indium-nodejs--command-with-flags (command inspect-brk &optional port)
-  "Return COMMAND with flags to start the V8 inspector.
+(defun indium-nodejs--command-with-flags (program args inspect-brk &optional port)
+  "Return a command string with flags to start the V8 inspector.
+
+PROGRAM is the executable to run, with ARGS being the passed to the program.
 
 If INSPECT-BRK is nil, use the `--inspect', use the
 `--inspect-brk' flag otherwise.
@@ -74,14 +77,7 @@ If PORT is non-nil, start the debugging process on that port,
 otherwise use Node's default port (9229)."
   (let ((inspect-flag (if (eq inspect-brk t) " --inspect-brk" " --inspect"))
         (inspect-port-flag (if port (format " --inspect-port=%s" port) "")))
-    (save-match-data
-      (if (string-match "\\<\\(babel-\\)?node\\>" command)
-          (replace-match (format "%s%s%s"
-                                 (match-string 0 command)
-                                 inspect-flag
-                                 inspect-port-flag)
-                         nil nil command)
-        (user-error "Invalid command specified")))))
+    (format "%s%s%s %s" program inspect-flag inspect-port-flag args)))
 
 (defun indium-nodejs--process-filter-function (conf)
   "Return a process filter function for CONF.

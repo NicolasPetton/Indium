@@ -80,9 +80,12 @@ Example configuration::
 NodeJS configuration options
 ----------------------------
 
-:command:
-   Nodejs command to start a new process.  The ``--inspect`` flag will be
-   added automatically.
+:program:
+   Nodejs program to start a new process.  The ``--inspect`` flag will be
+   added automatically. Expected type: string.
+
+:args:
+   Arguments passed to the program to debug. Expected type: string.
 	   
 :inspect-brk:
    Whether Indium should break at the first statement (false by
@@ -101,7 +104,8 @@ Here is an example configuration for debugging Gulp tasks::
       {
         "name": "Gulp",
         "type": "node",
-        "command": "node ./node_modules/gulp/bin/gulp.js",
+	"program": "node",
+        "args": "./node_modules/gulp/bin/gulp.js",
         "inspect-brk": true
       }
     ]
