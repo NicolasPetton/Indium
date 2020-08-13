@@ -312,7 +312,7 @@ If has the following keys:
   url		url of the message origin
   line		line number in the resource that generated this message
   result 	object to be logged."
-  (map-put payload 'result (indium-remote-object-from-alist
+  (setf (map-elt payload 'result nil #'equal) (indium-remote-object-from-alist
 			    (map-elt payload 'result)))
   (run-hook-with-args 'indium-client-log-hook
 		      payload))

@@ -40,7 +40,7 @@
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
   (let* ((brk (indium-breakpoint-create :condition (or condition ""))))
-    (map-put indium-breakpoint--local-breakpoints brk (current-buffer))
+    (setf (map-elt indium-breakpoint--local-breakpoints brk nil #'equal) (current-buffer))
     (indium-breakpoint--add-overlay brk)
     (when (indium-client-process-live-p)
       (indium-client-add-breakpoint brk))))
