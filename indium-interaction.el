@@ -285,7 +285,7 @@ hitting a breakpoint."
   "List all breakpoints in the current connection."
   (interactive)
   (if-let ((xrefs (indium--make-xrefs-from-breakpoints)))
-      (xref--show-xrefs xrefs nil)
+      (xref--show-xrefs (lambda () xrefs)  nil)
     (message "No breakpoint")))
 
 (defun indium--make-xrefs-from-breakpoints ()
