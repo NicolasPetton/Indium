@@ -337,8 +337,7 @@ PAYLOAD is an alist with the details of the notification."
 (defun indium-client--convert-path (path)
   "Convert PATH to a system path that the server component understands."
   (when (eq system-type 'windows-nt)
-    (setq path (replace-regexp-in-string "/" "\\" path nil t))
-    (setq path (replace-regexp-in-string "^\\([a-z]\\):" #'capitalize path)))
+    (setq path (replace-regexp-in-string "/" "\\" path nil t)))
   path)
 
 (provide 'indium-client)
