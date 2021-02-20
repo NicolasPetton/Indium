@@ -126,7 +126,7 @@ Ignore if the object name of NODE is not in the current scope."
           (ov (indium-debugger-litable--get-overlay-at-pos))
           (contents (string-trim (indium-render-property-to-string property)))
 	  (name (indium-property-name property)))
-      (unless (seq-contains (overlay-get ov 'indium-properties) name)
+      (unless (seq-contains-p (overlay-get ov 'indium-properties) name)
         ;; The overlay is already used to display exception details, so do not
         ;; append anything to it.
         (unless (overlay-get ov 'indium-exception-description)
