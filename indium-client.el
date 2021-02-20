@@ -149,6 +149,14 @@ Once the client is connected, run the hook `indium-client-connected-hook'."
                       (lambda (&rest _)
 			(run-hooks 'indium-client-connected-hook))))
 
+(defun indium-client-disconnect (&optional callback)
+  "Disconnect from the runtime, but do not stop the indium process.
+
+When non-nil, evaluate CALLBACK with the result."
+  (indium-client-send `((type . "connection")
+                        (payload . ((action . "disconnect"))))
+                      callback))
+
 (defun indium-client-evaluate (expression &optional frame callback)
   "Evaluate EXPRESSION in the context of FRAME.
 

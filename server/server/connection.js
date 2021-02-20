@@ -5,6 +5,8 @@ const connection = (data = {}, { success, error, stop }) => {
 	switch(data.action) {
 		case "connect":
 			return connect(data, { success, error });
+		case "disconnect":
+			return disconnect({ success, error });
 		case "close":
 			return stop();
 		default:
@@ -59,6 +61,15 @@ const connectToNode = async (options = {}, { success, error }) => {
 		return error(e.message);
 	}
 	success("Connected to Node!");
+};
+
+const disconnect = async ({ success, error }) => {
+	try {
+		await adapter.disconnect();
+	} catch(e) {
+		return error(e.message);
+	}
+	success("Disconnected");
 };
 
 module.exports = connection;

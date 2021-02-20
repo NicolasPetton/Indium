@@ -116,6 +116,18 @@ Array of configurations.
 
 No payload.
 
+#### disconnect
+
+*Request payload:*
+
+| Key    | Type or value  | Description |
+|:-------|:---------------|:------------|
+| action | `"disconnect"` | Action type |
+
+*Successful response payload:*
+
+No payload.
+
 #### close
 
 *Request payload:*
