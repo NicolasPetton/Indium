@@ -34,6 +34,10 @@
 (declare-function indium-debugger-get-scopes-properties "indium-debugger.el" (scope callback))
 (declare-function indium-debugger-get-buffer-create "indium-debugger.el" ())
 
+(eval-when-compile
+  (when (version< emacs-version "27.1")
+    (defalias 'seq-contains-p 'seq-contains)))
+
 (defun indium-debugger-litable-setup-buffer ()
   "Render locals in the current buffer."
   (indium-debugger-get-scopes-properties
