@@ -35,6 +35,7 @@
 (require 'subr-x)
 
 (declare-function indium-client-connect "indium-client.el")
+(declare-function indium-client-disconnect "indium-client.el")
 
 (defun indium-launch-nodejs (conf)
   "Start a NodeJS process.
@@ -81,21 +82,29 @@ otherwise use Node's default port (9229)."
 
 (defun indium-nodejs--process-filter-function (conf)
   "Return a process filter function for CONF.
-The function detects the socket URL to connect to from the
-process output."
+
+The function watches the process output to determine when to connect and
+disconnect from the process."
   (let ((connected))
     (lambda (process output)
       ;; Append output to the process buffer
       (with-current-buffer (process-buffer process)
-	(goto-char (point-max))
-	(insert output))
-      (when (and (not connected)
-		 (string-match-p "Debugger listening on" output))
-	;; Node will keep outputting the "Debugger listening on" message after
-	;; each deconnection, so only try to connect one.
-	(setq connected t)
-	(let-alist conf
-	  (indium-client-connect (file-name-directory .projectFile) .name))))))
+        (goto-char (point-max))
+        (insert output))
+      (cond
+       ((and (not connected)
+             (string-match-p "Debugger listening on" output))
+        ;; Node will keep outputting the "Debugger listening on" message after
+        ;; each deconnection, so only try to connect one.
+        (setq connected t)
+        (let-alist conf
+          (indium-client-connect (file-name-directory .projectFile) .name)))
+       ((string-match-p "Waiting for the debugger to disconnect" output)
+        ;; When Node receives a signal to exit, it first waits for all
+        ;; debuggers to disconnect before shutting down.  Watch for the
+        ;; "Waiting for the debugger to disconnect" message and then do so.
+        (setq connected nil)
+        (indium-client-disconnect))))))
 
 (provide 'indium-nodejs)
 ;;; indium-nodejs.el ends here
