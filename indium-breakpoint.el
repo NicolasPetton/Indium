@@ -214,11 +214,11 @@ overlay."
       (when-let ((brk (overlay-get ov 'indium-breakpoint)))
 	(funcall fn brk ov)))))
 
-(when (and (fboundp 'define-fringe-bitmap) (display-images-p))
+(when (fboundp 'define-fringe-bitmap)
   (define-fringe-bitmap 'indium-breakpoint-resolved
     "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
   (define-fringe-bitmap 'indium-breakpoint-unresolved
-  "\x3c\x42\x81\x81\x81\x81\x42\x3c"))
+    "\x3c\x42\x81\x81\x81\x81\x42\x3c"))
 
 (provide 'indium-breakpoint)
 ;;; indium-breakpoint.el ends here
