@@ -164,13 +164,15 @@ If there is no debugging session, signal an error."
 (defun indium-interaction--eval-node (node &optional print)
   "Evaluate the AST node NODE.
 If PRINT is non-nil, print the output into the current buffer."
-  (js2-mode-wait-for-parse
-   (lambda ()
-     (indium-eval (js2-node-string node)
-                  (lambda (value)
-		    (indium-interaction--handle-eval-result
-		     value
-		     print))))))
+  (let ((buf (current-buffer)))
+    (js2-mode-wait-for-parse
+     (lambda ()
+       (indium-eval (js2-node-string node)
+                    (lambda (value)
+		      (with-current-buffer buf
+                        (indium-interaction--handle-eval-result
+		         value
+		         print))))))))
 
 (defun indium-interaction--handle-eval-result (value &optional print)
   "Handle VALUE is the result of an evaluation.
