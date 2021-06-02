@@ -531,7 +531,7 @@ If no buffer is found, return nil."
     map))
 
 (define-derived-mode indium-debugger-frames-mode special-mode "Frames"
-  "Major mode visualizind and navigating the JS stack.
+  "Major mode visualizing and navigating the JS stack.
 
 \\{indium-debugger-frames--mode-map}"
   (setq buffer-read-only t)
